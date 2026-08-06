@@ -18,13 +18,17 @@
 </template>
 
 <script setup lang="ts">
-const tabs = [
+import { isExtension } from '@ee/edition';
+
+const allTabs = [
   { to: '/reports/tong-quan', icon: 'mdi-view-dashboard-outline', label: 'Tổng quan' },
   { to: '/reports/nick', icon: 'mdi-cellphone-link', label: 'Nick Zalo' },
   { to: '/reports/sale', icon: 'mdi-account-tie-outline', label: 'Sale & Team' },
-  { to: '/reports/pipeline', icon: 'mdi-filter-variant', label: 'Pipeline & Lead Pool' },
-  { to: '/reports/automation', icon: 'mdi-cog-sync-outline', label: 'Automation' },
+  { to: '/reports/pipeline', icon: 'mdi-filter-variant', label: 'Pipeline & Lead Pool', eeOnly: true },
+  { to: '/reports/automation', icon: 'mdi-cog-sync-outline', label: 'Automation', eeOnly: true },
   { to: '/reports/engagement', icon: 'mdi-fire', label: 'Engagement' },
   { to: '/reports/audit', icon: 'mdi-shield-check-outline', label: 'Audit & Hệ thống' },
 ];
+
+const tabs = allTabs.filter(t => !t.eeOnly || isExtension);
 </script>
