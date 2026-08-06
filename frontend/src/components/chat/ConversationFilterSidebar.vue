@@ -1503,7 +1503,7 @@ watch(
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #5E6AD2 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, #8B5CF6 100%);
   color: white;
   font-size: 12px;
   font-weight: 700;
@@ -1571,7 +1571,7 @@ watch(
   right: 3px;
   min-width: 14px;
   height: 14px;
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 9px;
   font-weight: 700;
@@ -1583,14 +1583,14 @@ watch(
   border: 2px solid #FAFAFC;
 }
 .c-icon-btn .badge.red { background: #EF4444; }
-.c-icon-btn.open .badge { background: white; color: #5E6AD2; border-color: #5E6AD2; }
+.c-icon-btn.open .badge { background: white; color: var(--brand); border-color: var(--brand); }
 .c-icon-btn .dot-only {
   position: absolute;
   top: 6px;
   right: 8px;
   width: 7px;
   height: 7px;
-  background: #5E6AD2;
+  background: var(--brand);
   border-radius: 50%;
   border: 2px solid #FAFAFC;
 }
@@ -1612,7 +1612,7 @@ watch(
   border-top: 1px solid #E4E5E9;
 }
 .c-total-badge {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -1681,7 +1681,7 @@ watch(
   color: #1F2D3D;
 }
 .po-title .po-badge {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -1734,9 +1734,9 @@ watch(
 }
 .po-preset-row:hover { background: #F4F4F7; }
 .po-preset-row.active {
-  background: #EEF0FF;
-  border-color: rgba(94, 106, 210, 0.3);
-  color: #5E6AD2;
+  background: var(--brand-softer);
+  border-color: rgba(211, 47, 47, 0.3);
+  color: var(--brand);
   font-weight: 600;
 }
 .po-preset-emoji { font-size: 14px; }
@@ -1752,13 +1752,13 @@ watch(
   background: transparent;
   border: 1px dashed #D4D6DB;
   border-radius: 6px;
-  color: #5E6AD2;
+  color: var(--brand);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
 }
-.po-create-btn:hover { border-color: #5E6AD2; background: #EEF0FF; }
+.po-create-btn:hover { border-color: var(--brand); background: var(--brand-softer); }
 
 /* ── Header ── */
 .sb-header {
@@ -1775,7 +1775,7 @@ watch(
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: linear-gradient(135deg, #5E6AD2 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, #8B5CF6 100%);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -1800,7 +1800,7 @@ watch(
   font-family: inherit;
 }
 .collapse-btn:hover { background: #F4F4F7; }
-.collapse-btn:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.collapse-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Content stack ── */
 .sb-content {
@@ -1835,15 +1835,15 @@ watch(
   gap: 8px;
   width: 100%;
   padding: 7px 9px;
-  background: linear-gradient(135deg, #EEF0FF 0%, #F4F4FE 100%);
-  border: 1px solid rgba(94, 106, 210, 0.25);
+  background: linear-gradient(135deg, var(--brand-softer) 0%, #F4F4FE 100%);
+  border: 1px solid rgba(211, 47, 47, 0.25);
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
 }
-.fp-current:hover { border-color: #5E6AD2; }
-.fp-current:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.fp-current:hover { border-color: var(--brand); }
+.fp-current:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .fp-thumb { width: 26px; height: 26px; position: relative; flex-shrink: 0; }
 .fp-thumb .av {
   position: absolute;
@@ -1866,7 +1866,7 @@ watch(
 .fp-name {
   font-size: 12.5px;
   font-weight: 600;
-  color: #5E6AD2;
+  color: var(--brand);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1876,7 +1876,7 @@ watch(
 .fp-sub .nk-on { background: #22C55E; }
 .fp-sub .nk-off { background: #EF4444; }
 .fp-sub .nk-gap { margin: 0 2px; color: #C7CDD4; }
-.fp-arrow { font-size: 13px; color: #5E6AD2; font-weight: 700; }
+.fp-arrow { font-size: 13px; color: var(--brand); font-weight: 700; }
 .fp-thumb .single {
   width: 26px;
   height: 26px;
@@ -1892,7 +1892,7 @@ watch(
   background-position: center;
 }
 .fp-thumb .single.all-thumb {
-  background: linear-gradient(135deg, #5E6AD2, #8B5CF6);
+  background: linear-gradient(135deg, var(--brand), #8B5CF6);
   font-size: 13px;
 }
 .fp-back {
@@ -1905,13 +1905,13 @@ watch(
   background: transparent;
   border: 1px solid #E4E5E9;
   border-radius: 6px;
-  color: #5E6AD2;
+  color: var(--brand);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
 }
-.fp-back:hover { background: #EEF0FF; border-color: #5E6AD2; }
+.fp-back:hover { background: var(--brand-softer); border-color: var(--brand); }
 
 /* ── Saved preset bar ── */
 .saved-bar {
@@ -1948,10 +1948,10 @@ watch(
   color: #1F2D3D;
   font-family: inherit;
 }
-.saved-chip.active { background: #5E6AD2; color: white; }
+.saved-chip.active { background: var(--brand); color: white; }
 .saved-chip:hover:not(.active) { border-color: #D4D6DB; }
-.saved-chip.add { background: transparent; color: #5E6AD2; border: 1px dashed #D4D6DB; }
-.saved-chip:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.saved-chip.add { background: transparent; color: var(--brand); border: 1px dashed #D4D6DB; }
+.saved-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Body scroll ── */
 .sb-body { flex: 1; overflow-y: auto; padding: 4px 0; min-height: 0; }
@@ -1977,7 +1977,7 @@ watch(
   text-align: left;
 }
 .section-header:hover { background: #F4F4F7; }
-.section-header:focus-visible { outline: 2px solid #5E6AD2; outline-offset: -2px; }
+.section-header:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .section-header .left {
   display: flex;
   align-items: center;
@@ -1989,7 +1989,7 @@ watch(
 .section-header .left .emoji { font-size: 14px; }
 .section-header .right { display: flex; align-items: center; gap: 6px; }
 .count-badge {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -2040,8 +2040,8 @@ watch(
 }
 .tag-search:focus-within {
   background: white;
-  border-color: #5E6AD2;
-  box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
 }
 .tag-search .ic { color: #97A0AC; font-size: 11px; flex-shrink: 0; }
 .tag-search input {
@@ -2070,7 +2070,7 @@ watch(
 .sub-selected {
   font-size: 10px;
   font-weight: 600;
-  color: #5E6AD2;
+  color: var(--brand);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -2117,8 +2117,8 @@ watch(
   white-space: nowrap;
 }
 .tag-pill:hover { border-color: #D4D6DB; }
-.tag-pill.selected { background: #5E6AD2; border-color: #5E6AD2; color: white; }
-.tag-pill:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.tag-pill.selected { background: var(--brand); border-color: var(--brand); color: white; }
+.tag-pill:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .tag-pill .zalo-dot {
   width: 6px;
   height: 6px;
@@ -2141,7 +2141,7 @@ watch(
   font-family: inherit;
   color: #1F2D3D;
 }
-.score-input:focus { outline: none; border-color: #5E6AD2; }
+.score-input:focus { outline: none; border-color: var(--brand); }
 .score-track {
   flex: 1;
   height: 4px;
@@ -2169,9 +2169,9 @@ watch(
   color: #6B7785;
   font-weight: 500;
 }
-.score-tier-btn.active { background: #5E6AD2; border-color: #5E6AD2; color: white; }
+.score-tier-btn.active { background: var(--brand); border-color: var(--brand); color: white; }
 .score-tier-btn:hover:not(.active) { border-color: #D4D6DB; }
-.score-tier-btn:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.score-tier-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Stage chips ── */
 .stage-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0 2px; }
@@ -2193,7 +2193,7 @@ watch(
 /* 2026-06-08 — màu border/text lấy từ Status.color qua inline style; selected mặc định khi không có color. */
 .stage-chip.selected { background: var(--smax-primary-soft, #e4f1f8); border-color: var(--smax-primary, #1786be); color: var(--smax-primary, #1786be); }
 .stage-chip .st-dot { width: 7px; height: 7px; border-radius: 999px; flex-shrink: 0; }
-.stage-chip:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.stage-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Radio pills ── */
 .radio-bar { display: flex; gap: 3px; padding: 4px 0; flex-wrap: wrap; }
@@ -2208,9 +2208,9 @@ watch(
   color: #6B7785;
   font-weight: 500;
 }
-.radio-pill.active { background: #5E6AD2; border-color: #5E6AD2; color: white; }
+.radio-pill.active { background: var(--brand); border-color: var(--brand); color: white; }
 .radio-pill:hover:not(.active) { border-color: #D4D6DB; }
-.radio-pill:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.radio-pill:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Check row ── */
 .check-row {
@@ -2236,7 +2236,7 @@ watch(
   justify-content: center;
   background: white;
 }
-.check-row.checked .checkbox { background: #5E6AD2; border-color: #5E6AD2; }
+.check-row.checked .checkbox { background: var(--brand); border-color: var(--brand); }
 .check-row.checked .checkbox::after {
   content: '✓';
   color: white;
@@ -2249,7 +2249,7 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.check-row.checked .label { color: #5E6AD2; font-weight: 600; }
+.check-row.checked .label { color: var(--brand); font-weight: 600; }
 .check-row .count {
   font-size: 10.5px;
   color: #97A0AC;
@@ -2271,11 +2271,11 @@ watch(
   border: 1px solid transparent;
 }
 .event-row:hover { border-color: #D4D6DB; }
-.event-row.checked { background: #EEF0FF; border-color: rgba(94, 106, 210, 0.3); }
+.event-row.checked { background: var(--brand-softer); border-color: rgba(211, 47, 47, 0.3); }
 .event-row .left { display: flex; align-items: center; gap: 8px; }
 .event-row .left .icon { font-size: 14px; }
 .event-row .left .lbl { color: #1F2D3D; font-weight: 500; }
-.event-row.checked .left .lbl { color: #5E6AD2; font-weight: 600; }
+.event-row.checked .left .lbl { color: var(--brand); font-weight: 600; }
 .event-row .right-count {
   font-size: 11px;
   font-weight: 700;
@@ -2308,7 +2308,7 @@ watch(
   flex-shrink: 0;
   position: relative;
 }
-.sale-row.checked .circle { border-color: #5E6AD2; }
+.sale-row.checked .circle { border-color: var(--brand); }
 .sale-row.checked .circle::after {
   content: '';
   position: absolute;
@@ -2317,9 +2317,9 @@ watch(
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #5E6AD2;
+  background: var(--brand);
 }
-.sale-row.checked .label { color: #5E6AD2; font-weight: 600; }
+.sale-row.checked .label { color: var(--brand); font-weight: 600; }
 
 /* ── Footer ── */
 .sb-footer {
@@ -2329,8 +2329,8 @@ watch(
   padding: 10px 12px;
 }
 .footer-card {
-  background: linear-gradient(135deg, #F8F8FB 0%, #EEF0FF 100%);
-  border: 1px solid rgba(94, 106, 210, 0.18);
+  background: linear-gradient(135deg, #F8F8FB 0%, var(--brand-softer) 100%);
+  border: 1px solid rgba(211, 47, 47, 0.18);
   border-radius: 8px;
   padding: 9px 10px;
 }
@@ -2344,7 +2344,7 @@ watch(
   gap: 6px;
 }
 .footer-title .badge {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -2368,10 +2368,10 @@ watch(
   color: #1F2D3D;
   font-family: inherit;
 }
-.f-chip:hover { border-color: #5E6AD2; color: #5E6AD2; }
+.f-chip:hover { border-color: var(--brand); color: var(--brand); }
 .f-chip .x { font-size: 9px; color: #97A0AC; }
-.f-chip:hover .x { color: #5E6AD2; }
-.f-chip:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.f-chip:hover .x { color: var(--brand); }
+.f-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .clear-all {
   display: flex;
   align-items: center;
@@ -2381,14 +2381,14 @@ watch(
   padding: 4px;
   background: transparent;
   border: none;
-  color: #5E6AD2;
+  color: var(--brand);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   border-radius: 4px;
 }
-.clear-all:hover { background: #5E6AD2; color: white; }
+.clear-all:hover { background: var(--brand); color: white; }
 
 /* 2026-06-01: "Nhận khách" inline trong sidebar (thay FAB floating bottom-right) */
 .sb-nhan-khach {

@@ -303,7 +303,7 @@ function avatarColor(name: string): string {
   border-radius: 8px; font-size: 13px; font-family: inherit;
   margin-bottom: 4px;
 }
-.orad-search:focus { outline: none; border-color: #5E6AD2; box-shadow: 0 0 0 2px rgba(94,106,210,0.15); }
+.orad-search:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 2px rgba(211, 47, 47,0.15); }
 
 .orad-user-list {
   max-height: 280px; overflow-y: auto;
@@ -320,7 +320,7 @@ function avatarColor(name: string): string {
 }
 .orad-user-item:last-child { border-bottom: none; }
 .orad-user-item:hover:not(:disabled) { background: #F9FAFB; }
-.orad-user-item.selected { background: #EEF0FF; }
+.orad-user-item.selected { background: var(--brand-softer); }
 .orad-user-item.current { opacity: 0.55; cursor: not-allowed; }
 .orad-user-info { flex: 1; min-width: 0; }
 .orad-user-name { font-size: 13px; font-weight: 600; color: #0F172A; }
@@ -353,7 +353,7 @@ function avatarColor(name: string): string {
 }
 .orad-btn-ghost:hover { background: #F9FAFB; }
 .orad-btn-primary {
-  background: linear-gradient(135deg, #5E6AD2, #4C57B8); color: white;
+  background: linear-gradient(135deg, var(--brand), #4C57B8); color: white;
   border: none; padding: 9px 18px; border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 13px;
 }
 .orad-btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #4C57B8, #3F4AA0); }

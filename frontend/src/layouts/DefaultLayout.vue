@@ -408,7 +408,7 @@ function logout() {
 .hs-bbox {
   width: 34px; height: 34px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #1786be 0%, #0b5880 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-700) 100%);
   box-shadow: inset 0 1px 1px rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.25);
   flex: none;
 }

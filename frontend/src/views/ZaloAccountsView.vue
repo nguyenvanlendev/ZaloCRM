@@ -844,7 +844,7 @@ onMounted(async () => {
   display: inline-flex; align-items: center; gap: 6px;
 }
 .za-tab:hover { color: #374151; }
-.za-tab.active { color: #5E6AD2; border-bottom-color: #5E6AD2; }
+.za-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
 .za-tab-counter {
   font-size: 11px; font-weight: 700;
   padding: 2px 8px; border-radius: 9999px;
@@ -868,7 +868,7 @@ onMounted(async () => {
 }
 .za-subtab:hover { color: #374151; }
 .za-subtab.active {
-  color: #5E6AD2; background: #FFFFFF;
+  color: var(--brand); background: #FFFFFF;
   box-shadow: 0 1px 2px rgba(16,24,40,.08);
 }
 
@@ -881,7 +881,7 @@ onMounted(async () => {
   color: #6b7280; border-radius: 8px; transition: all .15s;
 }
 .za-groupby-opt:hover { border-color: #c7d2fe; color: #374151; }
-.za-groupby-opt.active { background: #eef0ff; border-color: #5e6ad2; color: #5e6ad2; }
+.za-groupby-opt.active { background: var(--brand-softer); border-color: var(--brand); color: var(--brand); }
 
 /* Phase 4 redesign 2026-05-22: filter chip Phòng ban + group-by toggle */
 .chip-multi { position: relative; }
@@ -892,9 +892,9 @@ onMounted(async () => {
   font-family: inherit; color: #374151;
 }
 .chip-btn:hover { background: #F9FAFB; border-color: #C7CCEB; }
-.chip-multi.open .chip-btn { border-color: #5E6AD2; background: #EEF0FF; color: #4F5BC4; }
+.chip-multi.open .chip-btn { border-color: var(--brand); background: var(--brand-softer); color: #4F5BC4; }
 .chip-count {
-  background: #5E6AD2; color: white;
+  background: var(--brand); color: white;
   font-size: 10px; font-weight: 700;
   padding: 1px 6px; border-radius: 10px;
   line-height: 1.4;
@@ -913,7 +913,7 @@ onMounted(async () => {
   font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
 }
 .chip-clear {
-  background: transparent; border: none; color: #5E6AD2;
+  background: transparent; border: none; color: var(--brand);
   font-size: 11px; cursor: pointer; font-family: inherit; font-weight: 600;
 }
 .chip-pop-list { max-height: 320px; overflow-y: auto; padding: 4px 0; }
@@ -931,8 +931,8 @@ onMounted(async () => {
   border-radius: 6px; font-size: 12.5px; color: #374151;
   cursor: pointer; user-select: none;
 }
-.toggle-group input { cursor: pointer; accent-color: #5E6AD2; }
-.toggle-group:has(input:checked) { background: #EEF0FF; border-color: #5E6AD2; color: #4F5BC4; }
+.toggle-group input { cursor: pointer; accent-color: var(--brand); }
+.toggle-group:has(input:checked) { background: var(--brand-softer); border-color: var(--brand); color: #4F5BC4; }
 
 .za-page {
   padding: 20px 24px 120px;

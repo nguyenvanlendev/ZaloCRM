@@ -250,10 +250,10 @@ function initials(name?: string | null): string {
 
 /* Mục 1 — header nhóm theo người dùng (atlas v2) */
 .ngc-group-head.gh-owner { color: #334155; }
-.gh-owner .ngc-group-count { background: #eef0ff; color: #5e6ad2; }
+.gh-owner .ngc-group-count { background: var(--brand-softer); color: var(--brand); }
 .ngc-owner-av {
   width: 26px; height: 26px; border-radius: 50%;
-  background: linear-gradient(135deg, #5e6ad2, #7c8af0); color: #fff;
+  background: linear-gradient(135deg, var(--brand), #7c8af0); color: #fff;
   font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }

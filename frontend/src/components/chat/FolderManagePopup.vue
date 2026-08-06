@@ -734,8 +734,8 @@ onMounted(() => {
 }
 .tab:hover { color: #1F2D3D; }
 .tab.active {
-  color: #5E6AD2;
-  border-bottom-color: #5E6AD2;
+  color: var(--brand);
+  border-bottom-color: var(--brand);
   font-weight: 600;
 }
 
@@ -832,11 +832,11 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 .folder-card.selected {
-  border-color: #5E6AD2;
-  background: #EEF0FF;
-  box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.15);
+  border-color: var(--brand);
+  background: var(--brand-softer);
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.15);
 }
-.folder-card:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 2px; }
+.folder-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .fc-thumb {
   width: 42px;
@@ -879,7 +879,7 @@ onMounted(() => {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #5E6AD2, #8B5CF6);
+  background: linear-gradient(135deg, var(--brand), #8B5CF6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -896,7 +896,7 @@ onMounted(() => {
   white-space: nowrap;
   max-width: 100%;
 }
-.folder-card.selected .fc-name { color: #5E6AD2; }
+.folder-card.selected .fc-name { color: var(--brand); }
 /* Dòng online/offline dưới tên sale */
 .fc-meta {
   display: flex;
@@ -932,8 +932,8 @@ onMounted(() => {
 }
 .nick-search:focus-within {
   background: white;
-  border-color: #5E6AD2;
-  box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
 }
 .nick-search .ic { color: #97A0AC; font-size: 12px; }
 .nick-search input {
@@ -989,10 +989,10 @@ onMounted(() => {
 }
 .nick-pick-row:hover { border-color: #E4E5E9; }
 .nick-pick-row.selected {
-  background: #EEF0FF;
-  border-color: rgba(94, 106, 210, 0.4);
+  background: var(--brand-softer);
+  border-color: rgba(211, 47, 47, 0.4);
 }
-.nick-pick-row:focus-visible { outline: 2px solid #5E6AD2; outline-offset: 1px; }
+.nick-pick-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 /* 2026-06-11: wrapper row + nút nhanh per-nick (port main) */
 .nick-pick-rowwrap { display: flex; align-items: center; gap: 4px; }
 .nick-pick-rowwrap > .nick-pick-row { flex: 1; min-width: 0; }
@@ -1030,7 +1030,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.nick-pick-row.selected .np-name { color: #5E6AD2; }
+.nick-pick-row.selected .np-name { color: var(--brand); }
 .np-sub {
   font-size: 11px;
   color: #97A0AC;
@@ -1052,7 +1052,7 @@ onMounted(() => {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   font-size: 12px;
   font-weight: 700;
@@ -1114,8 +1114,8 @@ onMounted(() => {
 .ml-folder-item:hover { background: white; border-color: #E4E5E9; }
 .ml-folder-item.selected {
   background: white;
-  border-color: rgba(94, 106, 210, 0.4);
-  box-shadow: 0 1px 2px rgba(94, 106, 210, 0.08);
+  border-color: rgba(211, 47, 47, 0.4);
+  box-shadow: 0 1px 2px rgba(211, 47, 47, 0.08);
 }
 
 .ml-thumb { width: 32px; height: 32px; position: relative; flex-shrink: 0; }
@@ -1147,7 +1147,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ml-folder-item.selected .ml-name { color: #5E6AD2; }
+.ml-folder-item.selected .ml-name { color: var(--brand); }
 .ml-sub { font-size: 11px; color: #97A0AC; }
 .ml-count {
   font-size: 11px;
@@ -1158,7 +1158,7 @@ onMounted(() => {
   border-radius: 999px;
   flex-shrink: 0;
 }
-.ml-folder-item.selected .ml-count { background: #5E6AD2; color: white; }
+.ml-folder-item.selected .ml-count { background: var(--brand); color: white; }
 
 .ml-create-btn {
   display: flex;
@@ -1170,14 +1170,14 @@ onMounted(() => {
   background: white;
   border: 1px dashed #D4D6DB;
   border-radius: 8px;
-  color: #5E6AD2;
+  color: var(--brand);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   justify-content: center;
 }
-.ml-create-btn:hover { border-color: #5E6AD2; background: #EEF0FF; }
+.ml-create-btn:hover { border-color: var(--brand); background: var(--brand-softer); }
 
 /* Mục 2 — nút Cập nhật thư mục theo nick (nhỏ gọn, atlas v2 indigo) */
 .ml-sync-btn {
@@ -1187,7 +1187,7 @@ onMounted(() => {
   width: 100%;
   padding: 9px 12px;
   margin-top: 6px;
-  background: #5E6AD2;
+  background: var(--brand);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -1279,8 +1279,8 @@ onMounted(() => {
   background: white;
 }
 .ml-name-input input:focus {
-  border-color: #5E6AD2;
-  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.12);
 }
 .ml-delete-btn {
   padding: 7px 12px;
@@ -1311,7 +1311,7 @@ onMounted(() => {
   gap: 8px;
 }
 .ml-nick-section-head .title .selected-count {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   padding: 2px 8px;
   font-size: 11px;
@@ -1378,7 +1378,7 @@ onMounted(() => {
 .nick-card.is-online  { border-color: #12b76a; }
 .nick-card.is-pending { border-color: #f5a524; }
 .nick-card.is-offline { border-color: #f04438; }
-.nick-card.selected { background: #f5f7ff; box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.18); }
+.nick-card.selected { background: #f5f7ff; box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.18); }
 
 .nick-card .nick-check {
   position: absolute;
@@ -1396,7 +1396,7 @@ onMounted(() => {
   font-size: 12px;
   font-weight: 700;
 }
-.nick-card.selected .nick-check { background: #5E6AD2; border-color: #5E6AD2; }
+.nick-card.selected .nick-check { background: var(--brand); border-color: var(--brand); }
 
 .nick-card .nick-head { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .nick-card .nick-avatar,
@@ -1451,7 +1451,7 @@ onMounted(() => {
   gap: 12px;
 }
 .mf-status { font-size: 12.5px; color: #6B7785; }
-.mf-status strong { color: #5E6AD2; font-weight: 700; }
+.mf-status strong { color: var(--brand); font-weight: 700; }
 .mf-status .muted { font-style: italic; opacity: 0.7; }
 .mf-actions { display: flex; gap: 8px; }
 .btn {
@@ -1467,8 +1467,8 @@ onMounted(() => {
 }
 .btn:hover { background: #F4F4F7; }
 .btn.primary {
-  background: #5E6AD2;
-  border-color: #5E6AD2;
+  background: var(--brand);
+  border-color: var(--brand);
   color: white;
 }
 .btn.primary:hover { background: #4E5AB8; }

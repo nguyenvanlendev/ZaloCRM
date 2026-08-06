@@ -222,8 +222,8 @@ onMounted(() => {
 }
 .sl-search input:focus {
   background: white;
-  border-color: #5E6AD2;
-  box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
 }
 .sl-search .ic {
   color: #97A0AC;
@@ -317,10 +317,10 @@ onMounted(() => {
 }
 .sl-item.active,
 .sl-item.router-link-exact-active {
-  background: #EEF0FF;
-  color: #5E6AD2;
+  background: var(--brand-softer);
+  color: var(--brand);
   font-weight: 600;
-  box-shadow: inset 3px 0 0 #5E6AD2;
+  box-shadow: inset 3px 0 0 var(--brand);
 }
 .sl-item-icon {
   font-size: 14px;
@@ -364,7 +364,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 .bc-root {
-  color: #5E6AD2;
+  color: var(--brand);
   text-decoration: none;
   font-weight: 500;
 }

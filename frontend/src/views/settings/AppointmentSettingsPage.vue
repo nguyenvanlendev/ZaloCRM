@@ -221,14 +221,14 @@ onMounted(load);
 <style scoped>
 .ap-settings { max-width: 720px; font-family: 'Inter', -apple-system, sans-serif; color: #1F2D3D; }
 .ap-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
-.ap-ico { width: 44px; height: 44px; border-radius: 12px; background: #EEF0FF; display: grid; place-items: center; font-size: 22px; flex: none; }
+.ap-ico { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-softer); display: grid; place-items: center; font-size: 22px; flex: none; }
 .ap-h1 { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
 .ap-sub { font-size: 13px; color: #6B7785; margin: 0; line-height: 1.55; }
 .ap-loading { padding: 28px; text-align: center; color: #97A0AC; }
 
 .ap-warn { display: flex; gap: 10px; align-items: flex-start; background: #FFFBEB; border: 1px solid #FDE68A;
   color: #92400E; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
-.ap-link { color: #5E6AD2; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ap-link { color: var(--brand); font-weight: 600; text-decoration: none; white-space: nowrap; }
 .ap-link:hover { text-decoration: underline; }
 
 .ap-card { background: #fff; border: 1px solid #E4E5E9; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
@@ -241,8 +241,8 @@ onMounted(load);
 .ap-quick { display: flex; gap: 6px; }
 .ap-chip { border: 1px solid #D4D6DB; background: #fff; border-radius: 999px; padding: 5px 13px; font-size: 12.5px;
   font-weight: 600; color: #475066; cursor: pointer; font-family: inherit; transition: all .12s; }
-.ap-chip:hover:not(:disabled) { border-color: #5E6AD2; color: #5E6AD2; }
-.ap-chip.active { background: #EEF0FF; border-color: #5E6AD2; color: #5E6AD2; }
+.ap-chip:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.ap-chip.active { background: var(--brand-softer); border-color: var(--brand); color: var(--brand); }
 .ap-chip:disabled { opacity: .5; cursor: default; }
 .ap-hint { font-size: 12px; color: #97A0AC; margin: 10px 0 0; }
 

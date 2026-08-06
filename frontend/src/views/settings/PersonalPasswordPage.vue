@@ -181,8 +181,8 @@ async function onSubmit() {
   background: white;
 }
 .form-row input:focus {
-  border-color: #5E6AD2;
-  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.12);
 }
 
 .pw-wrap { position: relative; }
@@ -245,8 +245,8 @@ async function onSubmit() {
   text-decoration: none;
 }
 .btn-primary {
-  background: #5E6AD2;
-  border-color: #5E6AD2;
+  background: var(--brand);
+  border-color: var(--brand);
   color: white;
 }
 .btn-primary:hover:not(:disabled) { background: #4E5AB8; }
@@ -257,14 +257,14 @@ async function onSubmit() {
   margin-top: 16px;
   padding: 12px 16px;
   background: #FAFAFC;
-  border-left: 3px solid #5E6AD2;
+  border-left: 3px solid var(--brand);
   border-radius: 6px;
   font-size: 12.5px;
   color: #6B7785;
   line-height: 1.55;
 }
 .note a {
-  color: #5E6AD2;
+  color: var(--brand);
   text-decoration: none;
   font-weight: 500;
 }

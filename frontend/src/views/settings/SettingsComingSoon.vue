@@ -223,12 +223,12 @@ const bullets = computed(() => meta.value.bullets);
 .cs-tag {
   display: inline-block;
   padding: 4px 12px;
-  background: linear-gradient(135deg, #EEF0FF 0%, #F4F4FE 100%);
-  border: 1px solid rgba(94, 106, 210, 0.3);
+  background: linear-gradient(135deg, var(--brand-softer) 0%, #F4F4FE 100%);
+  border: 1px solid rgba(211, 47, 47, 0.3);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #5E6AD2;
+  color: var(--brand);
   margin-bottom: 24px;
 }
 .cs-roadmap {
@@ -264,7 +264,7 @@ const bullets = computed(() => meta.value.bullets);
   position: absolute;
   left: 0;
   top: 4px;
-  color: #5E6AD2;
+  color: var(--brand);
   font-weight: 700;
 }
 .cs-actions {
@@ -273,7 +273,7 @@ const bullets = computed(() => meta.value.bullets);
 .cs-link {
   display: inline-block;
   font-size: 12.5px;
-  color: #5E6AD2;
+  color: var(--brand);
   text-decoration: none;
   font-weight: 600;
 }

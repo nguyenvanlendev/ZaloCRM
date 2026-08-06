@@ -553,7 +553,7 @@ async function openVirtualChat() {
   background: #f1f5f9; color: #475569;
 }
 .cdp-tag { background: #fef3c7; color: #92400e; }
-.cdp-role-primary { background: #eef0ff; color: #4f46e5; }
+.cdp-role-primary { background: var(--brand-softer); color: #4f46e5; }
 .cdp-role-collab { background: #fef3c7; color: #92400e; }
 
 /* Actions */

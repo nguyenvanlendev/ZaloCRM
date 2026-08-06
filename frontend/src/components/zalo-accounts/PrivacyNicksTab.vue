@@ -413,7 +413,7 @@ const NickRow = defineComponent({
 .pin-action { flex-shrink: 0; }
 .pin-btn { padding: 9px 18px; border: none; border-radius: 8px; background: #1E40AF; color: white; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .pin-btn:hover { background: #1E3A8A; }
-.pin-btn.empty { background: #5E6AD2; }
+.pin-btn.empty { background: var(--brand); }
 .pin-btn-group { display: flex; gap: 6px; }
 .pin-btn-split { padding: 8px 14px; border-radius: 7px; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; border: 1px solid transparent; white-space: nowrap; }
 .pin-btn-split.lock { background: #B45309; color: white; border-color: #B45309; }
@@ -469,8 +469,8 @@ const NickRow = defineComponent({
 :deep(.nr-meta) { font-size: 11.5px; color: #6B7280; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 :deep(.nr-dot) { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 :deep(.nr-uid) { color: #9CA3AF; }
-:deep(.nr-set-internal), :deep(.nr-clear-internal) { background: transparent; border: 1px dashed #C7D2FE; color: #5E6AD2; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer; align-self: flex-start; margin-top: 2px; font-family: inherit; }
-:deep(.nr-set-internal):hover, :deep(.nr-clear-internal):hover { background: #EEF0FF; border-style: solid; }
+:deep(.nr-set-internal), :deep(.nr-clear-internal) { background: transparent; border: 1px dashed #C7D2FE; color: var(--brand); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer; align-self: flex-start; margin-top: 2px; font-family: inherit; }
+:deep(.nr-set-internal):hover, :deep(.nr-clear-internal):hover { background: var(--brand-softer); border-style: solid; }
 :deep(.nr-clear-internal) { color: #B91C1C; border-color: #FCA5A5; }
 :deep(.nr-clear-internal:hover) { background: #FEF2F2; }
 /* Segmented switch Thường | Riêng tư (anh chốt 2026-06-06) — rõ gạt bên nào là gì */

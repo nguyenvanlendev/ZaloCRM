@@ -279,7 +279,7 @@ defineExpose({ fetchState });
 }
 .ob-progress-fill {
   fill: none;
-  stroke: #5E6AD2;
+  stroke: var(--brand);
   stroke-width: 5;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.6s ease;
@@ -306,7 +306,7 @@ defineExpose({ fetchState });
   color: #0F172A;
   line-height: 1.4;
 }
-.ob-greeting strong { color: #5E6AD2; font-weight: 700; }
+.ob-greeting strong { color: var(--brand); font-weight: 700; }
 .ob-sub {
   margin: 3px 0 0;
   font-size: 13px;
@@ -345,7 +345,7 @@ defineExpose({ fetchState });
 .ob-step + .ob-step { border-top: 1px solid #E5E7EB; }
 .ob-step:hover { background: #FAFBFC; }
 .ob-step.is-done { background: #FAFBFC; }
-.ob-step.is-pending { border-left-color: #5E6AD2; }
+.ob-step.is-pending { border-left-color: var(--brand); }
 .ob-step.is-skipped { opacity: 0.65; }
 
 .ob-marker {
@@ -368,9 +368,9 @@ defineExpose({ fetchState });
   color: white;
 }
 .ob-step.is-pending .ob-marker {
-  border-color: #5E6AD2;
-  color: #5E6AD2;
-  background: #EEF0FF;
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-softer);
 }
 .ob-step.is-optional .ob-marker {
   border-style: dashed;
@@ -421,7 +421,7 @@ defineExpose({ fetchState });
 }
 
 .ob-btn {
-  background: #5E6AD2;
+  background: var(--brand);
   color: white;
   border: none;
   padding: 7px 14px;

@@ -307,7 +307,7 @@ defineExpose({ refresh: fetchTimeline });
 .eh-cell[data-level="3"] { background: #4ADE80; }
 .eh-cell[data-level="4"] { background: #16A34A; }
 .eh-cell:hover {
-  outline: 2px solid #5E6AD2;
+  outline: 2px solid var(--brand);
   outline-offset: 1px;
 }
 
@@ -329,7 +329,7 @@ defineExpose({ refresh: fetchTimeline });
 .meta-value.up { color: #16A34A; }
 .meta-value.down { color: #EF4444; }
 .meta-value.flat { color: #6B7785; }
-.meta-value.score { color: #5E6AD2; }
+.meta-value.score { color: var(--brand); }
 
 .eh-breakdown {
   margin-top: 10px;

@@ -974,7 +974,7 @@ function onboardingTooltip(s: OnboardingSummary): string {
 .hero-right { flex-shrink: 0; }
 
 .btn-primary {
-  background: #5E6AD2; color: white; border: none;
+  background: var(--brand); color: white; border: none;
   padding: 10px 18px; border-radius: 10px;
   font-weight: 700; font-size: 13.5px; cursor: pointer; font-family: inherit;
   display: inline-flex; align-items: center; gap: 6px;
@@ -1026,7 +1026,7 @@ function onboardingTooltip(s: OnboardingSummary): string {
   padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 9px;
   font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s;
 }
-.create-label input:focus, .create-label select:focus { border-color: #5E6AD2; }
+.create-label input:focus, .create-label select:focus { border-color: var(--brand); }
 .req { color: #DC2626; }
 
 .pw-row { display: flex; gap: 6px; align-items: center; }

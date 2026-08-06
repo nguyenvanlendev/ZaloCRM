@@ -25,13 +25,13 @@
 
 /* ---------- 1. Tokens ---------- */
 :root {
-  /* Brand — HS Holding (metallic sky-blue on teal-navy) */
-  --brand:        #1786be;   /* primary action */
-  --brand-600:    #0f6fa0;   /* hover */
-  --brand-700:    #0b5880;   /* active / deep */
-  --brand-soft:   #e4f1f8;
-  --brand-softer: #f2f8fc;
-  --brand-bright: #5bb8e5;   /* highlight from monogram */
+  /* Brand — YOEDU (red) */
+  --brand:        #d32f2f;   /* primary action */
+  --brand-600:    #b71c1c;   /* hover */
+  --brand-700:    #981010;   /* active / deep */
+  --brand-soft:   #fde8e8;
+  --brand-softer: #fef2f2;
+  --brand-bright: #ff5252;   /* highlight from monogram */
 
   /* Cool neutrals */
   --ink:          #141a24;   /* primary text */
@@ -44,12 +44,12 @@
   --surface-2:    #f7f9fc;   /* page background */
   --surface-3:    #f1f4f9;   /* inset / hover */
 
-  /* Brand teal-navy shell (HS signature background) */
-  --shell:        #0c3b4f;
-  --shell-2:      #114a61;
+  /* Neutral Dark Slate Shell (pairs elegantly with Red) */
+  --shell:        #1e293b;
+  --shell-2:      #334155;
   --shell-line:   rgba(255,255,255,.10);
-  --shell-ink:    #cfe2ec;
-  --shell-ink-2:  #7fa6b8;
+  --shell-ink:    #f8fafc;
+  --shell-ink-2:  #94a3b8;
 
   /* Semantic */
   --success:      #12b76a;   --success-soft: #e7f7ef;

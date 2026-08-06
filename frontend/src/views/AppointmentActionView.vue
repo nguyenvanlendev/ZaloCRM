@@ -8,7 +8,7 @@
 <template>
   <div class="aa-wrap">
     <div class="aa-card">
-      <div class="aa-brand"><span class="aa-logo">HS</span> ZaloCRM</div>
+      <div class="aa-brand"><span class="aa-logo">YO</span> YOEDU CRM</div>
 
       <div v-if="loading" class="aa-state">Đang tải lịch hẹn…</div>
 
@@ -137,7 +137,7 @@ onMounted(load);
 .aa-card { width: 100%; max-width: 380px; margin: auto; background: #fff; border-radius: 16px; padding: 22px 20px 24px;
   box-shadow: 0 16px 48px rgba(0,0,0,.3); font-family: Inter, system-ui, -apple-system, sans-serif; color: #141a24; }
 .aa-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #0b5880; margin-bottom: 16px; }
-.aa-logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, #1786be, #0b5880); color: #fff;
+.aa-logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), var(--brand-700)); color: #fff;
   font-size: 11px; display: grid; place-items: center; }
 .aa-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .aa-head h2 { margin: 0; font-size: 17px; font-weight: 700; }

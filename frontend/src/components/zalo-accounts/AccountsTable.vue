@@ -660,9 +660,9 @@ tbody tr.alert:hover { background: #FFF5F5 }
   transition: background 0.1s;
 }
 .owner-cell.clickable { cursor: pointer; }
-.owner-cell.clickable:hover { background: #EEF0FF; }
+.owner-cell.clickable:hover { background: var(--brand-softer); }
 .owner-cell.clickable:hover .owner-edit-icon { opacity: 1; }
-.owner-edit-icon { color: #5E6AD2; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+.owner-edit-icon { color: var(--brand); opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
 .owner-avatar { margin-left: 0 !important; flex-shrink: 0; }
 
 /* Department cell — Phase 4 2026-05-22 */
