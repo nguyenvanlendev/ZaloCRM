@@ -25,7 +25,7 @@ const allTabs = [
   { to: '/reports/nick', icon: 'mdi-cellphone-link', label: 'Nick Zalo' },
   { to: '/reports/sale', icon: 'mdi-account-tie-outline', label: 'Sale & Team' },
   { to: '/reports/pipeline', icon: 'mdi-filter-variant', label: 'Pipeline & Lead Pool', eeOnly: true },
-  { to: '/reports/automation', icon: 'mdi-cog-sync-outline', label: 'Automation', eeOnly: true },
+  { to: '/reports/automation', icon: 'mdi-cog-sync-outline', label: 'Automation (MVP)' },
   { to: '/reports/engagement', icon: 'mdi-fire', label: 'Engagement' },
   { to: '/reports/audit', icon: 'mdi-shield-check-outline', label: 'Audit & Hệ thống' },
 ];

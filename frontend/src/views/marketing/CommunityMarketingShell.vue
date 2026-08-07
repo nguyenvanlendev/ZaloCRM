@@ -41,6 +41,8 @@ const route = useRoute();
 const navItems = [
   { to: '/marketing/group-scan', label: 'Quét nhóm', icon: 'mdi-account-group-outline' },
   { to: '/marketing/lists', label: 'Tệp khách hàng', icon: 'mdi-format-list-bulleted' },
+  { to: '/marketing/blocks', label: 'Khối nội dung', icon: 'mdi-cube-outline' },
+  { to: '/marketing/sequences', label: 'Luồng kịch bản', icon: 'mdi-sitemap-outline' },
 ];
 
 function isActive(to: string): boolean {

@@ -76,6 +76,9 @@ export async function listProviderModels(
 
   let models: ProviderModel[];
   switch (provider) {
+    case 'openrouter':
+      models = await listOpenaiCompat(baseUrl, apiKey, '/models');
+      break;
     case 'openai':
     case 'kimi':
       models = await listOpenaiCompat(baseUrl, apiKey, '/v1/models');

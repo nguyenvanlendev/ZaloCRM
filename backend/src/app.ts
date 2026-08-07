@@ -81,6 +81,8 @@ import { publicApiRoutes } from './modules/api/public-api-routes.js';
 import { webhookSettingsRoutes } from './modules/api/webhook-settings-routes.js';
 import { startContactIntelligence } from './modules/contacts/contact-intelligence.js';
 import { analyticsRoutes } from './modules/analytics/analytics-routes.js';
+import { automationRoutes } from './modules/automation/automation-routes.js';
+import { startAutomationWorker } from './modules/automation/automation-queue.js';
 import { savedReportRoutes } from './modules/analytics/saved-report-routes.js';
 import { integrationRoutes } from './modules/integrations/integration-routes.js';
 // Automation + Marketing (engine, blocks, sequences, triggers, broadcasts,
@@ -320,6 +322,7 @@ async function bootstrap() {
   await app.register(publicApiRoutes);
   await app.register(webhookSettingsRoutes);
   await app.register(analyticsRoutes);
+  await app.register(automationRoutes);
   await app.register(savedReportRoutes);
   await app.register(integrationRoutes);
   // Automation + Marketing routes (blocks/sequences/triggers/broadcasts/care-session/
@@ -450,6 +453,7 @@ async function bootstrap() {
     // 2026-06-19 — Cầu Telegram (Phase 1): subscribe bridge-bus, mirror tin Zalo→Telegram.
     // Core feature (outside _ee) — chạy ở cả Extension lẫn Community.
     if (config.nodeEnv !== 'test') {
+      startAutomationWorker(); // Khởi động Automation Worker (MVP CE)
       try {
         initTelegramBridge();
       } catch (err) {

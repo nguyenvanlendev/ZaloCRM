@@ -49,6 +49,18 @@ export async function getAiConfig(orgId: string) {
     aiConfig = await prisma.aiConfig.create({
       data: { orgId, provider: config.aiDefaultProvider, model: config.aiDefaultModel, maxDaily: 500, enabled: true },
     });
+  } else {
+    // Nếu provider hiện tại trong DB chưa cấu hình Key, nhưng aiDefaultProvider có Key -> Tự động chuyển sang aiDefaultProvider
+    const providerKey = await resolveProviderApiKey(orgId, aiConfig.provider);
+    if (!providerKey) {
+      const defaultKey = await resolveProviderApiKey(orgId, config.aiDefaultProvider);
+      if (defaultKey) {
+        aiConfig = await prisma.aiConfig.update({
+          where: { orgId },
+          data: { provider: config.aiDefaultProvider, model: config.aiDefaultModel }
+        });
+      }
+    }
   }
   const availableProviders = await getAvailableProviders(orgId);
   return { ...aiConfig, availableProviders };
@@ -111,7 +123,8 @@ export async function generateText(provider: string, apiKey: string, model: stri
   if (provider === 'anthropic') return generateWithAnthropic(baseUrl, apiKey, model, system, prompt, maxTokens);
   if (provider === 'gemini') return generateWithGemini(baseUrl, apiKey, model, system, prompt, maxTokens);
 
-  /* OpenAI, Qwen, Kimi all use OpenAI-compatible chat/completions API */
+  /* OpenAI, OpenRouter, Qwen, Kimi all use OpenAI-compatible chat/completions API */
+  if (provider === 'openrouter') return generateWithOpenaiCompat(`${baseUrl}/chat/completions`, apiKey, model, system, prompt, maxTokens);
   if (provider === 'openai') return generateWithOpenaiCompat(`${baseUrl}/v1/chat/completions`, apiKey, model, system, prompt, maxTokens, 'max_completion_tokens');
   if (provider === 'qwen') return generateWithOpenaiCompat(`${baseUrl}/compatible-mode/v1/chat/completions`, apiKey, model, system, prompt, maxTokens);
   if (provider === 'kimi') return generateWithOpenaiCompat(`${baseUrl}/v1/chat/completions`, apiKey, model, system, prompt, maxTokens);

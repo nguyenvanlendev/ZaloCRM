@@ -93,6 +93,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'pipeline',   name: 'Reports.Pipeline',   component: () => import('@/views/reports/PipelineReport.vue'),   meta: { resource: 'engagement_score' } },
       { path: 'engagement', name: 'Reports.Engagement', component: () => import('@/views/reports/EngagementReport.vue'), meta: { resource: 'engagement_score' } },
       { path: 'audit',      name: 'Reports.Audit',      component: () => import('@/views/reports/AuditReport.vue'),      meta: { resource: 'engagement_score' } },
+      { path: 'automation', name: 'Reports.Automation', component: () => import('@/views/reports/AutomationReport.vue'), meta: { resource: 'engagement_score' } },
       ...eeReportsChildren,
     ],
   },
@@ -223,6 +224,9 @@ const routes: RouteRecordRaw[] = [
           // Tệp khách hàng (Customer Lists) — open-core, dùng được ở Community.
           { path: 'lists', name: 'CE.Lists', component: () => import('@/views/marketing/ListsView.vue'), meta: { requiresAuth: true } },
           { path: 'lists/:id', name: 'CE.ListDetail', component: () => import('@/views/marketing/ListDetailView.vue'), meta: { requiresAuth: true } },
+          // Marketing Automation (Blocks & Sequences)
+          { path: 'blocks', name: 'CE.Blocks', component: () => import('@/views/marketing/BlocksView.vue'), meta: { requiresAuth: true } },
+          { path: 'sequences', name: 'CE.Sequences', component: () => import('@/views/marketing/SequencesView.vue'), meta: { requiresAuth: true } },
         ],
       } as RouteRecordRaw]
     : []),

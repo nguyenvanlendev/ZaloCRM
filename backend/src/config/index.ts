@@ -74,14 +74,17 @@ export const config = {
   s3SecretKey: envValue('S3_SECRET_KEY') || 'minioadmin',
   s3Region: envValue('S3_REGION') || 'us-east-1',
 
-  aiDefaultProvider: envValue('AI_DEFAULT_PROVIDER') || 'anthropic',
-  aiDefaultModel: envValue('AI_DEFAULT_MODEL') || 'claude-sonnet-4-6',
+  aiDefaultProvider: envValue('AI_DEFAULT_PROVIDER') || 'openrouter',
+  aiDefaultModel: envValue('AI_DEFAULT_MODEL') || 'google/gemini-2.0-flash-exp:free',
 
   /* Legacy keys (kept for backward compat) */
   anthropicApiKey: envValue('ANTHROPIC_API_KEY') || envValue('ANTHROPIC_AUTH_TOKEN') || '',
   geminiApiKey: envValue('GEMINI_API_KEY') || envValue('GEMINI_AUTH_TOKEN') || '',
 
   /* --- AI Provider configs --- */
+  openrouterBaseUrl: envValue('OPENROUTER_BASE_URL') || 'https://openrouter.ai/api/v1',
+  openrouterAuthToken: envValue('OPENROUTER_AUTH_TOKEN') || envValue('OPENROUTER_API_KEY') || '',
+
   anthropicBaseUrl: envValue('ANTHROPIC_BASE_URL') || 'https://api.anthropic.com',
   anthropicAuthToken: envValue('ANTHROPIC_AUTH_TOKEN') || envValue('ANTHROPIC_API_KEY') || '',
   anthropicDefaultOpusModel: envValue('ANTHROPIC_DEFAULT_OPUS_MODEL') || '',

@@ -33,12 +33,13 @@ export type ProviderInfo = {
   keyMask: string;
 };
 
-const PROVIDER_IDS = ['anthropic', 'gemini', 'openai', 'qwen', 'kimi'] as const;
+const PROVIDER_IDS = ['openrouter', 'anthropic', 'gemini', 'openai', 'qwen', 'kimi'] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
 /** Build catalog tĩnh từ config (env) */
 function buildCatalog(): ProviderDef[] {
   return [
+    { id: 'openrouter', name: 'OpenRouter', baseUrl: config.openrouterBaseUrl, authToken: config.openrouterAuthToken },
     { id: 'anthropic', name: 'Anthropic', baseUrl: config.anthropicBaseUrl, authToken: config.anthropicAuthToken },
     { id: 'gemini', name: 'Gemini', baseUrl: config.geminiBaseUrl, authToken: config.geminiAuthToken },
     { id: 'openai', name: 'OpenAI', baseUrl: config.openaiBaseUrl, authToken: config.openaiAuthToken },

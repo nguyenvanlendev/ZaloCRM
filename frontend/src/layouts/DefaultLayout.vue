@@ -460,7 +460,7 @@ function logout() {
 .contact-marquee {
   flex: 0 0 320px;
   margin-right: 12px;
-  height: 32px;
+  height: 24px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -468,8 +468,8 @@ function logout() {
   border: 1px solid rgba(0,242,255,0.30);
   border-radius: 6px;
   text-decoration: none;
-  color: #00F2FF;
-  font-size: 12.5px;
+  color: #FFFFFF;
+  font-size: 8px;
   font-weight: 500;
   cursor: pointer;
   position: relative;
