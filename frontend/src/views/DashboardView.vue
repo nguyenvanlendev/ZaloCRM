@@ -671,10 +671,10 @@ function onOutsideClick(e: MouseEvent) {
   --prio-c: #dc2626;
 }
 .dh-attr {
-  font-size: 8px; color: #FFFFFF;
+  font-size: 8px; color: #f1f5f9;
   padding: 2px 14px; text-align: center; opacity: 0.7;
 }
-.dh-attr a { color: #FFFFFF; text-decoration: none; }
+.dh-attr a { color: #f1f5f9; text-decoration: none; }
 .dh-tabpanel { animation: dh-fade 0.15s ease-out; }
 @keyframes dh-fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 

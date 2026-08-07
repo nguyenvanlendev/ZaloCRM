@@ -529,6 +529,30 @@ function parseDisplayContent(content: string | null): string {
   } catch { return content; }
 }
 
+const ZALO_EMOJI_MAP: Record<string, string> = {
+  '/-heart': '❤️',
+  '/-strong': '👍',
+  ':>': '😆',
+  ':o': '😮',
+  ':-((': '😭',
+  ':-h': '😡',
+  '/-rose': '🌹',
+  '/-break': '💔',
+  '/-weak': '👎',
+};
+
+const ZALO_EMOJI_REGEX = new RegExp(
+  Object.keys(ZALO_EMOJI_MAP)
+    .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|'),
+  'g'
+);
+
+function replaceZaloEmojis(text: string): string {
+  if (!text) return '';
+  return text.replace(ZALO_EMOJI_REGEX, (match) => ZALO_EMOJI_MAP[match] || match);
+}
+
 // HTML-safe formatter for text content: escape + @mention highlight + linebreaks
 function escapeHtml(s: string): string {
   return s
@@ -566,7 +590,7 @@ function applyMentionsFormat(
     if (m.pos < cursor) continue; // overlap → skip
     // Plain text trước mention
     if (m.pos > cursor) {
-      out += escapeHtml(raw.substring(cursor, m.pos));
+      out += escapeHtml(replaceZaloEmojis(raw.substring(cursor, m.pos)));
     }
     // Mention chunk
     const chunk = raw.substring(m.pos, m.pos + m.len);
@@ -575,7 +599,7 @@ function applyMentionsFormat(
   }
   // Plain text còn lại
   if (cursor < raw.length) {
-    out += escapeHtml(raw.substring(cursor));
+    out += escapeHtml(replaceZaloEmojis(raw.substring(cursor)));
   }
   // Linebreak + auto-link URL/SĐT (linkifyHtml an toàn với tag mention vừa chèn).
   out = out.replace(/\r?\n/g, '<br>');
@@ -588,7 +612,7 @@ function applyMentionsFormat(
  */
 function highlightTextRegex(raw: string): string {
   if (!raw) return '';
-  let s = escapeHtml(raw);
+  let s = escapeHtml(replaceZaloEmojis(raw));
   s = s.replace(
     /@(\p{Lu}[\p{L}0-9._]*(?:\s\p{Lu}[\p{L}0-9._]*){0,2}(?:\s[-–—]\s\p{Lu}[\p{L}0-9._]*(?:\s\p{Lu}[\p{L}0-9._]*){0,2})?)/gu,
     '<span class="mention">@$1</span>',
