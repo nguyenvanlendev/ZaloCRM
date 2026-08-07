@@ -697,7 +697,7 @@ export async function mediaRoutes(app: FastifyInstance) {
           data: { lastMessageAt: new Date(), isReplied: true, unreadCount: 0 },
         });
         await bumpUsage(asset.id);
-        // Gắn tag/dự án LÚC GỬI (anh chốt 2026-06-15): sale bấm chip gợi ý → tag dính vào ảnh,
+        // Gắn tag/khóa học LÚC GỬI (anh chốt 2026-06-15): sale bấm chip gợi ý → tag dính vào ảnh,
         // bữa sau tìm lại dễ. Ghi tag TỰ DO (ai gửi cũng thêm được, kể cả ảnh công khai của
         // sale khác — Anh chốt ưu tiên tag phong phú cho ảnh dùng chung, KHÁC scope owner của
         // PATCH /:id và /bulk; CHỈ áp cho addTags lúc gửi, KHÔNG nới quyền sửa tên/visibility).
@@ -819,7 +819,7 @@ export async function mediaRoutes(app: FastifyInstance) {
         });
       }
       // Gán thêm tag: hợp nhất tag mới vào tag cũ per-asset (không ghi đè tag đang có).
-      // normalizeTags: lowercase + dedup (gộp tag/dự án, không phân biệt hoa/thường — 2026-06-15).
+      // normalizeTags: lowercase + dedup (gộp tag/khóa học, không phân biệt hoa/thường — 2026-06-15).
       if (body.addTags && body.addTags.length) {
         const clean = normalizeTags(body.addTags);
         for (const a of scoped) {
@@ -1089,7 +1089,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   );
 
   // ── GET /api/v1/media/suggest?conversationId= — gợi ý ảnh theo NGỮ CẢNH (GĐ3a-4)
-  // Match MediaAsset.tagIds với tag/dự án của Contact đang chat. Chỉ ảnh CÔNG KHAI
+  // Match MediaAsset.tagIds với tag/khóa học của Contact đang chat. Chỉ ảnh CÔNG KHAI
   // hoặc CỦA CHÍNH sale (không lộ ảnh riêng tư người khác — privacy).
   app.get(
     '/api/v1/media/suggest',

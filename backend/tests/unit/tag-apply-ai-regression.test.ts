@@ -21,7 +21,7 @@ beforeEach(() => {
 describe('apply-ai-suggestion tags field → tag-service (REGRESSION)', () => {
   it('calls addCrmTag per tag với source=ai_suggest + autoCreate=true', async () => {
     // Simulate handler logic block
-    const acceptedFields = [{ field: 'tags', value: ['VIP', 'Hot Lead', 'BĐS Q4'] }];
+    const acceptedFields = [{ field: 'tags', value: ['VIP', 'Hot Lead', 'Khóa học Q4'] }];
     const contactId = 'contact-1';
     const userId = 'user-1';
 
@@ -50,7 +50,7 @@ describe('apply-ai-suggestion tags field → tag-service (REGRESSION)', () => {
       autoCreate: true,
     });
     expect(addCrmTagMock).toHaveBeenCalledWith(expect.objectContaining({ tagName: 'Hot Lead' }));
-    expect(addCrmTagMock).toHaveBeenCalledWith(expect.objectContaining({ tagName: 'BĐS Q4' }));
+    expect(addCrmTagMock).toHaveBeenCalledWith(expect.objectContaining({ tagName: 'Khóa học Q4' }));
   });
 
   it('skip non-string entries trong tags array', async () => {

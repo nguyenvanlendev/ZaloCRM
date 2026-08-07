@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════════════════
-   HS HOLDING CRM — THEME / DESIGN SYSTEM  (export 2026-06-04)
-   Bộ token + component dùng để code lại TOÀN BỘ giao diện HS Holding CRM.
+   YOEDU CRM — THEME / DESIGN SYSTEM  (export 2026-06-04)
+   Bộ token + component dùng để code lại TOÀN BỘ giao diện YOEDU CRM.
    ────────────────────────────────────────────────────────────────────────
    CÁCH DÙNG (Vue 3 + Vuetify, nhánh private-hs):
    1. Import font brand ở index.html / main.ts:
@@ -87,7 +87,7 @@
   --font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* HS Holding teal-navy nav gradient */
+  /* YOEDU teal-navy nav gradient */
   --nav-grad-a: #0e445a;
   --nav-grad-b: #06222f;
   --nav-accent: #5bb8e5;

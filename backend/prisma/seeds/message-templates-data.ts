@@ -1,4 +1,4 @@
-// 60 mẫu tin nhắn seed cho 4 dự án (15 mẫu/dự án) — Anh chốt 2026-06-09.
+// 60 mẫu tin nhắn seed cho 4 khóa học (15 mẫu/khóa học) — Anh chốt 2026-06-09.
 // FAQ (giá, pháp lý, tiến độ, vị trí, tiện ích, thanh toán, bàn giao) + câu hỏi khêu gợi nhu cầu.
 //
 // CÚ PHÁP ĐỊNH DẠNG (parser ở seed-message-templates.ts tự tính {text, styles[]}):
@@ -18,10 +18,10 @@ export interface SeedTemplate {
   name: string;
   category: string;    // FAQ | Chào | Khơi gợi | Chốt
   body: string;        // có marker đậm/màu/biến
-  shortcut?: string;   // (tùy chọn) tự sinh từ prefix dự án + chức năng nếu không khai
+  shortcut?: string;   // (tùy chọn) tự sinh từ prefix khóa học + chức năng nếu không khai
 }
 
-// Prefix gõ tắt mỗi dự án + từ khóa chức năng theo tên mẫu → shortcut "/<prefix><fn>".
+// Prefix gõ tắt mỗi khóa học + từ khóa chức năng theo tên mẫu → shortcut "/<prefix><fn>".
 export const PROJECT_SHORTCUT_PREFIX: Record<(typeof PROJECT_TAGS)[number], string> = {
   'Emerald Garden View': 'egv',
   'Emerald Boulevard': 'eb',
@@ -29,7 +29,7 @@ export const PROJECT_SHORTCUT_PREFIX: Record<(typeof PROJECT_TAGS)[number], stri
   'Monrei Sài Gòn': 'mr',
 };
 
-// Map cụm tên mẫu → từ khóa chức năng ngắn (sau prefix dự án).
+// Map cụm tên mẫu → từ khóa chức năng ngắn (sau prefix khóa học).
 export function functionKeyFromName(name: string): string {
   const n = name.toLowerCase();
   if (n.includes('chào')) return 'chao';
@@ -59,17 +59,17 @@ export function functionKeyFromName(name: string): string {
 // ─────────────────────────────────────────────────────────────────────────
 const EMERALD_GARDEN_VIEW: SeedTemplate[] = [
   { name: 'EGV — Chào mở đầu', category: 'Chào',
-    body: 'Dạ em chào {gender} {name} ạ. Em là {sale}, tư vấn dự án **[[c:xanhla]]Emerald Garden View[[/]]**. Em rất vui được hỗ trợ {gender} tìm hiểu căn hộ phù hợp ạ 🌿' },
+    body: 'Dạ em chào {gender} {name} ạ. Em là {sale}, tư vấn khóa học **[[c:xanhla]]Emerald Garden View[[/]]**. Em rất vui được hỗ trợ {gender} tìm hiểu căn hộ phù hợp ạ 🌿' },
   { name: 'EGV — Hỏi giá', category: 'FAQ',
     body: 'Dạ {gender} {name} ơi, giá căn hộ **Emerald Garden View** hiện từ [[c:đỏ]]**chỉ 2,1 tỷ/căn 2 phòng ngủ**[[/]] đã gồm VAT ạ. Tùy tầng và hướng sẽ có mức giá khác nhau. {gender} đang quan tâm loại mấy phòng ngủ để em báo bảng giá chi tiết ạ?' },
   { name: 'EGV — Pháp lý', category: 'FAQ',
     body: 'Dạ về pháp lý, **Emerald Garden View** đã có [[c:xanhla]]**sổ hồng từng căn**[[/]], chủ đầu tư uy tín, hợp đồng mua bán rõ ràng ạ. {gender} {name} hoàn toàn yên tâm về tính pháp lý nhé ạ.' },
   { name: 'EGV — Tiến độ', category: 'FAQ',
-    body: 'Dạ dự án đang thi công đến **tầng 18**, dự kiến [[c:xanhduong]]**bàn giao quý 4/2026**[[/]] ạ. Tiến độ đúng cam kết, {gender} {name} có thể qua xem công trường thực tế bất cứ lúc nào ạ.' },
+    body: 'Dạ khóa học đang thi công đến **tầng 18**, dự kiến [[c:xanhduong]]**bàn giao quý 4/2026**[[/]] ạ. Tiến độ đúng cam kết, {gender} {name} có thể qua xem công trường thực tế bất cứ lúc nào ạ.' },
   { name: 'EGV — Vị trí', category: 'FAQ',
     body: 'Dạ **Emerald Garden View** tọa lạc ngay mặt tiền đường lớn, [[c:xanhduong]]**5 phút tới trung tâm**[[/]], gần trường học, bệnh viện, siêu thị ạ. Vị trí rất thuận tiện cho gia đình {gender} {name} sinh sống ạ.' },
   { name: 'EGV — Tiện ích', category: 'FAQ',
-    body: 'Dạ dự án có **hồ bơi tràn bờ, gym, công viên nội khu, khu BBQ** và sân chơi trẻ em ạ. Mật độ xây dựng chỉ [[c:xanhla]]**38%**[[/]], không gian xanh thoáng đãng cho {gender} {name} ạ 🌳' },
+    body: 'Dạ khóa học có **hồ bơi tràn bờ, gym, công viên nội khu, khu BBQ** và sân chơi trẻ em ạ. Mật độ xây dựng chỉ [[c:xanhla]]**38%**[[/]], không gian xanh thoáng đãng cho {gender} {name} ạ 🌳' },
   { name: 'EGV — Chính sách thanh toán', category: 'FAQ',
     body: 'Dạ {gender} {name} có thể thanh toán [[c:cam]]**giãn 18 tháng 0% lãi suất**[[/]], chỉ cần **thanh toán trước 20%** là nhận nhà ạ. Ngân hàng hỗ trợ vay tới 70% giá trị căn hộ nhé ạ.' },
   { name: 'EGV — Ưu đãi', category: 'Chốt',
@@ -81,7 +81,7 @@ const EMERALD_GARDEN_VIEW: SeedTemplate[] = [
   { name: 'EGV — Khơi gợi thời điểm', category: 'Khơi gợi',
     body: 'Dạ {gender} {name} đang cần nhà ở ngay hay có thể chờ bàn giao ạ? Em hỏi để tư vấn giỏ hàng phù hợp — vì bên em có cả căn **bàn giao sớm** lẫn căn hình thành tương lai giá tốt hơn ạ.' },
   { name: 'EGV — So sánh đối thủ', category: 'FAQ',
-    body: 'Dạ so với các dự án cùng khu, **Emerald Garden View** có lợi thế [[c:xanhla]]**giá mềm hơn 10-15% + mật độ xây thấp**[[/]] mà tiện ích lại đầy đủ ạ. Em gửi {gender} {name} bảng so sánh chi tiết nhé ạ?' },
+    body: 'Dạ so với các khóa học cùng khu, **Emerald Garden View** có lợi thế [[c:xanhla]]**giá mềm hơn 10-15% + mật độ xây thấp**[[/]] mà tiện ích lại đầy đủ ạ. Em gửi {gender} {name} bảng so sánh chi tiết nhé ạ?' },
   { name: 'EGV — Cho thuê/lợi nhuận', category: 'FAQ',
     body: 'Dạ căn 2 phòng ngủ ở đây cho thuê được [[c:cam]]**8-10 triệu/tháng**[[/]], lợi suất khoảng 5-6%/năm ạ. Khu vực đông dân cư, nhu cầu thuê cao nên {gender} {name} đầu tư rất an tâm dòng tiền ạ.' },
   { name: 'EGV — Mời xem nhà mẫu', category: 'Chốt',
@@ -131,17 +131,17 @@ const EMERALD_BOULEVARD: SeedTemplate[] = [
 // ─────────────────────────────────────────────────────────────────────────
 const EMERALD_RIVER_PARK: SeedTemplate[] = [
   { name: 'ERP — Chào mở đầu', category: 'Chào',
-    body: 'Dạ em chào {gender} {name} ạ. Em là {sale}, tư vấn dự án **[[c:xanhla]]Emerald River Park[[/]]** — căn hộ view sông trong lành ạ. Em rất vui được đồng hành cùng {gender} 🌊' },
+    body: 'Dạ em chào {gender} {name} ạ. Em là {sale}, tư vấn khóa học **[[c:xanhla]]Emerald River Park[[/]]** — căn hộ view sông trong lành ạ. Em rất vui được đồng hành cùng {gender} 🌊' },
   { name: 'ERP — Hỏi giá', category: 'FAQ',
     body: 'Dạ {gender} {name} ơi, **Emerald River Park** giá từ [[c:đỏ]]**chỉ 2,4 tỷ/căn 2 phòng ngủ view sông**[[/]] ạ. Căn view sông đẹp số lượng có hạn, {gender} quan tâm hướng nào để em tư vấn ạ?' },
   { name: 'ERP — Pháp lý', category: 'FAQ',
-    body: 'Dạ dự án [[c:xanhla]]**đầy đủ pháp lý, đã đủ điều kiện ký hợp đồng mua bán**[[/]], CĐT bảo lãnh ngân hàng ạ. {gender} {name} hoàn toàn yên tâm xuống tiền ạ.' },
+    body: 'Dạ khóa học [[c:xanhla]]**đầy đủ pháp lý, đã đủ điều kiện ký hợp đồng mua bán**[[/]], CĐT bảo lãnh ngân hàng ạ. {gender} {name} hoàn toàn yên tâm xuống tiền ạ.' },
   { name: 'ERP — Tiến độ', category: 'FAQ',
     body: 'Dạ công trình đang lên đến **tầng 22**, [[c:xanhduong]]**dự kiến bàn giao quý 1/2027**[[/]] ạ. Tiến độ ổn định, {gender} {name} qua xem thực tế công trường với em nhé ạ.' },
   { name: 'ERP — Vị trí ven sông', category: 'FAQ',
     body: 'Dạ **Emerald River Park** nằm [[c:xanhduong]]**ngay ven sông, không khí trong lành**[[/]], lùi khỏi khói bụi nội đô mà vẫn kết nối trung tâm 15 phút ạ. Sống ở đây {gender} {name} như nghỉ dưỡng mỗi ngày ạ.' },
   { name: 'ERP — Tiện ích', category: 'FAQ',
-    body: 'Dạ dự án có **công viên ven sông, đường dạo bộ, hồ bơi vô cực hướng sông, gym, spa** ạ. Mật độ xây dựng thấp [[c:xanhla]]**chỉ 35%**[[/]], rất nhiều cây xanh cho gia đình {gender} {name} ạ 🌴' },
+    body: 'Dạ khóa học có **công viên ven sông, đường dạo bộ, hồ bơi vô cực hướng sông, gym, spa** ạ. Mật độ xây dựng thấp [[c:xanhla]]**chỉ 35%**[[/]], rất nhiều cây xanh cho gia đình {gender} {name} ạ 🌴' },
   { name: 'ERP — Chính sách thanh toán', category: 'FAQ',
     body: 'Dạ {gender} {name} thanh toán [[c:cam]]**chỉ 15% ký hợp đồng, giãn 20 đợt nhẹ nhàng**[[/]] ạ. Ngân hàng cho vay 70%, ân hạn gốc lãi tới khi nhận nhà nên rất nhẹ gánh cho {gender} ạ.' },
   { name: 'ERP — Ưu đãi', category: 'Chốt',
@@ -153,9 +153,9 @@ const EMERALD_RIVER_PARK: SeedTemplate[] = [
   { name: 'ERP — Khơi gợi đầu tư', category: 'Khơi gợi',
     body: 'Dạ {gender} {name} đầu tư thì em gợi ý căn view sông — vì [[c:cam]]**view đẹp luôn tăng giá tốt và dễ cho thuê**[[/]] hơn căn thường ạ. {gender} đang tính giữ dài hạn hay lướt sóng để em tư vấn đúng ạ?' },
   { name: 'ERP — Lợi nhuận', category: 'FAQ',
-    body: 'Dạ căn view sông cho thuê được [[c:cam]]**10-13 triệu/tháng**[[/]], lại tăng giá nhanh khi dự án bàn giao ạ. {gender} {name} đầu tư vừa có dòng tiền vừa lời vốn ạ.' },
+    body: 'Dạ căn view sông cho thuê được [[c:cam]]**10-13 triệu/tháng**[[/]], lại tăng giá nhanh khi khóa học bàn giao ạ. {gender} {name} đầu tư vừa có dòng tiền vừa lời vốn ạ.' },
   { name: 'ERP — So sánh đối thủ', category: 'FAQ',
-    body: 'Dạ lợi thế riêng của **Emerald River Park** là [[c:xanhla]]**view sông tự nhiên hiếm có**[[/]] — yếu tố này không dự án nội đô nào có được, nên giá trị giữ rất bền cho {gender} {name} ạ.' },
+    body: 'Dạ lợi thế riêng của **Emerald River Park** là [[c:xanhla]]**view sông tự nhiên hiếm có**[[/]] — yếu tố này không khóa học nội đô nào có được, nên giá trị giữ rất bền cho {gender} {name} ạ.' },
   { name: 'ERP — Mời tham quan', category: 'Chốt',
     body: 'Dạ {gender} {name} qua trải nghiệm [[c:xanhduong]]**không gian ven sông và nhà mẫu**[[/]] cuối tuần với em nhé? Đứng tại căn ngắm sông mới cảm nhận hết được, em đón {gender} tận nơi ạ 🚗' },
   { name: 'ERP — Theo dõi sau tư vấn', category: 'Chốt',
@@ -173,11 +173,11 @@ const MONREI_SAIGON: SeedTemplate[] = [
   { name: 'Monrei — Pháp lý', category: 'FAQ',
     body: 'Dạ **Monrei Sài Gòn** [[c:xanhla]]**pháp lý minh bạch, CĐT lớn uy tín, có bảo lãnh ngân hàng**[[/]] ạ. {gender} {name} đầu tư phân khúc cao cấp nên càng yên tâm về pháp lý ạ.' },
   { name: 'Monrei — Tiến độ', category: 'FAQ',
-    body: 'Dạ dự án đang hoàn thiện, [[c:xanhduong]]**dự kiến bàn giao quý 3/2026**[[/]] với tiêu chuẩn nội thất nhập khẩu ạ. {gender} {name} đặt sớm còn được chọn căn tầng cao view đẹp ạ.' },
+    body: 'Dạ khóa học đang hoàn thiện, [[c:xanhduong]]**dự kiến bàn giao quý 3/2026**[[/]] với tiêu chuẩn nội thất nhập khẩu ạ. {gender} {name} đặt sớm còn được chọn căn tầng cao view đẹp ạ.' },
   { name: 'Monrei — Vị trí trung tâm', category: 'FAQ',
     body: 'Dạ **Monrei Sài Gòn** tọa lạc [[c:xanhduong]]**ngay lõi trung tâm, kết nối mọi tiện ích cao cấp**[[/]] — văn phòng, trung tâm thương mại, trường quốc tế đều trong bán kính ngắn ạ. Vị trí kim cương cho {gender} {name} ạ.' },
   { name: 'Monrei — Tiện ích cao cấp', category: 'FAQ',
-    body: 'Dạ dự án có **hồ bơi vô cực tầng thượng, sky lounge, phòng gym 5 sao, lễ tân 24/7, hầm xe thông minh** ạ. Chuẩn dịch vụ [[c:cam]]**resort 5 sao**[[/]] phục vụ {gender} {name} mỗi ngày ạ 🥂' },
+    body: 'Dạ khóa học có **hồ bơi vô cực tầng thượng, sky lounge, phòng gym 5 sao, lễ tân 24/7, hầm xe thông minh** ạ. Chuẩn dịch vụ [[c:cam]]**resort 5 sao**[[/]] phục vụ {gender} {name} mỗi ngày ạ 🥂' },
   { name: 'Monrei — Chính sách thanh toán', category: 'FAQ',
     body: 'Dạ {gender} {name} có thể chọn [[c:cam]]**thanh toán nhanh chiết khấu sâu hoặc giãn tiến độ 0% lãi**[[/]] ạ. Ngân hàng hỗ trợ vay tới 70%, nhiều phương án linh hoạt để em tư vấn theo dòng tiền của {gender} ạ.' },
   { name: 'Monrei — Ưu đãi', category: 'Chốt',
@@ -191,9 +191,9 @@ const MONREI_SAIGON: SeedTemplate[] = [
   { name: 'Monrei — Lợi nhuận cho thuê', category: 'FAQ',
     body: 'Dạ căn ở **Monrei Sài Gòn** cho thuê chuyên gia được [[c:cam]]**18-25 triệu/tháng**[[/]], khách thuê cao cấp ổn định ạ. {gender} {name} vừa giữ tài sản trung tâm vừa có dòng tiền tốt ạ.' },
   { name: 'Monrei — So sánh đối thủ', category: 'FAQ',
-    body: 'Dạ điểm khác biệt của **Monrei Sài Gòn** là [[c:xanhla]]**vị trí lõi trung tâm + chuẩn bàn giao cao cấp**[[/]] mà giá còn cạnh tranh hơn các dự án cùng phân khúc ạ. Em gửi {gender} {name} bảng so sánh nhé ạ?' },
+    body: 'Dạ điểm khác biệt của **Monrei Sài Gòn** là [[c:xanhla]]**vị trí lõi trung tâm + chuẩn bàn giao cao cấp**[[/]] mà giá còn cạnh tranh hơn các khóa học cùng phân khúc ạ. Em gửi {gender} {name} bảng so sánh nhé ạ?' },
   { name: 'Monrei — Mời xem nhà mẫu', category: 'Chốt',
-    body: 'Dạ {gender} {name} qua trải nghiệm [[c:xanhduong]]**nhà mẫu chuẩn bàn giao cao cấp**[[/]] với em nhé? Em sắp xếp đón {gender} chu đáo, trải nghiệm trực tiếp mới cảm nhận hết đẳng cấp dự án ạ ✨' },
+    body: 'Dạ {gender} {name} qua trải nghiệm [[c:xanhduong]]**nhà mẫu chuẩn bàn giao cao cấp**[[/]] với em nhé? Em sắp xếp đón {gender} chu đáo, trải nghiệm trực tiếp mới cảm nhận hết đẳng cấp khóa học ạ ✨' },
   { name: 'Monrei — Theo dõi sau tư vấn', category: 'Chốt',
     body: 'Dạ em gửi lại {gender} {name} thông tin **Monrei Sài Gòn** ạ. {gender} cân nhắc rồi nhắn em nhé, em luôn sẵn sàng tư vấn để {gender} chọn được căn hộ xứng tầm nhất ạ 🙏' },
 ];

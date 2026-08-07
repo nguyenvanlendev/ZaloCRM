@@ -186,7 +186,7 @@ function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
-  // Giờ VN (Asia/Ho_Chi_Minh) — chuẩn dự án.
+  // Giờ VN (Asia/Ho_Chi_Minh) — chuẩn khóa học.
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
 }
 

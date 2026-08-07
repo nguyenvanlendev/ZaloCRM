@@ -41,7 +41,7 @@ export type MediaKind = 'image' | 'video' | 'file';
 export type MediaSource = 'upload' | 'saved_from_chat';
 
 /**
- * Chuẩn hóa tag/dự án (anh chốt 2026-06-15): gộp tag+dự án làm 1, KHÔNG phân biệt hoa/thường.
+ * Chuẩn hóa tag/khóa học (anh chốt 2026-06-15): gộp tag+khóa học làm 1, KHÔNG phân biệt hoa/thường.
  * 'EGV' / 'egv' / ' Egv ' → 'egv'. Dùng CHUNG ở MỌI chỗ ghi tagIds (registerAsset, PATCH /:id,
  * PATCH /bulk, addTags lúc gửi) để lọc/đếm gộp đúng 1 nhóm. trim → lowercase → bỏ rỗng → dedup.
  */

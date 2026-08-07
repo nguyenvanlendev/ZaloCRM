@@ -29,12 +29,12 @@ describe('applyFieldMap', () => {
       { name: 'tên_đầy_đủ', values: ['Nguyễn A'] },
       { name: 'số_điện_thoại', values: ['0901234567'] },
       { name: 'Ghi chú', values: ['Quan tâm 3PN'] },
-      { name: 'Dự án', values: ['Vinhomes'] },
+      { name: 'Khóa học', values: ['Vinhomes'] },
     ];
     const result = applyFieldMap(fieldData, fieldMap);
     expect(result.name).toBe('Nguyễn A');
     expect(result.customFields['Ghi chú']).toBe('Quan tâm 3PN');
-    expect(result.customFields['Dự án']).toBe('Vinhomes');
+    expect(result.customFields['Khóa học']).toBe('Vinhomes');
     expect(Object.keys(result.customFields)).toHaveLength(2);
   });
 

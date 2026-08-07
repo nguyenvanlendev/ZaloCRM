@@ -721,7 +721,7 @@
           @created="onAppointmentCreated"
         />
 
-        <!-- 2026-06-20 (anh chốt): GỠ bar "✨ Gợi ý ảnh dự án" — gợi ý không đúng + sale không dùng. -->
+        <!-- 2026-06-20 (anh chốt): GỠ bar "✨ Gợi ý ảnh khóa học" — gợi ý không đúng + sale không dùng. -->
 
         <!-- 2026-06-12: popover "Chèn ảnh từ Kho" đã GỠ — nút giờ mở tab Media ở cột 4
              (emit 'open-media-tab' → ChatView switch ChatContactPanel sang tab Media). -->
@@ -2290,7 +2290,7 @@ const imageInputRef = ref<HTMLInputElement | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 // 2026-06-12: showMediaPicker + MediaPickerPopover đã GỠ — nút "Chèn từ kho" giờ mở
 // tab Media ở cột 4 (emit 'open-media-tab'). Logic kho dời sang MediaTabPanel.
-// 2026-06-20: GỠ "Gợi ý ảnh dự án" (mediaSuggestions/loadMediaSuggestions/sendSuggestion) — anh chốt bỏ.
+// 2026-06-20: GỠ "Gợi ý ảnh khóa học" (mediaSuggestions/loadMediaSuggestions/sendSuggestion) — anh chốt bỏ.
 const dragDepth = ref(0);
 const isDraggingFiles = ref(false);
 

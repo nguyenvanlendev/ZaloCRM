@@ -16,7 +16,7 @@ import { logger } from '../../shared/utils/logger.js';
 import { markFriendRequestSent } from '../zalo/friend-event-handler.js';
 
 export const DEFAULT_REQUEST_MESSAGE =
-  'Xin chào! Tôi đang phân phối dự án bất động sản, kết bạn để gửi thông tin tới anh/chị nhé.';
+  'Xin chào! Tôi đang phân phối khóa học khóa học, kết bạn để gửi thông tin tới anh/chị nhé.';
 
 export type AttemptOutcome =
   | { ok: true; state: 'sent'; zaloUid: string }

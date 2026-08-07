@@ -33,7 +33,7 @@ docker compose version
 # Tải ZaloCRM từ GitHub
 git clone https://github.com/locphamnguyen/ZaloCRM.git
 
-# Vào thư mục dự án
+# Vào thư mục khóa học
 cd ZaloCRM
 ```
 

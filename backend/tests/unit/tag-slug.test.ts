@@ -30,7 +30,7 @@ describe('slugifyTag', () => {
   });
 
   it('preserve numbers', () => {
-    expect(slugifyTag('Dự án EGV 2026')).toBe('du-an-egv-2026');
+    expect(slugifyTag('Khóa học EGV 2026')).toBe('du-an-egv-2026');
     expect(slugifyTag('Q4-2025')).toBe('q4-2025');
   });
 

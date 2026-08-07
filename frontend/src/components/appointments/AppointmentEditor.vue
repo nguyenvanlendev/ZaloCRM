@@ -911,7 +911,7 @@ function randomTime(period: 'morning' | 'noon' | 'afternoon' | 'evening') {
 }
 
 // ───────── Duration ─────────
-// 2026-05-21 chốt: bỏ "3 ngày" — chỉ tới "1 ngày" là đủ cho domain BĐS sale.
+// 2026-05-21 chốt: bỏ "3 ngày" — chỉ tới "1 ngày" là đủ cho domain Khóa học sale.
 const DURATIONS = [
   { label: '5p',     value: 5 },
   { label: '10p',    value: 10 },
@@ -956,7 +956,7 @@ const computedEndLabel = computed(() => {
 
 // ───────── Smart location detection (regex từ title) ─────────
 const SMART_LOCATION_REGEX = [
-  // Tên dự án BĐS phổ biến
+  // Tên khóa học Khóa học phổ biến
   /(Vinhomes [A-Za-zÀ-ỹ ]+)/i,
   /(Masteri [A-Za-zÀ-ỹ ]+)/i,
   /(Sunshine [A-Za-zÀ-ỹ ]+)/i,
@@ -986,7 +986,7 @@ const smartLocation = computed<string | null>(() => {
 const LOCATION_PRESETS = [
   { icon: 'mdi-office-building-outline', value: 'Văn phòng' },
   { icon: 'mdi-home-outline', value: 'Nhà khách' },
-  { icon: 'mdi-crane', value: 'Dự án' },
+  { icon: 'mdi-crane', value: 'Khóa học' },
   { icon: 'mdi-home-city-outline', value: 'Nhà mẫu' },
   { icon: 'mdi-coffee-outline', value: 'Quán cafe' },
 ];
@@ -1625,7 +1625,7 @@ if (typeof window !== 'undefined') {
   .picker-popup { width: 100%; }
 }
 
-/* ═══ HS Holding theme polish (anh chốt 2026-06-16) ═══════════════════════════
+/* ═══ YOEDU theme polish (anh chốt 2026-06-16) ═══════════════════════════
    Đổi accent từ --at-ink (đen trung tính) → brand teal-blue HS; hàng KH liên kết
    từ coral (đỏ) → brand-soft. --brand* là token global (hs-crm-theme.css). Đặt
    CUỐI block để thắng cascade (cùng specificity → rule sau thắng). */

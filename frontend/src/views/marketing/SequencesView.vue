@@ -129,7 +129,7 @@
           <v-text-field
             v-model="createForm.name"
             label="Tên kịch bản *"
-            placeholder="VD: Kịch bản bám đuổi KH quan tâm BĐS"
+            placeholder="VD: Kịch bản bám đuổi KH quan tâm Khóa học"
             variant="outlined"
             density="comfortable"
             class="mb-4"

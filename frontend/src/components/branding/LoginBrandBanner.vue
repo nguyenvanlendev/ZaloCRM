@@ -52,7 +52,10 @@ watch(
   justify-content: center;
   align-items: center;
   padding: 40px 32px;
-  background: linear-gradient(160deg, #0e445a 0%, #06222f 100%);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   overflow: hidden;
   text-align: center;
@@ -67,27 +70,24 @@ watch(
 .brand-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .brand-logo {
   width: 92px; height: 92px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.10);
-  border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
-.brand-logo img { width: 60px; height: 60px; object-fit: contain; }
+.brand-logo img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 4px 12px rgba(0,0,0,.2)); }
 .brand-name {
-  font-size: 26px; font-weight: 800; letter-spacing: 0.5px;
+  font-size: 32px; font-weight: 800; letter-spacing: 1px;
   margin: 0; line-height: 1.1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .brand-product {
-  margin-top: 6px;
-  font-size: 13px; font-weight: 600; letter-spacing: 3px;
-  color: #6fc5ea; text-transform: uppercase;
+  margin-top: 8px;
+  font-size: 14px; font-weight: 600; letter-spacing: 4px;
+  color: #a5d8f3; text-transform: uppercase;
 }
 .brand-divider {
-  width: 44px; height: 3px; border-radius: 2px;
-  background: linear-gradient(90deg, #1786be, #6fc5ea);
-  margin: 22px 0 16px;
+  width: 60px; height: 3px; border-radius: 2px;
+  background: rgba(255, 255, 255, 0.5);
+  margin: 24px 0 20px;
 }
 .brand-slogan {
   font-size: 17px; font-weight: 600; letter-spacing: 1px;

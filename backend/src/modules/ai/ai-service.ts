@@ -264,7 +264,7 @@ export async function parseAppointmentFromText(input: { orgId: string; text: str
     'PHÁT HIỆN Ý ĐỊNH RỘNG (hasIntent=true):',
     '- BẤT KỲ từ khoá thời gian: "thứ X", "ngày N", "DD/MM", "mai", "kia", "tuần sau", "tháng sau", "N ngày nữa", "sáng/chiều/tối", "lúc HH giờ", "trước/sau Tết", "đầu/giữa/cuối tháng", "đầu/cuối tuần"',
     '- HOẶC từ khoá hành động hẹn: "gọi lại", "nhắn lại", "gặp", "ghé", "đến", "chốt", "ký", "xem nhà", "qua văn phòng", "tới chỗ"',
-    '- HOẶC từ khoá địa điểm: "tại [địa điểm]", "ở [địa điểm]", "[tên building/đường/quận]", "VP", "showroom", "căn hộ", "dự án [name]"',
+    '- HOẶC từ khoá địa điểm: "tại [địa điểm]", "ở [địa điểm]", "[tên building/đường/quận]", "VP", "showroom", "căn hộ", "khóa học [name]"',
     '- HOẶC từ khoá quan tâm cần theo dõi: "follow up", "theo dõi", "check lại", "phải gọi"',
     '→ Có 1 trong các nhóm trên → hasIntent=true. Trả các field detect được, field nào không có → null + thêm vào missingFields.',
     '',
@@ -352,7 +352,7 @@ export async function parseAppointmentFromText(input: { orgId: string; text: str
 
 /* ──────────────────────────────────────────────────────────────────────────
  * AI Format Rich Text (2026-05-21) — anh paste 1 đoạn raw text (vd giới thiệu
- * dự án bất động sản) → AI return {text, styles[]} format Zalo (bold/italic/
+ * khóa học khóa học) → AI return {text, styles[]} format Zalo (bold/italic/
  * color/size). Sale chỉ việc bấm gửi → KH nhận tin sinh động.
  * ────────────────────────────────────────────────────────────────────────── */
 export interface ZaloRichStyle { st: string; start: number; len: number }
@@ -393,7 +393,7 @@ NGUYÊN TẮC FORMAT (chọn lọc, không bôi quá nhiều):
 MAX 15 ranges per response. Chọn lọc highlight quan trọng nhất. KHÔNG bôi bullet "- " / "+ ".
 
 VÍ DỤ INPUT:
-"- Dự án Sunshine City tọa lạc tại Q.7\\n- Giá từ 2.5 tỷ (giảm 200tr)\\n- Hotline: 0901-123-456"
+"- Khóa học Sunshine City tọa lạc tại Q.7\\n- Giá từ 2.5 tỷ (giảm 200tr)\\n- Hotline: 0901-123-456"
 
 VÍ DỤ OUTPUT:
 {"ranges":[
@@ -585,7 +585,7 @@ export async function aiFormatRichText(input: { orgId: string; rawText: string }
 
   try {
     // 2026-05-21 fix: cap đủ cho JSON output dài (text + nhiều style overlap per range).
-    // Test với đoạn dự án 800 chars input → Gemini muốn trả ~7900 chars JSON ≈ 5000 tokens.
+    // Test với đoạn khóa học 800 chars input → Gemini muốn trả ~7900 chars JSON ≈ 5000 tokens.
     // Set 8000 = sát limit Gemini 2.5 Flash (8192) + buffer. Nếu vẫn cap → cần shrink prompt.
     const raw = await generateText(currentConfig.provider, apiKey, currentConfig.model, AI_FORMAT_SYSTEM_PROMPT, text, 8000, await getProviderBaseUrl(input.orgId, currentConfig.provider));
 

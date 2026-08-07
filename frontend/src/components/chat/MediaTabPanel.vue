@@ -63,10 +63,10 @@
         </div>
       </div>
 
-      <!-- Hàng 3: Dự án (thư mục) | Tag — 1 dòng cuộn ngang -->
+      <!-- Hàng 3: Khóa học (thư mục) | Tag — 1 dòng cuộn ngang -->
       <div v-if="folders.length || availableTags.length" class="mtp-row3">
         <template v-if="folders.length">
-          <span class="mtp-rlabel">Dự án</span>
+          <span class="mtp-rlabel">Khóa học</span>
           <button class="mtp-chip" :class="{ on: folderId === '' }" @click="setFolder('')">Tất cả</button>
           <button
             v-for="f in folders"
@@ -89,7 +89,7 @@
         </template>
       </div>
 
-      <!-- Lọc sâu (ẩn/hiện): chỉ Thời gian + Cỡ (Quyền + Dự án/Tag đã ra ngoài) -->
+      <!-- Lọc sâu (ẩn/hiện): chỉ Thời gian + Cỡ (Quyền + Khóa học/Tag đã ra ngoài) -->
       <div v-if="showFilter" class="mtp-filter">
         <div class="mtp-frow">
           <select v-model="sinceBy" class="mtp-sel" @change="applyFilters">
@@ -290,11 +290,11 @@ const sinceBy = ref<'' | '7d' | '30d' | '90d'>('');
 const sizeBy = ref<'' | 'small' | 'medium' | 'large'>('');
 const tagFilter = ref('');
 
-// Thư mục (gom theo dự án) — load 1 lần, lọc theo kind đang xem.
+// Thư mục (gom theo khóa học) — load 1 lần, lọc theo kind đang xem.
 const allFolders = ref<MediaFolder[]>([]);
 const folderId = ref('');
 const folders = computed(() => allFolders.value.filter((f) => f.kind === subTab.value));
-// Tag dự án — gom từ tagIds của các mục đang hiện (chip lọc nhanh).
+// Tag khóa học — gom từ tagIds của các mục đang hiện (chip lọc nhanh).
 const availableTags = computed(() => {
   const set = new Set<string>();
   for (const a of items.value) for (const t of a.tagIds || []) set.add(t);
@@ -443,7 +443,7 @@ async function sendAlbum() {
 }
 
 onMounted(async () => {
-  // Load thư mục 1 lần (để dựng chip gom theo dự án); lỗi thì bỏ qua, không chặn kho.
+  // Load thư mục 1 lần (để dựng chip gom theo khóa học); lỗi thì bỏ qua, không chặn kho.
   listMediaFolders().then((f) => { allFolders.value = f; }).catch(() => { allFolders.value = []; });
   await reload();
 });
@@ -496,7 +496,7 @@ onMounted(async () => {
 .mtp-filtbtn:hover { border-color: var(--at-action); color: var(--at-action); }
 .mtp-filtbtn.on { background: var(--at-action); border-color: var(--at-action); color: #fff; }
 
-/* Hàng 2 (Quyền) + Hàng 3 (Dự án | Tag) — luôn hiện, mỗi nhóm 1 dòng cuộn ngang */
+/* Hàng 2 (Quyền) + Hàng 3 (Khóa học | Tag) — luôn hiện, mỗi nhóm 1 dòng cuộn ngang */
 .mtp-row2, .mtp-row3 {
   display: flex; gap: 5px; align-items: center; padding: 0 12px 7px; flex-shrink: 0;
   overflow-x: auto; scrollbar-width: none;

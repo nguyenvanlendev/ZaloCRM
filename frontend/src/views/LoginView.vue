@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Nguyễn Tiến Lộc -->
 <template>
-  <!-- 2026-06-09 (anh chốt): login 2 cột — banner thương hiệu HS Holding + form.
+  <!-- 2026-06-09 (anh chốt): login 2 cột — banner thương hiệu YOEDU + form.
        Banner teal-navy: logo HS + ZaloCRM + slogan "Bền vững · Trường tồn".
        HD-first 1366×768; ≤900px xếp dọc (banner gọn trên, form dưới). -->
   <div class="login-card">
@@ -46,7 +46,7 @@
             persistent-placeholder
             class="mb-5"
           />
-          <v-btn type="submit" color="primary" block size="large" :loading="loading" rounded="lg" class="login-btn">
+          <v-btn type="submit" block size="large" :loading="loading" rounded="pill" class="login-btn">
             <v-icon start>mdi-login</v-icon>
             Đăng nhập
           </v-btn>
@@ -94,15 +94,15 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
-// ── Branding hiển thị (mặc định = giá trị hardcode HS Holding) ────────────────
+// ── Branding hiển thị (mặc định = giá trị hardcode YOEDU) ────────────────
 // Login chạy pre-auth: render mặc định NGAY, fetch org-branding xong mới thay vào
 // (D4-A). Nếu endpoint lỗi/chậm/chưa có org → giữ mặc định, login không bị chặn.
 const DEFAULT_LOGO = '/brand/hs-monogram.png';
 const DEFAULT_PLACEHOLDER = `admin@hs.com hoặc ${SAMPLE_PHONE}`;
 const brandLogo = ref(DEFAULT_LOGO);
-const brandName = ref('HS Holding');
+const brandName = ref('YOEDU');
 const brandSlogan = ref('Bền vững · Trường tồn');
-const brandCopyright = ref(`© ${new Date().getFullYear()} HS Holding`);
+const brandCopyright = ref(`© ${new Date().getFullYear()} YOEDU`);
 const emailPlaceholder = ref(DEFAULT_PLACEHOLDER);
 
 // Phase Onboarding v1 — sau khi force change password thành công, redirect về /login?password-changed=1
@@ -123,7 +123,7 @@ onMounted(() => {
       // Org tồn tại → hiển thị ĐÚNG cấu hình: trường trống thì ẩn (banner v-if),
       // KHÔNG giữ chữ mặc định (fix slogan vẫn ra "Bền vững · Trường tồn").
       brandLogo.value = b.logoUrl || DEFAULT_LOGO;
-      brandName.value = b.name || 'HS Holding';
+      brandName.value = b.name || 'YOEDU';
       brandSlogan.value = b.slogan || '';
       brandCopyright.value = b.copyright || '';
       emailPlaceholder.value = b.emailDomain
@@ -157,13 +157,16 @@ async function handleLogin() {
 .login-card {
   display: flex;
   width: 100%;
-  max-width: 880px;
-  min-height: 460px;
+  max-width: 900px;
+  min-height: 480px;
   margin: 0 16px;
-  background: #fff;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 24px 60px -12px rgba(6, 34, 47, 0.28), 0 8px 24px -8px rgba(6, 34, 47, 0.18);
+  box-shadow: 0 30px 60px -12px rgba(6, 34, 47, 0.4), 0 12px 24px -8px rgba(6, 34, 47, 0.2);
 }
 
 /* Banner cột trái đã tách sang component LoginBrandBanner.vue (DRY). */
@@ -174,18 +177,31 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 44px 40px;
+  padding: 44px 48px;
 }
-.form-inner { width: 100%; max-width: 340px; }
+.form-inner { width: 100%; max-width: 360px; }
 .form-title {
-  font-size: 24px; font-weight: 700; color: #0e445a;
-  margin: 0 0 4px;
+  font-size: 28px; font-weight: 800; color: #06222f;
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
 }
 .form-sub {
-  font-size: 13.5px; color: #6b7884;
-  margin: 0 0 26px;
+  font-size: 14px; color: #5b6975;
+  margin: 0 0 32px;
 }
-.login-btn { font-weight: 600; letter-spacing: 0.3px; margin-top: 2px; }
+.login-btn {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(229, 57, 53, 0.45) !important;
+}
 
 /* ══ Responsive: ≤900px xếp dọc (banner tự thu gọn trong component) ══ */
 @media (max-width: 900px) {

@@ -59,7 +59,7 @@ export const APPOINTMENT_STATUS_OPTIONS = [
   { text: 'Vắng mặt', value: 'no_show' },
 ];
 
-// 2026-05-21 chốt: 4 loại nhắc hẹn cho domain BĐS (rename từ healthcare).
+// 2026-05-21 chốt: 4 loại nhắc hẹn cho domain Khóa học (rename từ healthcare).
 // Migration data cũ trong appointments table:
 //   reminder / tai_kham → follow_up (catchall "Theo dõi")
 //   new_visit           → meeting (Gặp mặt)

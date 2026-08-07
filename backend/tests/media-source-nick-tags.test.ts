@@ -2,7 +2,7 @@
  * media-source-nick-tags.test.ts — Media nguồn nick/sale + tag (2026-06-15).
  *
  * Kiểm BẤT BIẾN không cần DB thật:
- *  1. normalizeTags: gộp tag/dự án, lowercase, trim, bỏ rỗng, dedup ('EGV'/'egv'→'egv').
+ *  1. normalizeTags: gộp tag/khóa học, lowercase, trim, bỏ rỗng, dedup ('EGV'/'egv'→'egv').
  *  2. REGRESSION PRIVACY (CRITICAL): cờ sourceIsPrivateNick (KHÔNG suy từ sourceZaloAccountId).
  *     - nick thường giờ CÓ sourceZaloAccountId nhưng cờ=false → KHÔNG bị gate confirmShare.
  *     - nick Riêng tư: cờ=true → BỊ gate confirmShare khi public (giữ bảo vệ D11).
@@ -15,7 +15,7 @@
 import { describe, it, expect } from 'vitest';
 import { normalizeTags } from '../src/modules/media/media-service.js';
 
-describe('normalizeTags — gộp tag/dự án, không phân biệt hoa/thường', () => {
+describe('normalizeTags — gộp tag/khóa học, không phân biệt hoa/thường', () => {
   it("'EGV' / 'egv' / ' Egv ' → cùng 1 tag 'egv'", () => {
     expect(normalizeTags(['EGV', 'egv', ' Egv '])).toEqual(['egv']);
   });

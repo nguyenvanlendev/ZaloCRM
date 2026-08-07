@@ -1,4 +1,4 @@
-// Seed 60 mẫu tin nhắn (4 dự án × 15) — Anh chốt 2026-06-09.
+// Seed 60 mẫu tin nhắn (4 khóa học × 15) — Anh chốt 2026-06-09.
 // Idempotent: skip mẫu đã tồn tại theo (orgId, name). Re-run an toàn.
 //
 // Chạy:  npx tsx prisma/seeds/seed-message-templates.ts [orgId]
@@ -88,21 +88,21 @@ async function main() {
 
   console.log(`📂 Seed mẫu tin nhắn cho org ${org.id} (creator ${creator.id})`);
 
-  // 1 folder công khai "Mẫu dự án" (idempotent theo name)
+  // 1 folder công khai "Mẫu khóa học" (idempotent theo name)
   let folder = await prisma.messageTemplateFolder.findFirst({
-    where: { orgId: org.id, name: 'Mẫu dự án' }, select: { id: true },
+    where: { orgId: org.id, name: 'Mẫu khóa học' }, select: { id: true },
   });
   if (!folder) {
     folder = await prisma.messageTemplateFolder.create({
       data: {
-        id: randomUUID(), orgId: org.id, name: 'Mẫu dự án',
+        id: randomUUID(), orgId: org.id, name: 'Mẫu khóa học',
         visibility: 'public', createdById: creator.id,
       },
       select: { id: true },
     });
-    console.log('  ✓ Tạo folder "Mẫu dự án" (công khai)');
+    console.log('  ✓ Tạo folder "Mẫu khóa học" (công khai)');
   } else {
-    console.log('  • Folder "Mẫu dự án" đã có, dùng lại');
+    console.log('  • Folder "Mẫu khóa học" đã có, dùng lại');
   }
 
   let created = 0, updated = 0;
@@ -110,7 +110,7 @@ async function main() {
     const prefix = PROJECT_SHORTCUT_PREFIX[tag];
     const usedShortcuts = new Set<string>();
     for (const tpl of SEED_TEMPLATES[tag]) {
-      // Sinh shortcut "/<prefix><fn>", thêm số nếu trùng trong cùng dự án.
+      // Sinh shortcut "/<prefix><fn>", thêm số nếu trùng trong cùng khóa học.
       let sc = tpl.shortcut ?? `${prefix}${functionKeyFromName(tpl.name)}`;
       let base = sc, n = 2;
       while (usedShortcuts.has(sc)) { sc = `${base}${n}`; n += 1; }

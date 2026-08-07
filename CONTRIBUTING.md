@@ -10,7 +10,7 @@ ZaloCRM phát hành theo **GNU AGPL-3.0** (xem [LICENSE](LICENSE)). **Khi gửi 
 phát hành đóng góp đó theo AGPL-3.0** và chấp nhận **2 yêu cầu** dưới đây.
 
 ### 1. CLA (Contributor License Agreement) — bắt buộc
-Dự án dùng **dual-license** (AGPL + thương mại), nên cần bạn ký **CLA** cấp cho người bảo trì quyền
+Khóa học dùng **dual-license** (AGPL + thương mại), nên cần bạn ký **CLA** cấp cho người bảo trì quyền
 phát hành đóng góp của bạn theo cả AGPL lẫn giấy phép thương mại.
 
 - Lần đầu mở Pull Request, **bot CLA-assistant** sẽ tự bình luận với link ký. Ký 1 lần là dùng cho mọi PR sau.

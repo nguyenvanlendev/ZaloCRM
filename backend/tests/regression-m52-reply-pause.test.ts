@@ -139,13 +139,13 @@ describe('M52 — customer_reply → pause + cancel jobs', () => {
 
     await onCustomerReply({
       orgId: 'org1', triggerId: 't1', contactId: 'c1',
-      nickId: 'n1', replyText: 'Em quan tâm dự án',
+      nickId: 'n1', replyText: 'Em quan tâm khóa học',
     });
 
     expect(notifyCustomerReplyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         targetUserId: 'u1', triggerId: 't1', contactId: 'c1',
-        replyPreview: 'Em quan tâm dự án',
+        replyPreview: 'Em quan tâm khóa học',
       }),
     );
   });

@@ -105,7 +105,7 @@ export async function saveFromChatBatch(
   return data;
 }
 
-/** Chèn 1 asset từ kho vào 1 hội thoại (gửi đi). addTags: gắn tag/dự án LÚC GỬI (2026-06-15). */
+/** Chèn 1 asset từ kho vào 1 hội thoại (gửi đi). addTags: gắn tag/khóa học LÚC GỬI (2026-06-15). */
 export async function sendMediaToConversation(
   assetId: string,
   conversationId: string,

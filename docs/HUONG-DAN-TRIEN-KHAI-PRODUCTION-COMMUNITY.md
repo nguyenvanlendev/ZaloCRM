@@ -4,7 +4,7 @@
 > và **nâng cấp** bản đang chạy lên v3.4. Mọi thao tác **idempotent + giữ dữ liệu**.
 >
 > Thay `sub.domain.com` / `file.domain.com` bằng domain thật của bạn. Hướng dẫn sử dụng:
-> Tài liệu hướng dẫn sử dụng: xem thư mục **`docs/`** trong dự án.
+> Tài liệu hướng dẫn sử dụng: xem thư mục **`docs/`** trong khóa học.
 
 ## 🚀 Quick Start — 1 lệnh (tự động)
 

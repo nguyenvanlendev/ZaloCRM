@@ -2,7 +2,7 @@
 <!-- Copyright (C) 2026 Nguyễn Tiến Lộc -->
 <template>
   <v-app class="smax-app">
-    <!-- ════════ TOP NAV — HS Holding teal-navy shell (redesign 2026-06-05, đảo lock Variant A) ════════ -->
+    <!-- ════════ TOP NAV — YOEDU teal-navy shell (redesign 2026-06-05, đảo lock Variant A) ════════ -->
     <!-- Gradient teal-navy + monogram HS + wordmark · 7 tab + Báo cáo + Cài đặt · MDI line icon · active HS -->
     <header class="smax-topnav">
       <!-- Brand — logo + tên lấy theo hồ sơ tổ chức (đồng bộ /login, /setup-password) -->
@@ -247,7 +247,7 @@ function dismissInternalContactBanner() {
 // Brand lockup trên menu — logo + tên tổ chức (đồng bộ /login, /setup-password).
 const DEFAULT_LOGO = '/brand/hs-monogram.png';
 const brandLogo = ref(DEFAULT_LOGO);
-const brandName = ref('HS Holding');
+const brandName = ref('YOEDU');
 function onLogoError() {
   if (brandLogo.value !== DEFAULT_LOGO) brandLogo.value = DEFAULT_LOGO;
 }
@@ -264,7 +264,7 @@ onMounted(() => {
     .then((b) => {
       if (!b) return;
       brandLogo.value = b.logoUrl || DEFAULT_LOGO;
-      brandName.value = b.name || 'HS Holding';
+      brandName.value = b.name || 'YOEDU';
     })
     .catch(() => {});
 });
@@ -388,45 +388,49 @@ function logout() {
 }
 .ic-banner-dismiss:hover { color: #78350F; }
 
-/* HS Holding shell — teal-navy gradient nav (redesign 2026-06-05, đảo lock Variant A sáng) */
+/* YOEDU shell — glassmorphism nav (redesign 2026-08 sync with login) */
 .smax-topnav {
-  background: linear-gradient(180deg, var(--nav-grad-a, #0e445a) 0%, var(--nav-grad-b, #06222f) 100%);
-  color: rgba(255, 255, 255, 0.85);
-  height: 48px;
+  background: linear-gradient(135deg, rgba(14, 68, 90, 0.92) 0%, rgba(6, 34, 47, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: rgba(255, 255, 255, 0.9);
+  height: 52px;
   display: flex; align-items: center;
-  padding: 0 14px; gap: 4px;
+  padding: 0 18px; gap: 6px;
   flex-shrink: 0;
   position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.18);
+  box-shadow: 0 1px 0 rgba(255,255,255,.08), 0 4px 20px rgba(0,0,0,.25);
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-/* Brand lockup — monogram HS + wordmark "HS Holding / CRM" */
+/* Brand lockup — monogram YOEDU + wordmark "YOEDU / CRM" */
 .hs-brand {
-  display: flex; align-items: center; gap: 10px;
-  margin-right: 14px; flex: none; text-decoration: none;
+  display: flex; align-items: center; gap: 12px;
+  margin-right: 18px; flex: none; text-decoration: none;
+  transition: opacity 0.2s ease;
 }
+.hs-brand:hover { opacity: 0.85; }
 .hs-bbox {
-  width: 34px; height: 34px; border-radius: 9px;
+  width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-700) 100%);
-  box-shadow: inset 0 1px 1px rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.25);
+  background: transparent;
   flex: none;
 }
-.hs-bbox img { width: 24px; height: auto; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+.hs-bbox img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
 .hs-bwm { display: flex; flex-direction: column; line-height: 1.08; white-space: nowrap; }
-.hs-b1 { font-size: 13.5px; font-weight: 800; color: #fff; letter-spacing: .01em; }
-.hs-b2 { font-size: 9.5px; font-weight: 700; letter-spacing: .26em; color: var(--nav-accent, #5bb8e5); text-transform: uppercase; }
+.hs-b1 { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: .02em; text-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.hs-b2 { font-size: 10px; font-weight: 700; letter-spacing: .3em; color: #a5d8f3; text-transform: uppercase; }
 
 .nav-tabs {
-  display: flex; align-items: center; gap: 2px;
+  display: flex; align-items: center; gap: 3px;
   flex-wrap: nowrap;
   flex-shrink: 0;
 }
 .nav-tab {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 0 12px; border-radius: var(--r-sm, 8px);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 14px; border-radius: 10px;
   cursor: pointer;
-  color: var(--shell-ink, #cfe2ec);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 13px; font-weight: 600;
   background: transparent; border: none;
   white-space: nowrap;
@@ -434,25 +438,31 @@ function logout() {
   height: 36px;
   line-height: 1.2;
   position: relative;
+  transition: all 0.2s ease;
 }
-.nav-tab .ic-svg { color: var(--shell-ink-2, #7fa6b8); transition: color .14s; }
-.nav-tab .caret { font-size: 9px; opacity: 0.55; margin-left: -2px; }
-.nav-tab:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.nav-tab:hover .ic-svg { color: var(--shell-ink, #cfe2ec); }
+.nav-tab .ic-svg { color: rgba(255, 255, 255, 0.45); transition: all .2s ease; }
+.nav-tab .caret { font-size: 9px; opacity: 0.5; margin-left: -2px; transition: opacity .2s ease; }
+.nav-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.nav-tab:hover .ic-svg { color: rgba(255, 255, 255, 0.8); }
+.nav-tab:hover .caret { opacity: 0.8; }
 .nav-tab.active {
-  background: rgba(91, 184, 229, 0.16);
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--nav-accent, #5bb8e5);
+  box-shadow: 0 0 0 1px rgba(165, 216, 243, 0.2), inset 0 1px 0 rgba(255,255,255,.1);
 }
-.nav-tab.active .ic-svg { color: var(--nav-accent, #5bb8e5); }
+.nav-tab.active .ic-svg { color: #a5d8f3; }
 
-/* HD compact — chỉ kick in khi viewport < 1280 (rất hiếm với HD-first target) */
+/* HD compact — chỉ kick in khi viewport < 1280 */
 @media (max-width: 1280px) {
-  .nav-tab { padding: 7px 9px; font-size: 12px; gap: 5px; }
+  .nav-tab { padding: 7px 10px; font-size: 12px; gap: 5px; }
 }
 @media (max-width: 1100px) {
-  .nav-tab { padding: 6px 7px; gap: 4px; }
+  .nav-tab { padding: 6px 8px; gap: 4px; }
 }
 
 .topnav-spacer { flex: 1; min-width: 0; }
@@ -510,42 +520,53 @@ function logout() {
 }
 .topnav-search :deep(.v-field) {
   background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: white;
-  border-radius: 7px !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+.topnav-search :deep(.v-field:hover) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 .topnav-search :deep(input) { color: white !important; }
-.topnav-search :deep(input::placeholder) { color: rgba(255, 255, 255, 0.5) !important; }
+.topnav-search :deep(input::placeholder) { color: rgba(255, 255, 255, 0.45) !important; }
 
 .icon-btn,
 :deep(.icon-btn-wrap) > * {
-  width: 32px; height: 32px;
-  border-radius: 7px;
+  width: 34px; height: 34px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.75);
   position: relative;
   font-size: 16px;
   text-decoration: none;
   background: transparent; border: none;
-  margin-left: 2px;
+  margin-left: 3px;
+  transition: all 0.2s ease;
 }
 .icon-btn:hover,
 :deep(.icon-btn-wrap) > *:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
+  transform: translateY(-1px);
 }
 
 .user-avatar {
-  width: 32px; height: 32px;
+  width: 34px; height: 34px;
   border-radius: 50%;
   /* Module Cá nhân 2026-06-13 — bọc <Avatar/> (ảnh thật hoặc chữ cái gradient).
      Bỏ background vàng cũ, để Avatar tự render; button chỉ là khung bấm mở menu. */
   background: none; padding: 0;
   border: none; cursor: pointer;
-  margin-left: 6px;
+  margin-left: 8px;
   display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s ease;
 }
-.user-avatar :deep(.smax-av) { box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
+.user-avatar:hover { transform: scale(1.08); }
+.user-avatar :deep(.smax-av) { box-shadow: 0 0 0 2px rgba(165, 216, 243, .35); }
 
 .smax-main {
   background: var(--smax-grey-100);

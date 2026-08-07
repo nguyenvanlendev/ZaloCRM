@@ -3,7 +3,7 @@
 /**
  * priority-service.ts — Phase 8.C "Priority Score" combined metric.
  *
- * Triết lý: sale BĐS không cần đọc 2 score riêng biệt (Lead + Engagement). Họ
+ * Triết lý: tư vấn viên không cần đọc 2 score riêng biệt (Lead + Engagement). Họ
  * cần 1 con số "ưu tiên gọi ai hôm nay". Priority = weighted combo của:
  *   - Lead Score 55%  (ý định mua — keyword + behavior signals từ Phase 6)
  *   - Engagement Score 30% (hành vi 28 ngày qua — Phase 8.1)
