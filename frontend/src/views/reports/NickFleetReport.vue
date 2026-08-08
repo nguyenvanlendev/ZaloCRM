@@ -298,14 +298,14 @@ function days7(days: any): boolean[] {
 // ---- status / color classes ----
 function statusClass(status: string): string {
   const s = (status || '').toLowerCase();
-  if (s.includes('online') || s === 'ok') return 'ok';
+  if (s.includes('online') || s === 'ok' || s === 'connected') return 'ok';
   if (s.includes('idle') || s.includes('rảnh') || s.includes('ranh')) return 'idle';
   if (s.includes('warn')) return 'warn';
   return 'danger';
 }
 function statusLabel(status: string): string {
   const s = (status || '').toLowerCase();
-  if (s.includes('online') || s === 'ok') return 'Online';
+  if (s.includes('online') || s === 'ok' || s === 'connected') return 'Online';
   if (s.includes('idle') || s.includes('rảnh') || s.includes('ranh')) return 'Rảnh';
   if (s.includes('warn')) return 'Cảnh báo';
   if (s.includes('disconnect') || s.includes('relogin') || s.includes('offline')) return 'Mất kết nối';

@@ -175,9 +175,62 @@ export async function generateAiOutput(input: { orgId: string; conversationId: s
     `</conversation_context>`,
   ].join('\n');
 
-  const system = input.type === 'reply_draft'
-    ? buildReplyDraftPrompt(language)
-    : input.type === 'summary'
+  if (input.type === 'reply_draft') {
+    const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || 'http://ai-service:8000';
+    const systemPromptBase = buildReplyDraftPrompt(language);
+    
+    // Run both Legacy and RAG in parallel for comparison
+    const legacyPromise = generateText(currentConfig.provider, apiKey, currentConfig.model, systemPromptBase, userPrompt, undefined, await getProviderBaseUrl(input.orgId, currentConfig.provider))
+      .then(res => res.trim())
+      .catch(err => {
+        logger.error(`Legacy LLM error: ${(err as Error).message}`);
+        return "(Lỗi khi gọi Legacy LLM)";
+      });
+
+    const ragPromise = fetch(`${pythonServiceUrl}/api/v1/chat/suggest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: conversation.messages,
+          orgId: input.orgId,
+          apiKey: apiKey,
+          model: currentConfig.model,
+          systemPromptBase: systemPromptBase,
+          baseUrl: await getProviderBaseUrl(input.orgId, currentConfig.provider)
+        })
+      })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Python RAG service returned ${res.status}`);
+        const data = await res.json();
+        return data.reply.trim();
+      })
+      .catch(err => {
+        logger.error(`Error calling Python AI service: ${(err as Error).message}`);
+        return "(Lỗi khi gọi Python RAG)";
+      });
+
+    const [legacyText, ragText] = await Promise.all([legacyPromise, ragPromise]);
+    
+    // Return both options
+    const options = [
+      { action: 'Gợi ý (Cơ bản)', text: legacyText },
+      { action: 'Gợi ý (RAG / Có kiến thức)', text: ragText }
+    ];
+    
+    // Save the RAG one as default for metrics
+    await saveSuggestion({
+      orgId: input.orgId,
+      conversationId: input.conversationId,
+      messageId: input.messageId,
+      type: input.type,
+      content: ragText,
+      confidence: 0.8,
+    });
+    
+    return { options, confidence: 0.8 };
+  }
+
+  const system = input.type === 'summary'
       ? buildSummaryPrompt(language)
       : buildSentimentPrompt(language);
 

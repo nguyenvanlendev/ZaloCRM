@@ -6,7 +6,7 @@
     <span class="ai-suggest-label">AI gợi ý:</span>
     <div class="ai-suggest-pills">
       <div
-        v-for="(s, i) in pills"
+        v-for="(s, i) in suggestions"
         :key="i"
         class="ai-suggest-pill"
         :title="s.text"
@@ -19,7 +19,7 @@
         <v-progress-circular indeterminate size="14" width="2" />
         Đang sinh gợi ý…
       </div>
-      <div v-if="!pills.length && !loading && error" class="ai-suggest-pill error">
+      <div v-if="!suggestions.length && !loading && error" class="ai-suggest-pill error">
         ⚠ {{ error }}
       </div>
     </div>
@@ -31,21 +31,13 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  suggestion: string;
+  suggestions: { action: string, text: string }[];
   loading?: boolean;
   error?: string;
 }>();
 defineEmits<{ use: [text: string]; refresh: [] }>();
 
-interface Pill { action: string; text: string; }
-const pills = computed<Pill[]>(() => {
-  const text = (props.suggestion || '').trim();
-  if (!text) return [];
-  // Backend hiện trả 1 chuỗi gợi ý duy nhất → bọc thành 1 pill.
-  return [{ action: 'Reply', text }];
-});
-
-const visible = computed(() => props.loading || pills.value.length > 0 || !!props.error);
+const visible = computed(() => props.loading || props.suggestions.length > 0 || !!props.error);
 
 function truncated(text: string) {
   if (text.length <= 90) return `"${text}"`;

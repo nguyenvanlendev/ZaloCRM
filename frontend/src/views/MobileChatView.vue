@@ -32,7 +32,7 @@
         :loading="loadingMsgs"
         :sending="sendingMsg"
         :show-contact-panel="false"
-        :ai-suggestion="(null as any)"
+        :ai-suggestions="[]"
         :ai-suggestion-loading="false"
         :ai-suggestion-error="(null as any)"
         @send="handleSend"

@@ -331,7 +331,7 @@ export function useChat() {
     get: () => workScope.scopeAccountId() ?? null,
     set: (v) => workScope.lockToNick(v),
   });
-  const aiSuggestion = ref('');
+  const aiSuggestions = ref<{action: string, text: string}[]>([]);
   const aiSuggestionLoading = ref(false);
   const aiSuggestionError = ref('');
   const aiSummary = ref('');
@@ -379,7 +379,7 @@ export function useChat() {
   );
 
   function clearAiState() {
-    aiSuggestion.value = '';
+    aiSuggestions.value = [];
     aiSuggestionError.value = '';
     aiSummary.value = '';
     aiSentiment.value = null;
@@ -615,7 +615,11 @@ export function useChat() {
     aiSuggestionError.value = '';
     try {
       const res = await api.post('/ai/suggest', { conversationId: selectedConvId.value });
-      aiSuggestion.value = res.data.content || '';
+      if (res.data.options) {
+        aiSuggestions.value = res.data.options;
+      } else {
+        aiSuggestions.value = [{ action: 'Reply', text: res.data.content || '' }];
+      }
       await fetchAiUsage();
     } catch (err: any) {
       aiSuggestionError.value = err.response?.data?.error || 'Không thể tạo gợi ý AI';
@@ -1184,7 +1188,7 @@ export function useChat() {
     searchQuery,
     accountFilter,
     extraFilters,
-    aiSuggestion,
+    aiSuggestions,
     aiSuggestionLoading,
     aiSuggestionError,
     aiSummary,

@@ -512,7 +512,7 @@
 
       <!-- AI suggest bar -->
       <AISuggestBar
-        :suggestion="aiSuggestion"
+        :suggestions="aiSuggestions"
         :loading="aiSuggestionLoading"
         :error="aiSuggestionError"
         @use="applySuggestion"
@@ -1046,7 +1046,7 @@ const props = defineProps<{
   loading: boolean;
   sending: boolean;
   showContactPanel?: boolean;
-  aiSuggestion: string;
+  aiSuggestions: {action: string, text: string}[];
   aiSuggestionLoading: boolean;
   aiSuggestionError: string;
   allConversations?: Conversation[];
@@ -2871,7 +2871,7 @@ function handleSend() {
 
 // Áp dụng suggestion: chèn text vào editor + focus caret cuối → user Enter gửi luôn.
 async function applySuggestion(text?: string) {
-  const t = text || props.aiSuggestion;
+  const t = text || props.aiSuggestions?.[0]?.text;
   if (!t) return;
   inputText.value = t;
   // setContent ở RichTextEditor là async qua watch — đợi nextTick để editor update
@@ -2936,11 +2936,9 @@ watch(() => props.conversation?.id, async (newId) => {
 
 // Auto-apply AI suggestion ngay khi generate xong (transition empty → non-empty).
 // User chỉ cần bấm ✨ → text vào input + caret cuối → Enter gửi luôn.
-watch(() => props.aiSuggestion, (next, prev) => {
-  if (next && next !== prev) {
-    applySuggestion(next);
-  }
-});
+// User must click the pill to apply. Removed auto-apply for A/B testing.
+// watch(() => props.aiSuggestions, (next, prev) => {
+// });
 
 // Auto-focus editor khi vào Reply / Edit mode — con trỏ chuột nằm trong ô input
 // để user gõ luôn, không cần click thêm. Watch cả 2 prop: trigger bằng external
