@@ -182,6 +182,7 @@ model Organization {
   mediaUsageEvents        MediaUsageEvent[]
 
   @@map("organizations")
+  knowledgeDocuments KnowledgeDocument[]
 }
 
 // Team groups within an organization
@@ -314,6 +315,7 @@ model User {
   createdMediaAlbums        MediaAlbum[]                 @relation("MediaAlbumCreatedBy")
 
   @@map("users")
+  knowledgeDocuments KnowledgeDocument[]
 }
 
 // Phase 2 bảo mật xác thực 2026-06-08 — refresh token rotation.
@@ -1659,6 +1661,23 @@ model MessageTemplateFolder {
   @@index([orgId, ownerUserId])
   @@index([parentId])
   @@map("message_template_folders")
+}
+
+model KnowledgeDocument {
+  id          String   @id @default(uuid())
+  orgId       String   @map("org_id")
+  fileName    String   @map("file_name")
+  fileSize    Int      @map("file_size")
+  status      String   @default("pending") // pending, processing, success, failed
+  error       String?  @db.Text
+  uploadedBy  String   @map("uploaded_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User        @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("knowledge_documents")
 }
 
 model AiConfig {

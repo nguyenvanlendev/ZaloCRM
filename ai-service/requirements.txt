@@ -10,3 +10,6 @@ pypdf==4.2.0
 tiktoken==0.7.0
 sentence-transformers==2.7.0
 langchain-huggingface==0.0.3
+neo4j==5.20.0
+langchain-experimental==0.0.60
+python-multipart==0.0.9

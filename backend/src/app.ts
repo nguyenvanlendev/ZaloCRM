@@ -83,6 +83,7 @@ import { startContactIntelligence } from './modules/contacts/contact-intelligenc
 import { analyticsRoutes } from './modules/analytics/analytics-routes.js';
 import { automationRoutes } from './modules/automation/automation-routes.js';
 import { startAutomationWorker } from './modules/automation/automation-queue.js';
+import { knowledgeRoutes } from './modules/knowledge/knowledge-routes.js';
 import { savedReportRoutes } from './modules/analytics/saved-report-routes.js';
 import { integrationRoutes } from './modules/integrations/integration-routes.js';
 // Automation + Marketing (engine, blocks, sequences, triggers, broadcasts,
@@ -323,6 +324,7 @@ async function bootstrap() {
   await app.register(webhookSettingsRoutes);
   await app.register(analyticsRoutes);
   await app.register(automationRoutes);
+  await app.register(knowledgeRoutes, { prefix: '/api/v1/knowledge' });
   await app.register(savedReportRoutes);
   await app.register(integrationRoutes);
   // Automation + Marketing routes (blocks/sequences/triggers/broadcasts/care-session/
