@@ -70,6 +70,7 @@ export const config = {
   s3Endpoint: envValue('S3_ENDPOINT') || 'http://localhost:9000',
   s3PublicUrl: (envValue('S3_PUBLIC_URL') || 'http://localhost:9000').replace(/\/+$/, ''),
   s3Bucket: envValue('S3_BUCKET') || 'zalocrm-attachments',
+  s3Prefix: (envValue('S3_PREFIX') || '').replace(/\/+$/, ''),
   s3AccessKey: envValue('S3_ACCESS_KEY') || 'minioadmin',
   s3SecretKey: envValue('S3_SECRET_KEY') || 'minioadmin',
   s3Region: envValue('S3_REGION') || 'us-east-1',

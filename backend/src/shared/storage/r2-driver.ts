@@ -26,6 +26,8 @@ import { config } from '../../config/index.js';
 import { isSafeObjectKey, mimeToExt, type StorageDriver, type UploadResult } from './types.js';
 
 const BUCKET = config.s3Bucket;
+const PREFIX = config.s3Prefix ? `${config.s3Prefix}/` : '';
+const s3Key = (key: string) => `${PREFIX}${key}`;
 
 const client = new S3Client({
   region: config.s3Region, // R2: 'auto'
@@ -39,7 +41,7 @@ const client = new S3Client({
 
 async function objectExists(key: string): Promise<boolean> {
   try {
-    await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: s3Key(key) }));
     return true;
   } catch {
     return false;
@@ -66,11 +68,12 @@ export const r2Driver: StorageDriver = {
     await client.send(
       new PutObjectCommand({
         Bucket: BUCKET,
-        Key: key,
+        Key: s3Key(key),
         Body: buffer,
         ContentType: mimeType,
         ContentLength: buffer.length,
         CacheControl: 'public, max-age=31536000',
+        ACL: 'public-read',
       }),
     );
     return { key, url, size: buffer.length, mimeType, contentHash, deduped: false };
@@ -79,7 +82,7 @@ export const r2Driver: StorageDriver = {
   async getObjectStream(key: string): Promise<NodeJS.ReadableStream | null> {
     if (!isSafeObjectKey(key)) return null;
     try {
-      const res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+      const res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key(key) }));
       const body = res.Body;
       if (!body) return null;
       // SDK v3 trả Body là Readable trong Node.
@@ -92,7 +95,7 @@ export const r2Driver: StorageDriver = {
   async getObjectBuffer(key: string): Promise<Buffer | null> {
     if (!isSafeObjectKey(key)) return null;
     try {
-      const res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+      const res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key(key) }));
       if (!res.Body) return null;
       const bytes = await res.Body.transformToByteArray();
       return Buffer.from(bytes);
