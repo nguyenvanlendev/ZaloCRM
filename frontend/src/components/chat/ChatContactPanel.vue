@@ -490,14 +490,9 @@
       </div>
     </div>
 
-    <!-- ════════ TAB AI (placeholder) ════════ -->
-    <div v-if="mainTab === 'ai'" class="main-tab-body">
-      <div class="main-tab-placeholder">
-        <div class="mtp-icon">✨</div>
-        <h3>Trợ lý AI Đào tạo</h3>
-        <p>Hỏi đáp về sản phẩm, khóa học Khóa học, giá, ưu đãi để tư vấn KH.</p>
-        <div class="mtp-coming">🚧 Đang phát triển — kết nối knowledge base Khóa học YOEDU</div>
-      </div>
+    <!-- ════════ TAB AI (Trợ lý Đào tạo) ════════ -->
+    <div v-if="mainTab === 'ai'" class="main-tab-body main-tab-body--no-padding">
+      <AiAssistantPanel />
     </div>
 
     <!-- ════════ TAB FOLLOW-UP — Luồng Mục Tiêu M9 wire 2026-06-02 ════════ -->
@@ -610,6 +605,7 @@ import ScoreInlinePanel from '@/components/scoring/ScoreInlinePanel.vue';
 import ScoreHistoryModal from '@/components/scoring/ScoreHistoryModal.vue';
 import SalesHandoffModal from './SalesHandoffModal.vue';
 import { useContactCockpit, type Teammate } from '@/composables/use-contact-cockpit';
+import AiAssistantPanel from './AiAssistantPanel.vue';
 
 const props = defineProps<{
   contactId: string | null;

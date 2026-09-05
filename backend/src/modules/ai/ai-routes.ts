@@ -4,7 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { authMiddleware } from '../auth/auth-middleware.js';
 import { requireGrant } from '../rbac/rbac-middleware.js';
 import { requireZaloAccess } from '../zalo/zalo-access-middleware.js';
-import { getAiConfig, getAiUsage, updateAiConfig, generateAiOutput, aiFormatRichText, aiGenerateSalesHandoffMessage } from './ai-service.js';
+import { getAiConfig, getAiUsage, updateAiConfig, generateAiOutput, aiFormatRichText, aiGenerateSalesHandoffMessage, chatWithAssistant } from './ai-service.js';
 // M53 2026-05-30 — Trợ Lý AI Virtual Chat
 import { DEFAULT_VIRTUAL_CHAT_PROMPT } from './prompts/virtual-chat-assistant.js';
 import {
@@ -168,6 +168,19 @@ export async function aiRoutes(app: FastifyInstance) {
     } catch (err) {
       logger.error('[ai] Suggest error:', err);
       return sendHandledError(reply, err, 'Failed to generate AI suggestion');
+    }
+  });
+
+  app.post('/api/v1/ai/assistant/chat', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      logger.info(`[ai] HIT Assistant chat route with body: ${JSON.stringify(request.body)}`);
+      const body = request.body as { query: string; history: Array<{role: string; content: string}> };
+      if (!body.query) return reply.status(400).send({ error: 'query is required' });
+      const answer = await chatWithAssistant({ orgId: request.user!.orgId, query: body.query, history: body.history || [] });
+      return reply.send({ answer });
+    } catch (err) {
+      logger.error('[ai] Assistant chat error:', err);
+      return sendHandledError(reply, err, 'Failed to chat with AI Assistant');
     }
   });
 

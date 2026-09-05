@@ -229,6 +229,8 @@ services:
       dockerfile: Dockerfile
     container_name: zalo-crm-ai-service
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     environment:

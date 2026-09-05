@@ -1,0 +1,626 @@
+[
+  {
+    "id": 1,
+    "subject": "Toán",
+    "grade": 6,
+    "class_code": "6.2.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Lanh",
+      "full_id": "co-lanh-le-anh-xuan",
+      "gender": "Nữ",
+      "school": "Trường Lê Anh Xuân",
+      "experience_years": 7,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 2,
+    "subject": "Toán",
+    "grade": 6,
+    "class_code": "6.4.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Phương",
+      "full_id": "co-phuong-thoai-ngoc-hau",
+      "gender": "Nữ",
+      "school": "Trường Thoại Ngọc Hầu",
+      "experience_years": 4,
+      "titles": ["Thạc sĩ Toán", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS trung bình"]
+    }
+  },
+  {
+    "id": 3,
+    "subject": "Tiếng Anh",
+    "grade": 6,
+    "class_code": "6.1.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Hân",
+      "full_id": "co-han-ila-hoang-gia",
+      "gender": "Nữ",
+      "school": "Trường ILA, Hoàng Gia",
+      "experience_years": 7,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 4,
+    "subject": "Tiếng Anh",
+    "grade": 6,
+    "class_code": "6.3.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Hà",
+      "full_id": "co-ha-le-anh-xuan",
+      "gender": "Nữ",
+      "school": "Trường Lê Anh Xuân",
+      "experience_years": 7,
+      "titles": ["Tổ phó", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 5,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 6,
+    "class_code": "6.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 6", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Hà",
+      "full_id": "co-ha-dong-khoi",
+      "gender": "Nữ",
+      "school": "Trường Đồng Khởi",
+      "experience_years": 9,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 6,
+    "subject": "Toán",
+    "grade": 7,
+    "class_code": "7.2.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Giàu",
+      "full_id": "co-giau-le-anh-xuan",
+      "gender": "Nữ",
+      "school": "Trường Lê Anh Xuân",
+      "experience_years": 12,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "tận tâm", "thu hút HS"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 7,
+    "subject": "Toán",
+    "grade": 7,
+    "class_code": "7.4.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Thương",
+      "full_id": "co-thuong-hoang-dieu",
+      "gender": "Nữ",
+      "school": "Trường Hoàng Diệu",
+      "experience_years": 8,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 8,
+    "subject": "Tiếng Anh",
+    "grade": 7,
+    "class_code": "7.1.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Đan",
+      "full_id": "co-dan-tan-thoi-hoa",
+      "gender": "Nữ",
+      "school": "Trường Tân Thới Hòa",
+      "experience_years": 6,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 9,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 7,
+    "class_code": "7.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 6", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Thủy",
+      "full_id": "co-thuy-hoang-dieu",
+      "gender": "Nữ",
+      "school": "Trường Hoàng Diệu",
+      "experience_years": 8,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 10,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 7,
+    "class_code": "7.3.1",
+    "level": "Cấp 2",
+    "price_vnd": 750000,
+    "price_display": "750.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Thầy Lâm",
+      "full_id": "thay-lam-dong-khoi",
+      "gender": "Nam",
+      "school": "Trường Đồng Khởi",
+      "experience_years": 9,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "thu hút HS"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 11,
+    "subject": "Toán",
+    "grade": 8,
+    "class_code": "8.2.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Hải",
+      "full_id": "co-hai-thoai-ngoc-hau",
+      "gender": "Nữ",
+      "school": "Trường Thoại Ngọc Hầu",
+      "experience_years": 11,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 12,
+    "subject": "Toán",
+    "grade": 8,
+    "class_code": "8.4.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Tuyền",
+      "full_id": "co-tuyen-tan-thoi-hoa",
+      "gender": "Nữ",
+      "school": "Trường Tân Thới Hòa",
+      "experience_years": 14,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 13,
+    "subject": "Tiếng Anh",
+    "grade": 8,
+    "class_code": "8.1.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Ngà",
+      "full_id": "co-nga-le-anh-xuan",
+      "gender": "Nữ",
+      "school": "Trường Lê Anh Xuân",
+      "experience_years": 14,
+      "titles": ["Tổ phó", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 14,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 8,
+    "class_code": "8.2.2",
+    "level": "Cấp 2",
+    "price_vnd": 800000,
+    "price_display": "800.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 2",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "19:20",
+      "time_end": "21:00",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Thầy Lâm",
+      "full_id": "thay-lam-dong-khoi",
+      "gender": "Nam",
+      "school": "Trường Đồng Khởi",
+      "experience_years": 9,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "thu hút HS"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 15,
+    "subject": "Toán",
+    "grade": 9,
+    "class_code": "9.2.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Linh",
+      "full_id": "co-linh-dong-khoi",
+      "gender": "Nữ",
+      "school": "Trường Đồng Khởi",
+      "experience_years": 14,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi"]
+    }
+  },
+  {
+    "id": 16,
+    "subject": "Toán",
+    "grade": 9,
+    "class_code": "9.4.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Ly",
+      "full_id": "co-ly-thoai-ngoc-hau",
+      "gender": "Nữ",
+      "school": "Trường Thoại Ngọc Hầu",
+      "experience_years": 14,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 17,
+    "subject": "Toán",
+    "grade": 9,
+    "class_code": "9.6.2",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 2",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "19:30",
+      "time_end": "21:00",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Thầy Long",
+      "full_id": "thay-long-thoai-ngoc-hau",
+      "gender": "Nam",
+      "school": "Trường Thoại Ngọc Hầu",
+      "experience_years": 12,
+      "titles": ["Tổ phó", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 18,
+    "subject": "Toán",
+    "grade": 9,
+    "class_code": "9.1.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Thầy Phong",
+      "full_id": "thay-phong-tri-duc",
+      "gender": "Nam",
+      "school": "Trường Trí Đức",
+      "experience_years": 10,
+      "titles": ["Tổ phó", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 19,
+    "subject": "Toán",
+    "grade": 9,
+    "class_code": "9.3.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Thầy Hưng",
+      "full_id": "thay-hung-hung-vuong",
+      "gender": "Nam",
+      "school": "Trường Hùng Vương",
+      "experience_years": 15,
+      "titles": ["Tổ phó", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 20,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 9,
+    "class_code": "9.2.2",
+    "level": "Cấp 2",
+    "price_vnd": 800000,
+    "price_display": "800.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 2",
+      "days": ["Thứ 2", "Thứ 4"],
+      "time_start": "19:20",
+      "time_end": "21:00",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Trang",
+      "full_id": "co-trang-dong-khoi",
+      "gender": "Nữ",
+      "school": "Trường Đồng Khởi",
+      "experience_years": 13,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 21,
+    "subject": "Khoa học Tự nhiên",
+    "grade": 9,
+    "class_code": "9.1.2",
+    "level": "Cấp 2",
+    "price_vnd": 800000,
+    "price_display": "800.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 2",
+      "days": ["Thứ 3", "Thứ 5"],
+      "time_start": "19:20",
+      "time_end": "21:00",
+      "sessions_per_week": 2
+    },
+    "teacher": {
+      "name": "Cô Ly",
+      "full_id": "co-ly-hoang-dieu",
+      "gender": "Nữ",
+      "school": "Trường Hoàng Diệu",
+      "experience_years": 12,
+      "titles": ["Tổ trưởng", "GV Giỏi"],
+      "strengths": ["nhiệt tình", "thu hút HS", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 22,
+    "subject": "Ngữ văn",
+    "grade": 9,
+    "class_code": "9.1",
+    "level": "Cấp 2",
+    "price_vnd": 800000,
+    "price_display": "800.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Buổi sáng",
+      "days": ["Thứ 7"],
+      "time_start": "08:30",
+      "time_end": "11:30",
+      "sessions_per_week": 1
+    },
+    "teacher": {
+      "name": "Cô Quyên",
+      "full_id": "co-quyen-le-anh-xuan",
+      "gender": "Nữ",
+      "school": "Trường Lê Anh Xuân",
+      "experience_years": 8,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "thu hút HS", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình", "HS yếu"]
+    }
+  },
+  {
+    "id": 23,
+    "subject": "Tiếng Anh",
+    "grade": 9,
+    "class_code": "9.2.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 2", "Thứ 4", "Thứ 6"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Trang",
+      "full_id": "co-trang-tri-duc",
+      "gender": "Nữ",
+      "school": "Trường Trí Đức",
+      "experience_years": 8,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  },
+  {
+    "id": 24,
+    "subject": "Tiếng Anh",
+    "grade": 9,
+    "class_code": "9.1.1",
+    "level": "Cấp 2",
+    "price_vnd": 1000000,
+    "price_display": "1.000.000 VNĐ/tháng",
+    "schedule": {
+      "shift": "Ca 1",
+      "days": ["Thứ 3", "Thứ 5", "Thứ 7"],
+      "time_start": "17:45",
+      "time_end": "19:15",
+      "sessions_per_week": 3
+    },
+    "teacher": {
+      "name": "Cô Hương",
+      "full_id": "co-huong-tran-quoc-toan",
+      "gender": "Nữ",
+      "school": "Trường Trần Quốc Toản",
+      "experience_years": 10,
+      "titles": ["GV Giỏi"],
+      "strengths": ["nhiệt tình", "kiên nhẫn", "tận tâm"],
+      "suitable_for": ["HS giỏi", "HS trung bình"]
+    }
+  }
+]

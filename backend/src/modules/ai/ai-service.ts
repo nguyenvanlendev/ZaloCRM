@@ -672,5 +672,37 @@ export async function aiFormatRichText(input: { orgId: string; rawText: string }
   } catch (err) {
     logger.warn('[ai-format-rich] AI call failed:', err);
     return { text, styles: [], source: 'fallback' };
+    return { text, styles: [], source: 'fallback' };
   }
+}
+
+export async function chatWithAssistant(input: { query: string; history: Array<{role: string; content: string}>; orgId: string }) {
+  const currentConfig = await getAiConfig(input.orgId);
+  if (!currentConfig || !currentConfig.enabled) {
+    throw new Error('AI is disabled or not configured');
+  }
+
+  const apiKey = await getProviderApiKey(input.orgId, currentConfig.provider);
+  if (!apiKey) {
+    throw new Error('API key missing');
+  }
+
+  const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || 'http://ai-service:8000';
+
+  const res = await fetch(`${pythonServiceUrl}/api/v1/chat/assistant`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: input.query,
+      history: input.history,
+      orgId: input.orgId,
+      apiKey: apiKey,
+      model: currentConfig.model,
+      baseUrl: await getProviderBaseUrl(input.orgId, currentConfig.provider)
+    })
+  });
+
+  if (!res.ok) throw new Error(`Python RAG Assistant service returned ${res.status}`);
+  const data = await res.json();
+  return data.reply.trim();
 }
