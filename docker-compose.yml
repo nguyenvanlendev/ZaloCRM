@@ -129,6 +129,27 @@ services:
     depends_on:
       - db
 
+  backup-s3-sync:
+    image: alpine:latest
+    container_name: zalo-crm-backup-s3-sync
+    restart: unless-stopped
+    volumes:
+      - ./backups:/backups
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PREFIX=${S3_PREFIX}/db-backups
+      - AWS_DEFAULT_REGION=${S3_REGION:-us-east-1}
+    # Chạy đồng bộ thư mục backups lên S3 mỗi ngày lúc 01:00 AM (sau khi backup local chạy xong lúc 00:00)
+    # Lệnh aws s3 sync kèm --delete sẽ TỰ ĐỘNG XÓA các file cũ trên S3 khớp với policy quay vòng của backup local
+    command: >
+      sh -c 'apk add --no-cache aws-cli && echo "0 1 * * * aws s3 sync /backups s3://$${S3_BUCKET}/$${S3_PREFIX} --endpoint-url $${S3_ENDPOINT} --delete" > /etc/crontabs/root && crond -f -l 2'
+    depends_on:
+      - backup
+
   # ── GĐ13b (2026-06-13) Antivirus — quét virus file upload (clamd INSTREAM TCP 3310) ──
   # App KHÔNG depends_on service này (fail-open): app chạy bình thường kể cả khi clamav
   # đang tải DB virus (~vài phút sau khi start) hoặc tắt. App chỉ THẬT SỰ quét khi
