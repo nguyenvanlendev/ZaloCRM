@@ -20,6 +20,7 @@ import { onInboundMessage as onInboundScoring, onOutboundMessage as onOutboundSc
 import { syncReminderFromMessage } from '../contacts/reminder-sync.js';
 import { uploadBuffer } from '../../shared/storage/minio-client.js';
 import { compressImage } from '../media/media-service.js';
+import { compressVideo } from '../../shared/video-processor.js';
 import { config } from '../../config/index.js';
 // Open-core: customer-reply care-session reaction moved to extension engine
 // (emitted via the shared automation event bus below).
@@ -180,8 +181,11 @@ export async function mirrorRemoteMediaUrl(url: string, contentType: string): Pr
   // là bản CRM hiển thị + lưu trữ; nén webp giảm ~55% dung lượng. compressImage tự bỏ qua
   // video/voice/gif + fallback bytes gốc nếu sharp lỗi (ảnh hỏng/format lạ).
   let outBuf = buffer, outMime = mimeType;
-  if (contentType === 'image') {
+  if (mimeType.startsWith('image/')) {
     const proc = await compressImage(buffer, mimeType);
+    outBuf = proc.buffer; outMime = proc.mimeType;
+  } else if (mimeType.startsWith('video/')) {
+    const proc = await compressVideo(buffer);
     outBuf = proc.buffer; outMime = proc.mimeType;
   }
   const uploaded = await uploadBuffer(outBuf, outMime, fileNameFromUrl(url, contentType, mimeType));

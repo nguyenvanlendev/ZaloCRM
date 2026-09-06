@@ -9,6 +9,9 @@
       </div>
       <div class="hero-right" v-if="canCreateUser">
         <!-- 2026-06-07 anh chốt: DUY NHẤT 1 kênh tạo user qua Zalo (bỏ "Tạo nhanh"). -->
+        <button class="btn-secondary" @click="openCreateQuickDialog" title="Tạo nhanh không qua Zalo (tự quản lý mật khẩu)" style="margin-right: 8px;">
+          <span class="btn-icon">⚡</span> Tạo nhanh
+        </button>
         <button class="btn-primary" @click="openCreateWithZaloDialog" title="Tạo nhân viên gộp Zalo handshake — tự gửi tin login qua Zalo">
           <span class="btn-icon">＋</span> Thêm nhân viên
         </button>
@@ -105,9 +108,14 @@
       <div class="empty-icon">👥</div>
       <h3>Chưa có nhân viên nào</h3>
       <p>Bấm "Thêm nhân viên" ở góc phải trên để tạo tài khoản đầu tiên.</p>
-      <button v-if="canCreateUser" class="btn-primary mt-3" @click="openCreateWithZaloDialog">
-        <span class="btn-icon">＋</span> Thêm nhân viên đầu tiên
-      </button>
+      <div v-if="canCreateUser" class="mt-3" style="display: flex; gap: 8px; justify-content: center;">
+        <button class="btn-secondary" @click="openCreateQuickDialog">
+          <span class="btn-icon">⚡</span> Tạo nhanh
+        </button>
+        <button class="btn-primary" @click="openCreateWithZaloDialog">
+          <span class="btn-icon">＋</span> Thêm qua Zalo
+        </button>
+      </div>
     </div>
 
     <div v-else-if="filteredUsers.length === 0" class="empty-state">
@@ -301,6 +309,12 @@
     />
 
     <!-- Phase user-create-with-zalo 2026-05-27 — create user gộp Zalo handshake -->
+    <CreateUserQuickModal
+      v-model:open="createQuickOpen"
+      :departments="flatDepts"
+      :permission-groups="flatGroups"
+      @created="onCreatedWithZalo"
+    />
     <CreateUserWithZaloModal
       v-model:open="createWithZaloOpen"
       :departments="flatDepts"
@@ -325,6 +339,7 @@ import { useAuthStore } from '@/stores/auth';
 import { api } from '@/api/index';
 import UserEditPanel from '@/components/rbac/UserEditPanel.vue';
 import CreateUserWithZaloModal from '@/components/users/CreateUserWithZaloModal.vue';
+import CreateUserQuickModal from '@/components/users/CreateUserQuickModal.vue';
 
 const store = useRbacStore();
 const authStore = useAuthStore();
@@ -407,6 +422,9 @@ async function applyBulk() {
     bulkBusy.value = false;
   }
 }
+const createQuickOpen = ref(false);
+function openCreateQuickDialog() { createQuickOpen.value = true; }
+
 const createWithZaloOpen = ref(false);
 function openCreateWithZaloDialog() { createWithZaloOpen.value = true; }
 async function onCreatedWithZalo() {

@@ -26,7 +26,7 @@ import { tmpdir } from 'node:os';
 import { prisma } from '../../shared/database/prisma-client.js';
 import { uploadBuffer } from '../../shared/storage/minio-client.js';
 import { candidateDownloadUrls } from '../chat/chat-media-helpers.js';
-import { generateThumbnail, probeVideoFile } from '../../shared/video-processor.js';
+import { generateThumbnail, probeVideoFile, compressVideo } from '../../shared/video-processor.js';
 import { logger } from '../../shared/utils/logger.js';
 import type { MediaAsset, MediaBlob } from '@prisma/client';
 
@@ -197,10 +197,12 @@ export async function registerAsset(input: RegisterAssetInput): Promise<Register
   // Chuẩn hóa tag NGAY tại tầng service — mọi nguồn ghi tag (upload/save-from-chat) đi qua đây.
   const tagIds = normalizeTags(input.tagIds ?? []);
 
-  // 1. Nén (chỉ ảnh) — variant 'original' đã-nén là bytes thật lưu.
+  // 1. Nén ảnh/video — variant 'original' đã-nén là bytes thật lưu.
   const processed = kind === 'image'
     ? await compressImage(input.buffer, mimeType)
-    : { buffer: input.buffer, mimeType, width: undefined, height: undefined, compressed: false };
+    : kind === 'video'
+      ? await compressVideo(input.buffer).then(r => ({ ...r, width: undefined, height: undefined }))
+      : { buffer: input.buffer, mimeType, width: undefined, height: undefined, compressed: false };
 
   // 1b. VIDEO: sinh thumbnail + metadata (ffmpeg) để kho hiển thị đẹp (anh chốt 2026-06-12).
   const videoMeta = kind === 'video'

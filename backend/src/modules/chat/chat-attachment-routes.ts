@@ -18,7 +18,7 @@ import { requireZaloAccess } from '../zalo/zalo-access-middleware.js';
 import { zaloPool } from '../zalo/zalo-pool.js';
 import { zaloRateLimiter } from '../zalo/zalo-rate-limiter.js';
 import { zaloOps } from '../../shared/zalo-operations.js';
-import { generateThumbnail, sendNativeVideo } from '../../shared/video-processor.js';
+import { generateThumbnail, sendNativeVideo, compressVideo } from '../../shared/video-processor.js';
 import { uploadBuffer, type UploadResult } from '../../shared/storage/minio-client.js';
 import { compressImage } from '../media/media-service.js';
 import { logger } from '../../shared/utils/logger.js';
@@ -147,10 +147,12 @@ export async function chatAttachmentRoutes(app: FastifyInstance) {
           tmpPaths[i] = tmpPath;
           // 2026-06-22: NÉN ảnh trước khi LƯU mirror (R2) — giảm dung lượng. Ảnh GỬI khách dùng
           // tmpPath (bytes GỐC) nên khách vẫn nhận ảnh nét; chỉ bản lưu/hiển thị-CRM là webp nhẹ.
-          // compressImage tự bỏ qua video/file + gif/định dạng lạ + fallback gốc nếu sharp lỗi.
+          // compressImage/compressVideo tự fallback gốc nếu lỗi.
           const proc = f.kind === 'image'
             ? await compressImage(f.buffer, f.mimeType)
-            : { buffer: f.buffer, mimeType: f.mimeType };
+            : f.kind === 'video'
+              ? await compressVideo(f.buffer)
+              : { buffer: f.buffer, mimeType: f.mimeType };
           mirrors[i] = await uploadBuffer(proc.buffer, proc.mimeType, f.filename);
         }));
 
@@ -216,7 +218,7 @@ export async function chatAttachmentRoutes(app: FastifyInstance) {
             });
             const zaloMsgId = String((sendResult as any)?.msgId || (sendResult as any)?.data?.msgId || '');
             const mirror = mirrors[i];
-            const thumbUrl = thumbnailMirror?.url ?? mirror.url;
+            const thumbUrl = thumbnailMirror?.url ?? '';
             const msg = await createMediaMessage({
               conversationId: id,
               zaloAccount: conversation.zaloAccount,
@@ -240,7 +242,7 @@ export async function chatAttachmentRoutes(app: FastifyInstance) {
             );
             const zaloMsgId = String(sendResult?.msgId || sendResult?.data?.msgId || '');
             const mirror = mirrors[i];
-            const thumbUrl = thumbnailMirror?.url ?? mirror.url;
+            const thumbUrl = thumbnailMirror?.url ?? '';
             const msg = await createMediaMessage({
               conversationId: id,
               zaloAccount: conversation.zaloAccount,

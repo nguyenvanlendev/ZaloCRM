@@ -234,3 +234,65 @@ function toPositiveNumber(value: unknown): number | undefined {
   }
   return undefined;
 }
+
+// ── Video Compression ─────────────────────────────────────────────────────────
+
+export async function compressVideo(buffer: Buffer): Promise<{
+  buffer: Buffer;
+  mimeType: string;
+  compressed: boolean;
+}> {
+  const mimeType = 'video/mp4';
+  let dir: string | null = null;
+  try {
+    const isAvail = await isFfmpegAvailable();
+    if (!isAvail) return { buffer, mimeType, compressed: false };
+
+    dir = await fs.mkdtemp(path.join(os.tmpdir(), 'zalocrm-media-vid-compress-'));
+    const inputPath = path.join(dir, 'input.mp4');
+    const outputPath = path.join(dir, 'output.mp4');
+    await fs.writeFile(inputPath, buffer);
+
+    // Run ffmpeg with timeout
+    await new Promise<void>((resolve, reject) => {
+      const proc = execFile('ffmpeg', [
+        '-y',
+        '-i', inputPath,
+        '-vcodec', 'libx264',
+        '-crf', '28',
+        '-preset', 'fast',
+        '-vf', "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
+        '-acodec', 'aac',
+        '-b:a', '128k',
+        outputPath
+      ]);
+      const timer = setTimeout(() => {
+        proc.kill('SIGKILL');
+        reject(new Error('ffmpeg timeout'));
+      }, 120_000);
+      proc.on('close', (code) => {
+        clearTimeout(timer);
+        if (code === 0) resolve();
+        else reject(new Error(`ffmpeg exited with code ${code}`));
+      });
+      proc.on('error', (err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+    });
+
+    const outBuffer = await fs.readFile(outputPath);
+    if (outBuffer.length > 0 && outBuffer.length < buffer.length) {
+      return { buffer: outBuffer, mimeType, compressed: true };
+    }
+    // If output is larger than input, keep original
+    return { buffer, mimeType, compressed: false };
+  } catch (err) {
+    logger.warn('[video-processor] compressVideo failed, fallback to original:', (err as Error)?.message ?? err);
+    return { buffer, mimeType, compressed: false };
+  } finally {
+    if (dir) {
+      await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+    }
+  }
+}
