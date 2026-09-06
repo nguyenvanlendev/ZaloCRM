@@ -24,7 +24,7 @@ import { triggerVirtualChatAiReply } from '../ai/ai-virtual-chat-service.js';
 // M55 2026-05-30 — Auto-attach collaborator khi sale gửi tin virtual conv
 import { attachContactCollaboratorByUser } from '../contacts/contact-scope.js';
 // Fix 2026-06-03 — M11 optimistic badge cache (Anh báo "Sale CRM · Staff")
-import { getUserFullName } from './chat-helpers.js';
+import { getUserFullName, popEarlyDelivered } from './chat-helpers.js';
 // 2026-06-07 — Gửi Khối Marketing thẳng vào hội thoại (cột 4 tab Automation).
 import { zaloOps } from '../../shared/zalo-operations.js';
 import { sendNativeVideo } from '../../shared/video-processor.js';
@@ -712,7 +712,7 @@ export async function chatRoutes(app: FastifyInstance) {
     // Mốc = MAX(sent_at WHERE sender_type='contact') trong conv. Sale thật = self +
     // sentVia user/user_native; Bot = self + automation/ai_assistant/system.
     //   unanswered  = KHÔNG có tin self nào sau mốc khách cuối (chưa ai trả lời)
-    //   bot_no_sale = có tin self sau mốc, NHƯNG không có tin sale thật nào → chỉ bot
+    //   bot_no_sale = có tin self sau mốc, NHƯNG không có tin sale thật → chỉ bot
     //   sale_replied= có tin sale thật sau mốc khách cuối
     // D8: conv phải có ít nhất 1 tin khách (lastInbound IS NOT NULL).
     if (messageReplyState === 'unanswered' || messageReplyState === 'bot_no_sale' || messageReplyState === 'sale_replied') {
@@ -1742,6 +1742,7 @@ export async function chatRoutes(app: FastifyInstance) {
             contentType: persistedContentType,
             quote: quote ?? undefined,
             sentAt: new Date(),
+            deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
             repliedByUserId: user.id,
             sentVia: 'user',
             // 2026-06-15 IDEMPOTENCY: lưu echoId để dedup retry lần sau (null nếu app cũ).
@@ -2048,6 +2049,7 @@ export async function chatRoutes(app: FastifyInstance) {
           const dl = await downloadMediaToTemp({ url: m.payload.url, filename: sendName }, 'file');
           cleanups.push(dl.cleanup);
           const sdkResult = await zaloOps.sendFile(zaloAccountId, threadId, threadType, [dl.path], io, caption);
+          const zaloMsgId = extractZaloMsgId(sdkResult);
           toPersist.push({
             sdkResult,
             // name+mime+size đủ → CRM message-bubble getFileInfo hiện file-card (không rơi về '🔗 url').
@@ -2073,6 +2075,7 @@ export async function chatRoutes(app: FastifyInstance) {
               content: p.content,
               contentType: p.contentType,
               sentAt: new Date(),
+              deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
               repliedByUserId: user.id,
               sentVia: 'user',
               metadata: senderMeta,
@@ -2267,6 +2270,7 @@ export async function chatRoutes(app: FastifyInstance) {
             content,
             contentType,
             sentAt: new Date(),
+            deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
             repliedByUserId: user.id,
             sentVia: 'user',
             // Fix 2026-06-03 (Anh báo): optimistic badge "Sale CRM · Staff"

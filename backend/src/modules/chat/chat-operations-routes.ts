@@ -17,7 +17,7 @@ import { logger } from '../../shared/utils/logger.js';
 import { sendNativeVideo } from '../../shared/video-processor.js';
 import { applyContactAggregateFromMessage, applyContactInteraction, applyFriendAggregate } from '../contacts/contact-aggregate.js';
 import { markExpected as markReactionEchoExpected } from './reaction-echo-cache.js';
-import { getUserFullName } from './chat-helpers.js';
+import { getUserFullName, popEarlyDelivered } from './chat-helpers.js';
 import { downloadMediaToTemp, extractZaloMsgId } from './chat-media-helpers.js';
 
 interface ResolvedMessageRefs {
@@ -677,11 +677,10 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
           senderName: 'Staff',
           sentVia: 'user',
           metadata: { sender: { kind: 'user_crm', name: await getUserFullName(user.id) } },
-          // Lưu content shape JSON như Zalo native ({id, catId, type}) → frontend
-          // dùng metadata endpoint render đúng (animated CSS sprite hoặc static)
           content: JSON.stringify({ id: stickerId, catId: cateId || 0, type: type || 0 }),
           contentType: 'sticker',
           sentAt: new Date(),
+          deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
           repliedByUserId: user.id,
         },
       });
@@ -720,10 +719,14 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
       const threadType = conv.threadType === 'group' ? 1 : 0;
       const result = await zaloOps.sendLink(conv.zaloAccountId, conv.externalThreadId || '', threadType, { link: url });
 
+      const zaloMsgId = extractZaloMsgId(result);
+
       const created = await prisma.message.create({
         data: {
           id: randomUUID(),
           conversationId: id,
+          zaloMsgId: zaloMsgId || null,
+          zaloMsgIdNum: zaloMsgId && /^\d+$/.test(zaloMsgId) ? BigInt(zaloMsgId) : null,
           senderType: 'self',
           senderUid: '',
           senderName: 'Staff',
@@ -732,6 +735,7 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
           content: url,
           contentType: 'link',
           sentAt: new Date(),
+          deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
           repliedByUserId: user.id,
         },
       });
@@ -770,10 +774,14 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
       const threadType = conv.threadType === 'group' ? 1 : 0;
       const result = await zaloOps.sendCard(conv.zaloAccountId, conv.externalThreadId || '', threadType, contactId);
 
+      const zaloMsgId = extractZaloMsgId(result);
+
       const created = await prisma.message.create({
         data: {
           id: randomUUID(),
           conversationId: id,
+          zaloMsgId: zaloMsgId || null,
+          zaloMsgIdNum: zaloMsgId && /^\d+$/.test(zaloMsgId) ? BigInt(zaloMsgId) : null,
           senderType: 'self',
           senderUid: '',
           senderName: 'Staff',
@@ -782,6 +790,7 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
           content: contactId,
           contentType: 'contact_card',
           sentAt: new Date(),
+          deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
           repliedByUserId: user.id,
         },
       });

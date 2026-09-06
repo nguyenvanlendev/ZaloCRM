@@ -19,6 +19,23 @@ import { prisma } from '../../shared/database/prisma-client.js';
 const userNameCache = new Map<string, { name: string; ts: number }>();
 const CACHE_TTL_MS = 5 * 60_000; // 5 phút
 
+// Cache for msgIds that received a 'delivered' webhook BEFORE they were inserted into the DB.
+const earlyDeliveredCache = new Set<string>();
+
+export function markEarlyDelivered(msgId: string) {
+  if (!msgId) return;
+  earlyDeliveredCache.add(msgId);
+  // Remove after 10 seconds to avoid memory leak
+  setTimeout(() => earlyDeliveredCache.delete(msgId), 10000);
+}
+
+export function popEarlyDelivered(msgId: string): boolean {
+  if (!msgId) return false;
+  const exists = earlyDeliveredCache.has(msgId);
+  if (exists) earlyDeliveredCache.delete(msgId);
+  return exists;
+}
+
 /**
  * Lookup User.fullName với cache 5 phút. Giảm 1 DB roundtrip mỗi tin gửi
  * (sale gõ liên tục → cùng userId → cache hit).
@@ -89,6 +106,7 @@ export async function createMediaMessage(input: CreateMediaMessageInput) {
       content: input.content,
       contentType: input.contentType,
       sentAt: new Date(),
+      deliveredAt: (zaloMsgId && popEarlyDelivered(zaloMsgId)) ? new Date() : null,
       repliedByUserId: input.repliedByUserId,
     },
   });

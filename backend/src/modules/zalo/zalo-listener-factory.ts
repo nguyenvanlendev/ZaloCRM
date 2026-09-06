@@ -9,6 +9,7 @@ import type { Server } from 'socket.io';
 import { randomUUID } from 'node:crypto';
 import { logger } from '../../shared/utils/logger.js';
 import { prisma } from '../../shared/database/prisma-client.js';
+import { markEarlyDelivered } from '../chat/chat-helpers.js';
 import { handleIncomingMessage, handleMessageUndo } from '../chat/message-handler.js';
 import { detectContentType, extractAlbumInfo, updateContactAvatar } from './zalo-message-helpers.js';
 import { handleFriendEvent } from './friend-event-handler.js';
@@ -601,6 +602,10 @@ export function attachZaloListener(ctx: ListenerContext): void {
           }
         } else if (seenIds.length === 0) {
           logger.info(`[zalo:${accountId}] 🟡 DELIVERED → updateMany count=0 (ids=${deliveryOnlyIds.join(',')})`);
+          // Handle race condition: webhook arrived before createMediaMessage finished inserting the row
+          for (const msgId of deliveryOnlyIds) {
+            markEarlyDelivered(msgId);
+          }
         }
       }
     } catch (err) {
