@@ -2,9 +2,7 @@ version: "3.8"
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    image: lennguyen03/zalo-crm-app:latest
     container_name: zalo-crm-app
     restart: unless-stopped
     ports:
@@ -187,9 +185,7 @@ services:
       - qdrant_data:/qdrant/storage
 
   ai-service:
-    build:
-      context: ./ai-service
-      dockerfile: Dockerfile
+    image: lennguyen03/zalo-crm-ai-service:latest
     container_name: zalo-crm-ai-service
     restart: unless-stopped
     env_file:
