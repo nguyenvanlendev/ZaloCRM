@@ -14,6 +14,7 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { authMiddleware } from '../auth/auth-middleware.js';
 import { getContactScope } from '../contacts/contact-scope.js';
 import { getZaloScope } from '../zalo/zalo-scope.js';
+import { normalizePhone } from '../../shared/utils/phone.js';
 
 export async function searchRoutes(app: FastifyInstance) {
   app.addHook('preHandler', authMiddleware);
@@ -30,11 +31,29 @@ export async function searchRoutes(app: FastifyInstance) {
       getZaloScope(user.id, user.orgId, user.role),
     ]);
 
+    const canonicalPhone = normalizePhone(searchTerm);
+    const digits = searchTerm.replace(/[^\d]/g, '');
+    const phone2_3Variants: string[] = [];
+    if (digits.length >= 9) {
+      phone2_3Variants.push(digits);
+      if (digits.startsWith('0')) phone2_3Variants.push('84' + digits.slice(1));
+      else if (digits.startsWith('84')) phone2_3Variants.push('0' + digits.slice(2));
+    }
+    const phone23Clauses = phone2_3Variants.flatMap(p => [
+      { phone2: { contains: p } },
+      { phone3: { contains: p } },
+    ]);
+
     const contactWhere: any = {
       orgId: user.orgId,
       OR: [
         { fullName: { contains: searchTerm, mode: 'insensitive' } },
-        { phone: { contains: searchTerm } },
+        ...(canonicalPhone ? [{ phoneNormalized: { equals: canonicalPhone } }] : []),
+        ...phone23Clauses,
+        { email: { contains: searchTerm, mode: 'insensitive' } },
+        { zaloUid: { equals: searchTerm } },
+        { zaloGlobalId: { equals: searchTerm } },
+        { zaloUsername: { equals: searchTerm } },
         { notes: { contains: searchTerm, mode: 'insensitive' } },
       ],
     };

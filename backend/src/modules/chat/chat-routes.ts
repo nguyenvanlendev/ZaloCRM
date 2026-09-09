@@ -511,11 +511,32 @@ export async function chatRoutes(app: FastifyInstance) {
     // Contact-level filter — gộp vào where.contact nested
     const contactWhere: Record<string, unknown> = {};
     if (search) {
-      contactWhere.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { crmName: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
+      const canonicalPhone = normalizePhone(search);
+      const digits = search.replace(/[^\d]/g, '');
+      const phone2_3Variants: string[] = [];
+      if (digits.length >= 9) {
+        phone2_3Variants.push(digits);
+        if (digits.startsWith('0')) phone2_3Variants.push('84' + digits.slice(1));
+        else if (digits.startsWith('84')) phone2_3Variants.push('0' + digits.slice(2));
+      }
+      const phone23Clauses = phone2_3Variants.flatMap(p => [
+        { phone2: { contains: p } },
+        { phone3: { contains: p } },
+      ]);
+
+      const searchORs: Record<string, unknown>[] = [
+        { contact: { fullName: { contains: search, mode: 'insensitive' } } },
+        { contact: { crmName: { contains: search, mode: 'insensitive' } } },
+        ...(canonicalPhone ? [{ contact: { phoneNormalized: { equals: canonicalPhone } } }] : []),
+        ...phone23Clauses.map(clause => ({ contact: clause })),
+        { contact: { email: { contains: search, mode: 'insensitive' } } },
+        { contact: { zaloUid: { equals: search } } },
+        { contact: { zaloGlobalId: { equals: search } } },
+        { contact: { zaloUsername: { equals: search } } },
+        { messages: { some: { content: { contains: search, mode: 'insensitive' } } } },
       ];
+      
+      where.AND = [{ OR: searchORs }];
     }
     if (statusId) contactWhere.statusId = statusId;
     if (assignedUserId) contactWhere.assignedUserId = assignedUserId;

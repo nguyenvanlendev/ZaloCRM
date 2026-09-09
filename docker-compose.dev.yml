@@ -1,32 +1,102 @@
 version: "3.8"
 
-# Development-only compose: starts only the database.
-# Run the backend with: cd backend && npm run dev
-
 services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: zalo-crm-dev-app
+    restart: unless-stopped
+    ports:
+      - "3081:3000" # Expose dev app on 3081 to avoid conflict with prod 3080
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-crmuser}:${DB_PASSWORD}@db:5432/${DB_NAME:-zalocrm}
+      - REDIS_URL=redis://redis:6379
+      - AUTOMATION_STUB_MODE=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - file_storage_dev:/var/lib/zalo-crm/files
+    tmpfs:
+      - /tmp
+
   db:
     image: postgres:16-alpine
-    container_name: zalo-crm-db-dev
+    container_name: zalo-crm-dev-db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: crmuser
-      POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: zalocrm
+      POSTGRES_USER: ${DB_USER:-crmuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
+      POSTGRES_DB: ${DB_NAME:-zalocrm}
       TZ: Asia/Ho_Chi_Minh
-    # Cùng quy ước với prod: log giờ VN, NHƯNG timezone=UTC để @default(now()) lưu UTC
-    # (Prisma đọc cột timestamp như UTC — đổi sang ICT sẽ lệch +7h).
     command: >
       postgres
       -c timezone=UTC
       -c log_timezone=Asia/Ho_Chi_Minh
     ports:
-      - "5433:5432"
+      - "5433:5432" # Expose dev db on 5433 to avoid conflict with prod 5432
     volumes:
       - pg_data_dev:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crmuser"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-crmuser} -d ${DB_NAME:-zalocrm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: zalo-crm-dev-redis
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis_data_dev:/data
+    ports:
+      - "6380:6379" # Expose dev redis on 6380
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 3s
       retries: 3
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: zalo-crm-dev-qdrant
+    restart: unless-stopped
+    ports:
+      - "6334:6333" # Expose dev qdrant on 6334
+    volumes:
+      - qdrant_data_dev:/qdrant/storage
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: zalo-crm-dev-ai-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8002:8000" # Expose dev ai-service on 8002
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      - qdrant
+
 volumes:
   pg_data_dev:
+  file_storage_dev:
+  redis_data_dev:
+  qdrant_data_dev:
