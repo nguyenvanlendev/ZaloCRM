@@ -1309,8 +1309,8 @@ export async function chatRoutes(app: FastifyInstance) {
         // Primary sort by Zalo Snowflake (zaloMsgIdNum) — match Zalo Web order.
         // sentAt fallback chỉ kick in cho row chưa có zaloMsgIdNum (CRM in-flight).
         orderBy: [{ zaloMsgIdNum: { sort: 'desc', nulls: 'last' } }, { sentAt: 'desc' }],
-        skip: (parseInt(page) - 1) * parseInt(limit),
-        take: parseInt(limit),
+        skip: (parseInt(page) - 1) * Math.min(parseInt(limit), 200),
+        take: Math.min(parseInt(limit), 200),
         select: {
           id: true,
           zaloMsgId: true,

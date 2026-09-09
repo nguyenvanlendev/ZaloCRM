@@ -78,7 +78,7 @@
     </div>
 
     <!-- ════════ Conv items ════════ -->
-    <div ref="scrollContainer" class="conv-scroll">
+    <div ref="scrollContainer" class="conv-scroll" @scroll="onScroll">
       <div v-if="loading && conversations.length === 0" class="loading">Đang tải…</div>
 
       <!-- Phase A perf fix v2 (2026-05-21) — Re-thêm TransitionGroup nhưng với
@@ -230,6 +230,11 @@
       <div v-if="!loading && conversations.length === 0" class="empty-state">
         Chưa có hội thoại nào
       </div>
+
+      <!-- Hiển thị loader khi đang cuộn xuống tải thêm -->
+      <div v-if="loadingMore" class="loading-more">
+        Đang tải thêm...
+      </div>
     </div>
 
     <!-- Context menu cột 2 (right-click) — clone giao diện + responsive cột 3 -->
@@ -325,6 +330,8 @@ const props = defineProps<{
   conversations: Conversation[];
   selectedId: string | null;
   loading: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
   search: string;
   accounts?: Array<{
     id: string;
@@ -361,7 +368,20 @@ const emit = defineEmits<{
   'compose-opened': [conversationId: string];
   /** Theo dõi (anh chốt 2026-06-15) — toggle follow từ menu → cập nhật chuông cột 2 ngay. */
   'follow-changed': [contactId: string, nickId: string, following: boolean];
+  'load-more': [];
 }>();
+
+// ── Pagination / Infinite Scroll ───────────────────────────────────────────
+function onScroll(e: Event) {
+  const el = e.target as HTMLElement;
+  if (!el) return;
+  // Kích hoạt load thêm khi cuộn cách đáy 50px
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < 50) {
+    if (props.hasMore && !props.loadingMore) {
+      emit('load-more');
+    }
+  }
+}
 
 // ── Compose new message ─────────────────────────────────────────────────────
 // Wedge A 2026-05-28 (anh chốt): nút "Tin nhắn mới" hành xử theo 2 state.

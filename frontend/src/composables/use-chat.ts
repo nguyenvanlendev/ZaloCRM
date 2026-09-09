@@ -306,8 +306,17 @@ export function useChat() {
   function currentUserIdForPrivacy(): string | null { return authStore.user?.id ?? null; }
   function privacyUnlockedRef(): boolean { return !!privacyStore.isUnlocked; }
   const conversations = ref<Conversation[]>([]);
+  const convPage = ref(1);
+  const convHasMore = ref(true);
+  const loadingMoreConvs = ref(false);
+
   const selectedConvId = ref<string | null>(null);
+  
   const messages = ref<Message[]>([]);
+  const msgPage = ref(1);
+  const msgHasMore = ref(true);
+  const loadingMoreMsgs = ref(false);
+
   // Track conv mà messages.value đang chứa — để fetchMessages biết switch conv thì
   // wholesale replace (không merge tin từ conv khác), refresh cùng conv thì merge
   // (giữ tin socket đến trong lúc HTTP fly).
@@ -387,9 +396,19 @@ export function useChat() {
 
   const extraFilters = ref<Record<string, string>>({});
 
-  async function fetchConversations(opts?: { bypassCache?: boolean }) {
+  async function fetchConversations(opts?: { bypassCache?: boolean, loadMore?: boolean }) {
+    if (opts?.loadMore) {
+      if (!convHasMore.value || loadingMoreConvs.value) return;
+      loadingMoreConvs.value = true;
+      convPage.value++;
+    } else {
+      convPage.value = 1;
+      convHasMore.value = true;
+    }
+
     const params = {
-      limit: 100,
+      limit: 50,
+      page: convPage.value,
       search: searchQuery.value,
       accountId: accountFilter.value || undefined,
       ...extraFilters.value,
@@ -430,17 +449,29 @@ export function useChat() {
       // Apply pending optimistic mutations (tag assigns chưa được BE confirm) trước khi
       // replace state — tránh fetchConversations chạy giữa lúc BE đang sync wipe UI optimistic.
       const fresh = applyPendingTags(res.data.conversations as Conversation[]);
-      conversationsCache.set(cacheKey, { data: fresh, fetchedAt: Date.now() });
-      logCacheEvent('set', cacheKey);
-      evictOldConvCacheIfNeeded();
-      // Merge để giữ detail fields (Contact full ~50 field từ /conversations/:id)
-      // không bị wipe bởi narrow list response (14 field).
-      conversations.value = mergeConvListPreserveDetail(conversations.value, fresh, preserveIds);
+      if (fresh.length < 50) convHasMore.value = false;
+
+      if (!opts?.loadMore) {
+        conversationsCache.set(cacheKey, { data: fresh, fetchedAt: Date.now() });
+        logCacheEvent('set', cacheKey);
+        evictOldConvCacheIfNeeded();
+      }
+
+      if (opts?.loadMore) {
+        conversations.value = mergeConvListPreserveDetail([...conversations.value, ...fresh], fresh, preserveIds);
+      } else {
+        conversations.value = mergeConvListPreserveDetail(conversations.value, fresh, preserveIds);
+      }
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
     } finally {
-      loadingConvs.value = false;
+      if (opts?.loadMore) loadingMoreConvs.value = false;
+      else loadingConvs.value = false;
     }
+  }
+
+  async function loadMoreConversations() {
+    await fetchConversations({ bypassCache: true, loadMore: true });
   }
 
   function normalizeMessage(message: RawMessage): Message {
@@ -514,62 +545,72 @@ export function useChat() {
     return selectedConvId.value === id && messagesConvId.value === id;
   }
 
-  async function fetchMessages(convId: string) {
-    // Switch conv → wholesale reset messages.value để không mix tin từ conv cũ.
-    // Nếu cùng conv (refresh) → giữ messages hiện tại cho merge logic phía dưới.
-    if (messagesConvId.value !== convId) {
-      messages.value = [];
-      messagesConvId.value = convId;
-    }
-    // Cache-then-refresh: nếu đã từng load conv này, set list ngay từ cache để
-    // user thấy giao diện tin nhắn lập tức; rồi fetch fresh in background.
-    // 2026-06-12: guard theo messagesConvId (vừa set ở trên) — nếu trong lúc await ngầm
-    // conv đã đổi (re-entrant fast switch) thì KHÔNG paint cache của conv cũ vào thread.
-    const cached = messagesCache.get(convId);
-    if (cached) {
-      if (messagesConvId.value === convId) {
-        messages.value = cached;
-        loadingMsgs.value = false;
-      }
+  async function fetchMessages(convId: string, opts?: { loadMore?: boolean }) {
+    if (opts?.loadMore) {
+      if (!msgHasMore.value || loadingMoreMsgs.value) return;
+      loadingMoreMsgs.value = true;
+      msgPage.value++;
     } else {
-      loadingMsgs.value = true;
+      if (messagesConvId.value !== convId) {
+        messages.value = [];
+        messagesConvId.value = convId;
+      }
+      msgPage.value = 1;
+      msgHasMore.value = true;
     }
+
+    // Cache-then-refresh logic (chỉ khi không loadMore)
+    if (!opts?.loadMore) {
+      const cached = messagesCache.get(convId);
+      if (cached) {
+        if (messagesConvId.value === convId) {
+          messages.value = cached;
+          loadingMsgs.value = false;
+        }
+      } else {
+        loadingMsgs.value = true;
+      }
+    }
+
     try {
       const res = await api.get(`/conversations/${convId}/messages`, {
-        params: { limit: 100 },
+        params: { limit: 50, page: msgPage.value },
       });
       const list = (res.data.messages as RawMessage[]).map(normalizeMessage);
-      // Merge thay vì wholesale replace: giữ msgs đã insert qua socket trong lúc HTTP
-      // bay (BE replication lag có thể chưa thấy msg socket vừa nhận). CHỈ merge khi
-      // messagesConvId.value === convId — đảm bảo socket items thuộc conv hiện tại,
-      // không phải tin từ conv khác bị tích luỹ.
+      if (list.length < 50) msgHasMore.value = false;
+
       if (isConvCurrent(convId)) {
-        const beIds = new Set(list.map(m => m.id));
-        const socketOnly = messages.value.filter(m => !beIds.has(m.id));
-        if (socketOnly.length === 0) {
-          messages.value = list;
+        if (opts?.loadMore) {
+          // list is older messages, ordered oldest first. Prepend them.
+          messages.value = [...list, ...messages.value];
         } else {
-          const merged = [...list, ...socketOnly];
-          merged.sort(compareMessages);
-          messages.value = merged;
+          const beIds = new Set(list.map(m => m.id));
+          const socketOnly = messages.value.filter(m => !beIds.has(m.id));
+          if (socketOnly.length === 0) {
+            messages.value = list;
+          } else {
+            const merged = [...list, ...socketOnly];
+            merged.sort(compareMessages);
+            messages.value = merged;
+          }
         }
       }
-      // 2026-06-12 (P0 fix bleed-over) — CHỈ ghi cache khi conv VẪN là conv hiện tại.
-      // Trước đây dòng này chạy vô điều kiện: response conv A đến muộn (sau khi user đã
-      // sang B) ghi mảng của B (đang ở messages.value) vào cache key A → mở lại A hiện
-      // tin B. + lưu SHALLOW COPY [...messages.value] thay vì reference sống: tách CẤU
-      // TRÚC mảng (socket insertMessageSorted splice/push trên messages.value KHÔNG còn
-      // đụng mảng đã cache) nhưng GIỮ CHUNG object tin nhắn — nên handler zalo:message-status
-      // (cập nhật deliveredAt/seenAt in-place trên object) vẫn phản ánh đúng vào cache.
-      // KHÔNG deep-clone: sẽ cắt object chung → vỡ dấu "đã nhận/đã xem" + tốn bộ nhớ ×100×50.
-      if (isConvCurrent(convId)) {
+
+      if (isConvCurrent(convId) && !opts?.loadMore) {
         messagesCache.set(convId, [...messages.value]);
       }
     } catch (err) {
       console.error('Failed to fetch messages:', err);
     } finally {
-      if (selectedConvId.value === convId) loadingMsgs.value = false;
+      if (selectedConvId.value === convId) {
+        if (opts?.loadMore) loadingMoreMsgs.value = false;
+        else loadingMsgs.value = false;
+      }
     }
+  }
+
+  async function loadMoreMessages(convId: string) {
+    await fetchMessages(convId, { loadMore: true });
   }
 
   async function fetchAiConfig() {
@@ -1225,5 +1266,12 @@ export function useChat() {
       outOfScopeCounts.value = m;
     },
     workScope,
+    // Pagination exports
+    convHasMore,
+    loadingMoreConvs,
+    loadMoreConversations,
+    msgHasMore,
+    loadingMoreMsgs,
+    loadMoreMessages,
   };
 }

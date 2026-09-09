@@ -43,6 +43,8 @@
         :conversations="conversations"
         :selected-id="selectedConvId"
         :loading="loadingConvs"
+        :has-more="convHasMore"
+        :loading-more="loadingMoreConvs"
         :accounts="accountList"
         :selected-account-ids="selectedAccountIds"
         :active-tab-key="inboxFilters.state.activeTab"
@@ -56,6 +58,7 @@
         @conversation-deleted="onConversationDeleted"
         @compose-opened="onComposeOpened"
         @follow-changed="onFollowChanged"
+        @load-more="loadMoreConversations"
       >
         <template #filters>
           <ConversationFilterBar
@@ -74,6 +77,9 @@
       :conversation="selectedConv"
       :messages="messages"
       :loading="loadingMsgs"
+      :has-more="msgHasMore"
+      :loading-more="loadingMoreMsgs"
+      @load-more="loadMoreMessages"
       :sending="sendingMsg"
       :ai-suggestions="aiSuggestions"
       :ai-suggestion-loading="aiSuggestionLoading"
@@ -176,6 +182,8 @@ const {
   typingConvIds, realtimeOffline,
   outOfScopeCounts, clearOutOfScopeBadge,
   patchContactProfile,
+  convHasMore, loadingMoreConvs, loadMoreConversations,
+  msgHasMore, loadingMoreMsgs, loadMoreMessages,
 } = useChat();
 
 const {

@@ -358,8 +358,12 @@
       </div>
 
       <!-- ════════ Messages ════════ -->
-      <div ref="messagesContainer" class="messages chat-messages-area" :class="{ 'is-virtual-mode': isVirtualConv }">
-        <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-2" />
+      <div ref="messagesContainer" class="messages chat-messages-area" :class="{ 'is-virtual-mode': isVirtualConv }" @scroll="onScroll">
+        <!-- Hiển thị loader nếu đang tải thêm tin nhắn cũ -->
+        <div v-if="loadingMore" class="loading-more-msgs">
+          <v-progress-circular indeterminate size="24" color="primary" />
+        </div>
+        <v-progress-linear v-if="loading && !loadingMore" indeterminate color="primary" class="mb-2" />
 
         <template v-for="item in displayItems" :key="item.key">
           <!-- Date divider -->
@@ -1044,6 +1048,8 @@ const props = defineProps<{
   conversation: Conversation | null;
   messages: Message[];
   loading: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
   sending: boolean;
   showContactPanel?: boolean;
   aiSuggestions: {action: string, text: string}[];
@@ -1078,6 +1084,7 @@ const emit = defineEmits<{
   // Fix 2026-06-16: dialog xem info Zalo trả avatar/tên mới từ SDK → báo ChatView patch
   // conversation state (header + list cập nhật ngay, không chờ F5).
   'profile-synced': [payload: { uid: string; avatarUrl: string | null; displayName: string | null; gender: number | null }];
+  'load-more': [];
 }>();
 
 const toast = useToast();
@@ -2914,10 +2921,36 @@ function scrollToBottom(immediate = false) {
   }
 }
 
-// Khi messages thêm (tin mới đến) → scroll mượt
-watch(() => props.messages.length, async () => {
+// ── Lắng nghe sự kiện scroll trên messagesContainer ──────────────────────────
+// Để giữ nguyên vị trí cuộn khi tin nhắn cũ được chèn vào mảng.
+const previousScrollHeight = ref(0);
+
+function onScroll(e: Event) {
+  const el = e.target as HTMLElement;
+  if (!el) return;
+  // Kích hoạt load thêm khi cuộn gần chạm ĐỈNH (trên cùng = tin cũ nhất)
+  if (el.scrollTop <= 50) {
+    if (props.hasMore && !props.loadingMore) {
+      previousScrollHeight.value = el.scrollHeight;
+      emit('load-more');
+    }
+  }
+}
+
+// Khi messages thêm (tin mới đến) hoặc thêm tin cũ (load more)
+watch(() => props.messages.length, async (newLen, oldLen) => {
   await nextTick();
-  scrollToBottom();
+  if (!messagesContainer.value) return;
+  const el = messagesContainer.value;
+  
+  if (props.loadingMore) {
+    // Nếu vừa tải thêm tin cũ, phục hồi vị trí cuộn
+    const newScrollHeight = el.scrollHeight;
+    el.scrollTop = newScrollHeight - previousScrollHeight.value;
+  } else {
+    // Tin mới đến -> cuộn xuống đáy
+    scrollToBottom();
+  }
 });
 
 // Khi đổi sang conv khác → reset scroll xuống đáy ngay + retry sau khi messages
