@@ -63,7 +63,7 @@
         <template #filters>
           <ConversationFilterBar
             :filters="inboxFilters"
-            :total-count="conversations.length"
+            :total-count="totalConversations"
             :counts="conversationCounts"
             :priority-has-unread="priorityHasUnread"
             @reselect-tab="onReselectActiveTab"
@@ -79,7 +79,7 @@
       :loading="loadingMsgs"
       :has-more="msgHasMore"
       :loading-more="loadingMoreMsgs"
-      @load-more="loadMoreMessages"
+      @load-more="selectedConvId && loadMoreMessages(selectedConvId)"
       :sending="sendingMsg"
       :ai-suggestions="aiSuggestions"
       :ai-suggestion-loading="aiSuggestionLoading"
@@ -182,7 +182,7 @@ const {
   typingConvIds, realtimeOffline,
   outOfScopeCounts, clearOutOfScopeBadge,
   patchContactProfile,
-  convHasMore, loadingMoreConvs, loadMoreConversations,
+  convHasMore, loadingMoreConvs, loadMoreConversations, totalConversations,
   msgHasMore, loadingMoreMsgs, loadMoreMessages,
 } = useChat();
 

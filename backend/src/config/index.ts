@@ -162,4 +162,7 @@ export const config = {
   //   (b) đã apply tenant-rls.sql (có clause bypass) + role app NOSUPERUSER.
   // Bật khi RLS CHƯA apply cũng an toàn (chỉ set 1 GUC vô hại) nhưng tốn 1 round-trip/query.
   rlsSetConfig: (envValue('RLS_SET_CONFIG') || 'false').toLowerCase() === 'true',
+
+  /* --- Dev flag to prevent dev environment from stealing production Zalo connection --- */
+  disableZaloConnection: (envValue('DISABLE_ZALO_CONNECTION') || 'false').toLowerCase() === 'true',
 };

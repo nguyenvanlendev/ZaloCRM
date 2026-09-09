@@ -2938,15 +2938,20 @@ function onScroll(e: Event) {
 }
 
 // Khi messages thêm (tin mới đến) hoặc thêm tin cũ (load more)
-watch(() => props.messages.length, async (newLen, oldLen) => {
+watch(() => props.messages.length, async () => {
+  const el = messagesContainer.value;
+  const wasLoadingMore = props.loadingMore;
+  // Fallback if previousScrollHeight was not set by onScroll (e.g. initial load)
+  const oldScrollHeight = previousScrollHeight.value || (el ? el.scrollHeight : 0);
+
   await nextTick();
   if (!messagesContainer.value) return;
-  const el = messagesContainer.value;
   
-  if (props.loadingMore) {
-    // Nếu vừa tải thêm tin cũ, phục hồi vị trí cuộn
-    const newScrollHeight = el.scrollHeight;
-    el.scrollTop = newScrollHeight - previousScrollHeight.value;
+  if (wasLoadingMore) {
+    // Nếu vừa tải thêm tin cũ, phục hồi vị trí cuộn (tính từ dưới lên)
+    const newScrollHeight = messagesContainer.value.scrollHeight;
+    messagesContainer.value.scrollTop = newScrollHeight - oldScrollHeight;
+    previousScrollHeight.value = 0; // reset
   } else {
     // Tin mới đến -> cuộn xuống đáy
     scrollToBottom();

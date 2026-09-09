@@ -317,6 +317,9 @@ export function useChat() {
   const msgHasMore = ref(true);
   const loadingMoreMsgs = ref(false);
 
+  // Tổng số lượng hội thoại từ backend
+  const totalConversations = ref(0);
+
   // Track conv mà messages.value đang chứa — để fetchMessages biết switch conv thì
   // wholesale replace (không merge tin từ conv khác), refresh cùng conv thì merge
   // (giữ tin socket đến trong lúc HTTP fly).
@@ -449,6 +452,7 @@ export function useChat() {
       // Apply pending optimistic mutations (tag assigns chưa được BE confirm) trước khi
       // replace state — tránh fetchConversations chạy giữa lúc BE đang sync wipe UI optimistic.
       const fresh = applyPendingTags(res.data.conversations as Conversation[]);
+      if (res.data.total !== undefined) totalConversations.value = res.data.total;
       if (fresh.length < 50) convHasMore.value = false;
 
       if (!opts?.loadMore) {
@@ -458,7 +462,10 @@ export function useChat() {
       }
 
       if (opts?.loadMore) {
-        conversations.value = mergeConvListPreserveDetail([...conversations.value, ...fresh], fresh, preserveIds);
+        // Chỉ thêm những hội thoại mới chưa có trong list hiện tại
+        const existingIds = new Set(conversations.value.map(c => c.id));
+        const newFresh = fresh.filter(c => !existingIds.has(c.id));
+        conversations.value = [...conversations.value, ...newFresh];
       } else {
         conversations.value = mergeConvListPreserveDetail(conversations.value, fresh, preserveIds);
       }
@@ -582,7 +589,10 @@ export function useChat() {
       if (isConvCurrent(convId)) {
         if (opts?.loadMore) {
           // list is older messages, ordered oldest first. Prepend them.
-          messages.value = [...list, ...messages.value];
+          // Lọc trùng lặp phòng trường hợp tin nhắn mới đến đẩy tin cũ sang page tiếp theo.
+          const existingIds = new Set(messages.value.map(m => m.id));
+          const newItems = list.filter(m => !existingIds.has(m.id));
+          messages.value = [...newItems, ...messages.value];
         } else {
           const beIds = new Set(list.map(m => m.id));
           const socketOnly = messages.value.filter(m => !beIds.has(m.id));
@@ -1273,5 +1283,6 @@ export function useChat() {
     msgHasMore,
     loadingMoreMsgs,
     loadMoreMessages,
+    totalConversations,
   };
 }

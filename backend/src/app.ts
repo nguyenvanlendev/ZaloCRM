@@ -385,7 +385,9 @@ async function bootstrap() {
     logger.info(`Zalo CRM running on http://${config.host}:${config.port}`);
     logger.info(`Environment: ${config.nodeEnv}`);
     startAppointmentReminder(io);
-    startZaloHealthCheck();
+    if (!config.disableZaloConnection) {
+      startZaloHealthCheck();
+    }
     startContactIntelligence();
     startLabelsBackgroundSync(60_000); // realtime-ish 2-way pull every 60s
     // E1 Quét group (🟢 Community) — BullMQ worker xử lý group-scan job.

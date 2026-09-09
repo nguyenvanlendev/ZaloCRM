@@ -16,6 +16,7 @@ services:
       - DATABASE_URL=postgresql://${DB_USER:-crmuser}:${DB_PASSWORD}@db:5432/${DB_NAME:-zalocrm}
       - REDIS_URL=redis://redis:6379
       - AUTOMATION_STUB_MODE=true
+      - DISABLE_ZALO_CONNECTION=true
     depends_on:
       db:
         condition: service_healthy

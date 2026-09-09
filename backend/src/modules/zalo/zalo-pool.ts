@@ -22,6 +22,7 @@ import { readFile } from 'fs/promises';
 import { imageSize } from 'image-size';
 import { withProxy } from './proxy-util.js';
 import { writeTransition, type ZaloStatus, type StatusReason } from './status-log-service.js';
+import { config } from '../../config/index.js';
 
 // zca-js has no reliable ESM type exports — load via CJS interop
 const require = createRequire(import.meta.url);
@@ -161,6 +162,11 @@ class ZaloAccountPool {
 
   // Initiate QR-based login; emits QR events to frontend via Socket.IO
   async loginQR(accountId: string, proxyUrl?: string | null): Promise<void> {
+    if (config.disableZaloConnection) {
+      logger.info(`[zalo:${accountId}] loginQR() aborted — DISABLE_ZALO_CONNECTION is true`);
+      throw new Error('Chế độ DEV: Kết nối Zalo bị vô hiệu hoá để tránh ngắt kết nối tài khoản trên Production.');
+    }
+
     // Fix lifecycle 2026-06-10: nick kẹt qr_pending/connecting do logout bên ngoài hoặc
     // breaker chặn. User CHỦ ĐỘNG quét QR lại → phải dọn SẠCH mọi state cũ trước khi tạo
     // instance mới, nếu không QR mới không sinh / bị instance ma ghi đè.
@@ -328,6 +334,11 @@ class ZaloAccountPool {
 
   // Reconnect using previously saved session credentials
   async reconnect(accountId: string, credentials: ZaloCredentials, proxyUrl?: string | null): Promise<void> {
+    if (config.disableZaloConnection) {
+      logger.info(`[zalo:${accountId}] reconnect() aborted — DISABLE_ZALO_CONNECTION is true`);
+      return;
+    }
+
     // FIX 2 nick-ghost (Anh chốt 2026-06-13): GUARD eligibility GOM 1 CHỖ. Mọi đường
     // reconnect (boot app.ts, health-check cron, route /reconnect tay, autoReconnect
     // timer) đều đi qua đây → đặt điều kiện "thẻ ma KHÔNG reconnect" tại nguồn duy nhất.
