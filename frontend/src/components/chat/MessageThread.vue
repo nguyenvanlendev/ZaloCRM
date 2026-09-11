@@ -52,6 +52,14 @@
               :title="canClickHeader ? `Xem thông tin KH: ${headerName}` : headerName"
               @click="onHeaderAvatarClick"
             >{{ headerName }}</div>
+            <button
+              v-if="conversation.friendship?.id"
+              class="ch-edit-name-btn"
+              title="Đổi tên gợi nhớ"
+              @click="openRenameAliasDialog"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </button>
             <span class="ch-gender-chip" :class="genderChipClass" :title="genderTitle">
               <svg v-if="conversation.threadType === 'group'" class="gender-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
@@ -894,11 +902,19 @@
       v-model="privacyViewerOpen"
       :nick="privacyDialogNick"
     />
+
+    <!-- Hộp thoại đổi tên gợi nhớ -->
+    <RenameAliasModal
+      v-model:open="renameDialog.show"
+      :initial-alias="renameDialog.currentAlias"
+      :busy="renameDialog.busy"
+      @confirm="confirmRenameAlias"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
 import type { Conversation, Message } from '@/composables/use-chat';
 import { formatInOrgTz, weekdayInOrgTz, getOrgParts } from '@/composables/use-org-timezone';
 import { api } from '@/api/index';
@@ -909,6 +925,7 @@ import AISuggestBar from '@/components/chat/AISuggestBar.vue';
 // `Contact.status` khiến lazy gate KHÔNG kích hoạt. CareStatusBadge giữ ở ChatContactPanel.vue
 // nếu sale vẫn cần thao tác care-status legacy 9 giá trị.
 import ContactDealStageSelector from '@/components/chat/ContactDealStageSelector.vue';
+import RenameAliasModal from '@/components/chat/RenameAliasModal.vue';
 import ZaloBrandIcon from '@/components/icons/ZaloBrandIcon.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import EmojiPicker from '@/components/chat/EmojiPicker.vue';
@@ -1687,6 +1704,35 @@ watch(
   },
   { immediate: true },
 );
+
+const renameDialog = reactive({ show: false, friendId: '', currentAlias: '', busy: false });
+
+function openRenameAliasDialog() {
+  if (!props.conversation?.friendship?.id) return;
+  renameDialog.friendId = props.conversation.friendship.id;
+  renameDialog.currentAlias = props.conversation.friendship.aliasInNick || '';
+  renameDialog.busy = false;
+  renameDialog.show = true;
+}
+
+async function confirmRenameAlias(newAlias: string) {
+  if (renameDialog.busy || !renameDialog.friendId) return;
+  renameDialog.busy = true;
+  
+  try {
+    await api.patch(`/friends/${renameDialog.friendId}`, { aliasInNick: newAlias });
+    if (props.conversation && props.conversation.friendship) {
+      props.conversation.friendship.aliasInNick = newAlias || null;
+    }
+    toast.success('Đã cập nhật tên gợi nhớ');
+    renameDialog.show = false;
+  } catch (err: any) {
+    console.error('Failed to rename alias:', err);
+    toast.error('Lỗi khi đổi tên: ' + (err.response?.data?.message || err.message));
+  } finally {
+    renameDialog.busy = false;
+  }
+}
 
 function resolveSenderAvatar(msg: Message): string | null {
   if (msg.senderType === 'self') return null;
@@ -2996,6 +3042,24 @@ watch(() => props.editingMessage?.id, async (id) => {
 </script>
 
 <style scoped>
+.ch-edit-name-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: all 0.15s ease;
+}
+.ch-edit-name-btn:hover {
+  background: var(--surface-3);
+  color: var(--brand);
+}
 .message-thread {
   display: flex; flex-direction: column;
   height: 100%;

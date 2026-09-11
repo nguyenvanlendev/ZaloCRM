@@ -164,7 +164,28 @@ const scoped = computed(() => {
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) return scoped.value;
-  return scoped.value.filter((c) => displayName(c).toLowerCase().includes(q));
+  return scoped.value.filter((c) => {
+    const mainName = displayName(c).toLowerCase();
+    const crmName = (c.contact?.crmName || '').toLowerCase();
+    const fullName = (c.contact?.fullName || '').toLowerCase();
+    const alias = (c.friendship?.aliasInNick || '').toLowerCase();
+    const zaloName = (c.friendship?.zaloDisplayName || '').toLowerCase();
+    
+    // Fallback search qua phone numbers (nếu available trong contact data)
+    let phonesMatch = false;
+    if (c.contact && Array.isArray((c.contact as any).phones)) {
+       phonesMatch = (c.contact as any).phones.some((p: any) => 
+         (p.phone || p).toLowerCase().includes(q)
+       );
+    }
+    
+    return mainName.includes(q) || 
+           crmName.includes(q) || 
+           fullName.includes(q) || 
+           alias.includes(q) || 
+           zaloName.includes(q) ||
+           phonesMatch;
+  });
 });
 
 function isUsable(s: string | null | undefined): s is string {
@@ -173,9 +194,11 @@ function isUsable(s: string | null | undefined): s is string {
 
 function displayName(conv: ConvShape): string {
   if (conv.threadType === 'group' && isUsable(conv.groupName)) return conv.groupName!;
-  if (isUsable(conv.contact?.crmName)) return conv.contact!.crmName!;
-  if (isUsable(conv.contact?.fullName)) return conv.contact!.fullName!;
+  // Ưu tiên Tên gợi nhớ Zalo (Alias) giống ConversationList
   if (isUsable(conv.friendship?.aliasInNick)) return conv.friendship!.aliasInNick!;
+  // Fallback về fullName (Tên Zalo gốc)
+  if (isUsable(conv.contact?.fullName)) return conv.contact!.fullName!;
+  // Bỏ qua crmName để đồng bộ với Zalo Real
   if (isUsable(conv.friendship?.zaloDisplayName)) return conv.friendship!.zaloDisplayName!;
   return conv.threadType === 'group' ? 'Nhóm' : 'Không rõ';
 }

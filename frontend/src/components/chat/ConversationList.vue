@@ -296,6 +296,7 @@
       @move-main="moveConversation(contextMenu.convId, 'main')"
       @toggle-follow="toggleFollowFromMenu"
       @mark-unread="markUnreadFromMenu"
+      @rename-alias="openRenameAliasDialog"
       @delete="askDeleteConversation"
     />
 
@@ -350,6 +351,14 @@
         </span>
       </div>
     </Teleport>
+
+    <!-- Hộp thoại Đổi tên gợi nhớ -->
+    <RenameAliasModal
+      v-model:open="renameDialog.show"
+      :initial-alias="renameDialog.currentAlias"
+      :busy="renameDialog.busy"
+      @confirm="confirmRenameAlias"
+    />
   </div>
 </template>
 
@@ -398,6 +407,7 @@ import NewMessageDialog from '@/components/chat/NewMessageDialog.vue';
 import ConversationContextMenu from '@/components/chat/conversation-context-menu.vue';
 import ConvTime from '@/components/chat/ConvTime.vue';
 import NickPickerPopup from '@/components/zalo-accounts/NickPickerPopup.vue';
+import RenameAliasModal from '@/components/chat/RenameAliasModal.vue';
 import ZaloBrandIcon from '@/components/icons/ZaloBrandIcon.vue';
 import { loadTagDefs, isZaloManaged, cleanTagName, tagColor } from '@/composables/use-crm-tag-defs';
 import { loadTagTaxonomy, findTagBySlug, useTagTaxonomy } from '@/composables/use-tag-taxonomy';
@@ -574,6 +584,7 @@ const contextMenu = reactive({
 
 // Hộp xác nhận xóa hội thoại
 const deleteDialog = reactive({ show: false, convId: '', busy: false });
+const renameDialog = reactive({ show: false, convId: '', friendId: '', currentAlias: '', busy: false });
 const delConfirmBtn = ref<HTMLButtonElement | null>(null);
 
 // ── Filter state ────────────────────────────────────────────────────────────
@@ -771,7 +782,7 @@ function buildFilterParams(): Record<string, string> {
 // Tag color logic giờ qua composable use-crm-tag-defs (tagColor lookup từ CrmTag.color).
 // Legacy TAG_COLOR_MAP + colorOfTag + tagBgColor đã removed sau refactor TagIcon monochromatic.
 
-/* Merge Contact.tags + Friend.crmTagsPerNick (Zalo-mirrored "🔵 X").
+/* Merge Contact.tags + Friend.crmTagsPerNick (Zalo-mirrored 🔵 X).
  * Dedup, Zalo tags hiển thị đầu (priority cho per-pair context). */
 // 2026-06-06 (Anh chốt) — Tag Zalo Real ở cột 2 lấy từ Friend.zaloLabels (object {name,color}
 // màu CHUẨN = zalo_labels.color, đồng bộ TagCrmBar + header) thay vì string '🔵 X' + crm_tags legacy.
@@ -1057,6 +1068,40 @@ async function confirmDeleteConversation() {
     console.error('Failed to delete conversation:', err);
     window.alert('Lỗi xóa hội thoại — thử lại sau');
     deleteDialog.busy = false;
+  }
+}
+
+function openRenameAliasDialog() {
+  const conv = props.conversations.find((c: Conversation) => c.id === contextMenu.convId);
+  if (!conv || !conv.friendship || !conv.friendship.id) {
+    window.alert('Hội thoại này không hỗ trợ đổi tên gợi nhớ');
+    return;
+  }
+  renameDialog.convId = contextMenu.convId;
+  renameDialog.friendId = conv.friendship.id;
+  renameDialog.currentAlias = conv.friendship.aliasInNick || '';
+  renameDialog.busy = false;
+  renameDialog.show = true;
+}
+
+async function confirmRenameAlias(newAlias: string) {
+  if (renameDialog.busy || !renameDialog.friendId) return;
+  renameDialog.busy = true;
+  
+  try {
+    await api.patch(`/friends/${renameDialog.friendId}`, { aliasInNick: newAlias });
+    
+    // Cập nhật lại list
+    const conv = props.conversations.find((c: Conversation) => c.id === renameDialog.convId);
+    if (conv && conv.friendship) {
+      conv.friendship.aliasInNick = newAlias || null;
+    }
+    renameDialog.show = false;
+  } catch (err: any) {
+    console.error('Failed to rename alias:', err);
+    window.alert('Lỗi khi đổi tên: ' + (err.response?.data?.message || err.message));
+  } finally {
+    renameDialog.busy = false;
   }
 }
 
