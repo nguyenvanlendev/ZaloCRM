@@ -124,7 +124,8 @@ export async function friendRoutes(app: FastifyInstance) {
       search = '',
       sortBy = 'recent',
       statusId = '',
-    } = request.query as { kind?: string; page?: string; limit?: string; search?: string; sortBy?: string; statusId?: string };
+      accountId = '',
+    } = request.query as { kind?: string; page?: string; limit?: string; search?: string; sortBy?: string; statusId?: string; accountId?: string };
     try {
       // Phase Zalo Account Mutation Gate 2026-05-27: migrate sang getZaloScope
       // (helper cũ getAccessibleZaloAccountIds chỉ ACL+owned, KHÔNG cascade dept.
@@ -143,6 +144,9 @@ export async function friendRoutes(app: FastifyInstance) {
         orgId: user.orgId,
         zaloAccountId: { in: accessibleIds },
       };
+      if (accountId && accessibleIds.includes(accountId)) {
+        where.zaloAccountId = accountId;
+      }
       if (kind && kind !== 'all') where.relationshipKind = kind;
       // Filter theo Trạng thái KH per-nick (Friend.statusId). '' = tất cả.
       if (statusId) where.statusId = statusId;

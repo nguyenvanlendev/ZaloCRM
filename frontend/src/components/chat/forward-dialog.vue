@@ -97,10 +97,10 @@
           <button class="fw-btn fw-btn--ghost" @click="emit('update:modelValue', false)">Huỷ</button>
           <button
             class="fw-btn fw-btn--primary"
-            :disabled="selectedSet.size === 0"
+            :disabled="selectedSet.size === 0 || isForwarding"
             @click="onForward"
           >
-            Chuyển tiếp
+            {{ isForwarding ? 'Đang chuyển...' : 'Chuyển tiếp' }}
           </button>
         </div>
       </footer>
@@ -145,24 +145,50 @@ const brokenAvatars = ref(new Set<string>());
 
 const apiConversations = ref<ConvShape[]>([]);
 const isSearching = ref(false);
+const isForwarding = ref(false);
 const hasFetchedOnce = ref(false);
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function runSearch(q: string) {
   isSearching.value = true;
   try {
-    const res = await api.get('/api/v1/conversations', {
-      params: { 
-        search: q, 
-        limit: 100, 
-        page: 1, 
-        kind: 'all', 
-        accountId: props.sourceZaloAccountId || undefined 
-      }
-    });
-    const list = res.data?.data || [];
+    const accountIdOpt = props.sourceZaloAccountId || undefined;
+    
+    // Fetch conversations and friends in parallel
+    const [convRes, friendRes] = await Promise.all([
+      api.get('/api/v1/conversations', {
+        params: { search: q, limit: 100, page: 1, kind: 'all', accountId: accountIdOpt }
+      }).catch(() => ({ data: { data: [] } })),
+      
+      api.get('/api/v1/friends-db/all-nicks', {
+        params: { search: q, limit: 100, page: 1, accountId: accountIdOpt }
+      }).catch(() => ({ data: { friends: [] } }))
+    ]);
+    
+    const convList = convRes.data?.data || [];
+    const friendList = friendRes.data?.friends || [];
+    
+    // Filter out friends that already have conversations
+    const friendConvs = friendList
+      .filter((f: any) => !f.hasConversation)
+      .map((f: any) => ({
+        id: f.id, // ID friend tạm thời
+        isFriendOnly: true, // Cờ nhận diện friend
+        threadType: 'friend', 
+        contact: f.contact,
+        friendship: {
+          aliasInNick: f.aliasInNick,
+          zaloDisplayName: f.zaloDisplayName,
+          zaloAvatarUrl: f.zaloAvatarUrl,
+        },
+        zaloAccount: f.zaloAccount,
+      }));
+      
+    // Trộn chung: ưu tiên list conversation trước, sau đó tới bạn bè chưa nhắn tin
+    const list = [...convList, ...friendConvs];
+    
     // Loại bỏ conversation hiện tại ra khỏi danh sách forward
-    apiConversations.value = list.filter((c: ConvShape) => c.id !== props.currentConversationId);
+    apiConversations.value = list.filter((c: any) => c.id !== props.currentConversationId);
     hasFetchedOnce.value = true;
   } catch (err) {
     console.error('[ForwardDialog] fetch error:', err);
@@ -258,10 +284,32 @@ function toggleSelect(id: string) {
   selectedSet.value = next;
 }
 
-function onForward() {
+async function onForward() {
   if (selectedSet.value.size === 0) return;
-  emit('forward', Array.from(selectedSet.value));
-  emit('update:modelValue', false);
+  isForwarding.value = true;
+  const targetIds: string[] = [];
+  
+  try {
+    for (const id of selectedSet.value) {
+      const item = apiConversations.value.find(c => c.id === id);
+      if (item && (item as any).isFriendOnly) {
+        // Tạo cuộc trò chuyện ảo cho friend
+        const res = await api.post(`/api/v1/friends/${item.id}/ensure-conversation`);
+        if (res.data?.conversationId) {
+          targetIds.push(res.data.conversationId);
+        }
+      } else {
+        targetIds.push(id);
+      }
+    }
+    
+    emit('forward', targetIds);
+    emit('update:modelValue', false);
+  } catch (err) {
+    console.error('[ForwardDialog] Failed to prepare forward targets', err);
+  } finally {
+    isForwarding.value = false;
+  }
 }
 
 // Live "now" ticker (2026-06-11) — cùng cơ chế ConversationList: ref `now` cập
