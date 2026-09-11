@@ -74,13 +74,17 @@
           </span>
         </button>
 
-        <div v-if="filtered.length === 0" class="fw-empty">
+        <div v-if="filtered.length === 0 && !isSearching" class="fw-empty">
           <div class="fw-empty__icon">
             <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
           </div>
           <div>{{ query ? 'Không tìm thấy hội thoại khớp.' : 'Nick này chưa có hội thoại khác.' }}</div>
+        </div>
+
+        <div v-if="isSearching" class="fw-loading text-center text-caption mt-4 mb-4 text-grey">
+          Đang tải danh sách...
         </div>
       </div>
 
@@ -106,6 +110,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { api } from '@/api/index';
 
 interface ConvShape {
   id: string;
@@ -138,17 +143,55 @@ const query = ref('');
 const selectedSet = ref(new Set<string>());
 const brokenAvatars = ref(new Set<string>());
 
+const apiConversations = ref<ConvShape[]>([]);
+const isSearching = ref(false);
+const hasFetchedOnce = ref(false);
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+async function runSearch(q: string) {
+  isSearching.value = true;
+  try {
+    const res = await api.get('/api/v1/conversations', {
+      params: { 
+        search: q, 
+        limit: 100, 
+        page: 1, 
+        kind: 'all', 
+        accountId: props.sourceZaloAccountId || undefined 
+      }
+    });
+    const list = res.data?.data || [];
+    // Loại bỏ conversation hiện tại ra khỏi danh sách forward
+    apiConversations.value = list.filter((c: ConvShape) => c.id !== props.currentConversationId);
+    hasFetchedOnce.value = true;
+  } catch (err) {
+    console.error('[ForwardDialog] fetch error:', err);
+  } finally {
+    isSearching.value = false;
+  }
+}
+
 // Reset selection mỗi lần dialog mở (tránh dirty state cross-session)
 watch(() => props.modelValue, (open) => {
   if (open) {
     selectedSet.value = new Set();
     query.value = '';
     brokenAvatars.value = new Set();
+    hasFetchedOnce.value = false;
+    apiConversations.value = [];
+    runSearch('');
   }
 });
 
-// Scope: chỉ giữ conv của cùng nick + loại bỏ conv hiện tại + sort recent
-const scoped = computed(() => {
+watch(query, (newVal) => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    runSearch(newVal.trim());
+  }, 300);
+});
+
+// Scope: fallback từ props nếu API chưa load xong lần đầu
+const scopedProps = computed(() => {
   const list = props.conversations.filter((c) => {
     if (props.sourceZaloAccountId && c.zaloAccount?.id !== props.sourceZaloAccountId) return false;
     if (props.currentConversationId && c.id === props.currentConversationId) return false;
@@ -162,30 +205,10 @@ const scoped = computed(() => {
 });
 
 const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase();
-  if (!q) return scoped.value;
-  return scoped.value.filter((c) => {
-    const mainName = displayName(c).toLowerCase();
-    const crmName = (c.contact?.crmName || '').toLowerCase();
-    const fullName = (c.contact?.fullName || '').toLowerCase();
-    const alias = (c.friendship?.aliasInNick || '').toLowerCase();
-    const zaloName = (c.friendship?.zaloDisplayName || '').toLowerCase();
-    
-    // Fallback search qua phone numbers (nếu available trong contact data)
-    let phonesMatch = false;
-    if (c.contact && Array.isArray((c.contact as any).phones)) {
-       phonesMatch = (c.contact as any).phones.some((p: any) => 
-         (p.phone || p).toLowerCase().includes(q)
-       );
-    }
-    
-    return mainName.includes(q) || 
-           crmName.includes(q) || 
-           fullName.includes(q) || 
-           alias.includes(q) || 
-           zaloName.includes(q) ||
-           phonesMatch;
-  });
+  if (hasFetchedOnce.value || query.value) {
+    return apiConversations.value;
+  }
+  return scopedProps.value;
 });
 
 function isUsable(s: string | null | undefined): s is string {
