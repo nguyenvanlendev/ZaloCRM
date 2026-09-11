@@ -161,16 +161,19 @@ async function runSearch(q: string) {
       }).catch(() => ({ data: { data: [] } })),
       
       api.get('/api/v1/friends-db/all-nicks', {
-        params: { search: q, limit: 100, page: 1, accountId: accountIdOpt }
+        params: { search: q, limit: 500, page: 1, accountId: accountIdOpt }
       }).catch(() => ({ data: { friends: [] } }))
     ]);
     
     const convList = convRes.data?.data || [];
     const friendList = friendRes.data?.friends || [];
     
-    // Filter out friends that already have conversations
+    // Lấy danh sách contactId của các hội thoại đã có
+    const convContactIds = new Set(convList.map((c: any) => c.contact?.id).filter(Boolean));
+    
+    // Lọc ra các bạn bè chưa có mặt trong danh sách hội thoại
     const friendConvs = friendList
-      .filter((f: any) => !f.hasConversation)
+      .filter((f: any) => f.contact?.id && !convContactIds.has(f.contact.id))
       .map((f: any) => ({
         id: f.id, // ID friend tạm thời
         isFriendOnly: true, // Cờ nhận diện friend
