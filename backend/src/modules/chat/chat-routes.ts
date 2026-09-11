@@ -533,6 +533,7 @@ export async function chatRoutes(app: FastifyInstance) {
         { contact: { zaloUid: { equals: search } } },
         { contact: { zaloGlobalId: { equals: search } } },
         { contact: { zaloUsername: { equals: search } } },
+        { contact: { friends: { some: { aliasInNick: { contains: search, mode: 'insensitive' } } } } },
         { messages: { some: { content: { contains: search, mode: 'insensitive' } } } },
       ];
       
@@ -2342,7 +2343,20 @@ export async function chatRoutes(app: FastifyInstance) {
 
     await prisma.conversation.updateMany({
       where: { id, orgId: user.orgId },
-      data: { unreadCount: 0 },
+      data: { unreadCount: 0, isMarkedUnread: false },
+    });
+
+    return { success: true };
+  });
+
+  // ── Mark conversation as unread (manual) ───────────────────────────────
+  app.post('/api/v1/conversations/:id/mark-unread', async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user!;
+    const { id } = request.params as { id: string };
+
+    await prisma.conversation.updateMany({
+      where: { id, orgId: user.orgId },
+      data: { isMarkedUnread: true },
     });
 
     return { success: true };

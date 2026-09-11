@@ -60,6 +60,14 @@
           <span class="ctx-item__label">{{ followBusy ? 'Đang xử lý…' : (isFollowing ? 'Bỏ theo dõi' : 'Theo dõi') }}</span>
         </button>
 
+        <!-- Đánh dấu chưa đọc -->
+        <button class="ctx-item" role="menuitem" @click="onAction('mark-unread')">
+          <svg class="ctx-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span class="ctx-item__label">Đánh dấu chưa đọc</span>
+        </button>
+
         <!-- Xóa đoạn hội thoại (xóa mềm — mở hộp xác nhận ở component cha) -->
         <div class="ctx-divider"></div>
         <button class="ctx-item is-danger" role="menuitem" @click="onAction('delete')">
@@ -96,6 +104,7 @@ const emit = defineEmits<{
   'move-main': [];
   'move-other': [];
   'toggle-follow': [];
+  'mark-unread': [];
   delete: [];
 }>();
 
@@ -170,12 +179,13 @@ onBeforeUnmount(() => {
 function close() {
   emit('update:modelValue', false);
 }
-function onAction(name: 'move-main' | 'move-other' | 'toggle-follow' | 'delete') {
+function onAction(name: 'move-main' | 'move-other' | 'toggle-follow' | 'mark-unread' | 'delete') {
   // toggle-follow KHÔNG đóng menu (sale có thể muốn xem trạng thái đổi); các action
   // khác đóng menu ngay như Zalo native.
   switch (name) {
     case 'move-main':     emit('move-main');     close(); break;
     case 'move-other':    emit('move-other');    close(); break;
+    case 'mark-unread':   emit('mark-unread');   close(); break;
     case 'delete':        emit('delete');        close(); break;
     case 'toggle-follow': emit('toggle-follow');          break;
   }

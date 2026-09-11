@@ -93,7 +93,7 @@
         class="conv-item"
         :class="{
           active: conv.id === selectedId,
-          unread: conv.unreadCount > 0 && conv.id !== selectedId,
+          unread: (conv.unreadCount > 0 && conv.id !== selectedId) || conv.isMarkedUnread,
           'is-group': conv.threadType === 'group',
           'is-virtual': conv.isVirtual,
         }"
@@ -153,9 +153,10 @@
             <div class="ci-meta-right">
               <div class="ci-time"><ConvTime :at="conv.lastMessageAt" /></div>
               <div
-                v-if="conv.unreadCount > 0 && conv.id !== selectedId"
+                v-if="(conv.unreadCount > 0 && conv.id !== selectedId) || conv.isMarkedUnread"
                 class="ci-unread-count"
-              >{{ conv.unreadCount > 5 ? '5+' : conv.unreadCount }}</div>
+                :class="{ 'is-marked': conv.isMarkedUnread && !conv.unreadCount }"
+              >{{ conv.isMarkedUnread && !conv.unreadCount ? '' : (conv.unreadCount > 5 ? '5+' : conv.unreadCount) }}</div>
               <!-- Phase 8 — Engagement pattern badge (tooltip teleport to body) -->
               <span
                 v-if="(conv as any).contact?.engagementPattern && (conv as any).contact?.engagementPattern !== 'noise'"
@@ -227,8 +228,54 @@
       </div>
       </TransitionGroup>
 
-      <div v-if="!loading && conversations.length === 0" class="empty-state">
-        Chưa có hội thoại nào
+      <div v-if="!loading && conversations.length === 0" class="empty-state pa-2">
+        <template v-if="search && search.replace(/[^\d]/g, '').length >= 9">
+          <div v-if="isSearchingGlobal" class="text-center text-grey text-caption mb-2">Đang tìm trong CRM...</div>
+          
+          <!-- Kết quả CRM -->
+          <div v-if="globalFriendRows.length || globalContactRows.length" class="global-results text-left">
+            <div v-if="globalFriendRows.length" class="text-caption font-weight-bold mb-1">KH đang chăm</div>
+            <div v-for="f in globalFriendRows" :key="f.id" class="inline-result-card mb-2" @click="onInlineClickContact('friend', f.id)">
+              <Avatar :src="f.zaloAvatarUrl" :name="f.zaloDisplayName || f.contact?.fullName || 'KH'" :size="32" platform="zalo" />
+              <div class="ms-2 overflow-hidden flex-grow-1">
+                <div class="text-truncate" style="font-size: 0.9em;">{{ f.zaloDisplayName || f.contact?.fullName || 'KH' }}</div>
+                <div class="text-caption text-grey text-truncate">{{ f.contact?.phone || f.zaloUidInNick }}</div>
+              </div>
+            </div>
+            
+            <div v-if="globalContactRows.length" class="text-caption font-weight-bold mb-1 mt-2">Đã có trong CRM</div>
+            <div v-for="c in globalContactRows" :key="c.id" class="inline-result-card mb-2" @click="onInlineClickContact('contact', c.id)">
+              <Avatar :src="c.avatarUrl" :name="c.crmName || c.fullName || 'KH'" :size="32" />
+              <div class="ms-2 overflow-hidden flex-grow-1">
+                <div class="text-truncate" style="font-size: 0.9em;">{{ c.crmName || c.fullName || 'KH' }}</div>
+                <div class="text-caption text-grey text-truncate">{{ c.phone }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Kết quả tra Zalo -->
+          <div v-if="zaloLookupResult" class="global-results text-left mt-2">
+            <div class="text-caption font-weight-bold mb-1 text-warning">Tìm thấy trên Zalo</div>
+            <div class="inline-result-card mb-2" @click="onInlineClickContact('lookup', zaloLookupResult.uid)">
+              <Avatar :src="zaloLookupResult.avatar" :name="zaloLookupResult.zaloName || 'KH'" :size="32" platform="zalo" />
+              <div class="ms-2 overflow-hidden flex-grow-1">
+                <div class="text-truncate" style="font-size: 0.9em;">{{ zaloLookupResult.zaloName || 'KH' }}</div>
+                <div class="text-caption text-grey text-truncate">{{ zaloLookupResult.phone }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hint hoặc Lỗi tra Zalo -->
+          <div v-if="!zaloLookupResult && !isLookingUpZalo" class="text-center mt-3">
+            <div v-if="lookupNotFound" class="text-error text-caption mb-1">{{ lookupNotFound }}</div>
+            <div style="font-size: 0.85em; opacity: 0.8;">Nhấn <b>Enter</b> để tra số này trên Zalo</div>
+          </div>
+          <div v-else-if="isLookingUpZalo" class="text-center text-grey text-caption mt-2">Đang tra Zalo...</div>
+          
+        </template>
+        <template v-else>
+          <div class="text-center w-100">Chưa có hội thoại nào</div>
+        </template>
       </div>
 
       <!-- Hiển thị loader khi đang cuộn xuống tải thêm -->
@@ -248,6 +295,7 @@
       @move-other="moveConversation(contextMenu.convId, 'other')"
       @move-main="moveConversation(contextMenu.convId, 'main')"
       @toggle-follow="toggleFollowFromMenu"
+      @mark-unread="markUnreadFromMenu"
       @delete="askDeleteConversation"
     />
 
@@ -309,6 +357,39 @@
 import { ref, reactive, watch, onMounted, computed, nextTick } from 'vue';
 import type { Conversation, AiSentiment } from '@/composables/use-chat';
 import { api } from '@/api/index';
+import { useToast } from '@/composables/use-toast';
+
+interface FriendRow {
+  id: string;
+  zaloUidInNick: string;
+  zaloDisplayName: string | null;
+  zaloAvatarUrl: string | null;
+  hasConversation: boolean;
+  contact?: ContactRow;
+}
+interface ContactRow {
+  id: string;
+  fullName: string | null;
+  crmName: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  zaloGlobalId: string | null;
+  zaloUsername: string | null;
+  zaloUid: string | null;
+  tags: unknown;
+  leadScore: number;
+  assignedUser?: { fullName: string };
+  statusRef?: { name: string; color: string };
+}
+interface LookupResult {
+  found: boolean;
+  uid: string;
+  phone: string;
+  globalId: string | null;
+  username: string | null;
+  zaloName: string | null;
+  avatar: string | null;
+}
 // Icon chrome — Lucide line (anh chốt 2026-06-08, bỏ ký tự thô).
 import { ChevronUp as ChevronUpIcon, X as XIcon } from 'lucide-vue-next';
 import AiSentimentBadge from '@/components/ai/ai-sentiment-badge.vue';
@@ -325,6 +406,16 @@ import PrivateBlur from '@/components/privacy/PrivateBlur.vue';
 import { usePrivacyVisibility } from '@/composables/use-privacy-visibility';
 
 const privacyVisibility = usePrivacyVisibility();
+const toast = useToast();
+
+const isSearchingGlobal = ref(false);
+const globalFriendRows = ref<FriendRow[]>([]);
+const globalContactRows = ref<ContactRow[]>([]);
+const isLookingUpZalo = ref(false);
+const zaloLookupResult = ref<LookupResult | null>(null);
+const lookupNotFound = ref<string | null>(null);
+
+let globalSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const props = defineProps<{
   conversations: Conversation[];
@@ -425,7 +516,13 @@ function onClickNewMessage() {
 function onSearchEnter() {
   const q = (props.search || '').trim();
   if (!q) return; // rỗng → không làm gì (khỏi flash phiền khi Enter)
-  newMsgPickerOpen.value = true;
+  
+  const digits = q.replace(/[^\\d]/g, '');
+  if (digits.length >= 9) {
+    runZaloLookupInline();
+  } else {
+    newMsgPickerOpen.value = true;
+  }
 }
 
 function onPickNickForNewMsg(nick: { id: string }) {
@@ -489,7 +586,149 @@ const availableTags = ref<string[]>([]);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function onSearchInput(e: Event) {
-  emit('update:search', (e.target as HTMLInputElement).value);
+  const val = (e.target as HTMLInputElement).value;
+  emit('update:search', val);
+  
+  if (globalSearchTimeout) clearTimeout(globalSearchTimeout);
+  
+  const digits = val.replace(/[^\\d]/g, '');
+  if (digits.length >= 9) {
+    globalSearchTimeout = setTimeout(() => {
+      runGlobalSearch(val);
+    }, 500);
+  } else {
+    globalFriendRows.value = [];
+    globalContactRows.value = [];
+    zaloLookupResult.value = null;
+    lookupNotFound.value = null;
+  }
+}
+
+async function runGlobalSearch(query: string) {
+  const accountId = composeDefaultAccountId.value;
+  if (!accountId || !query.trim()) return;
+  
+  isSearchingGlobal.value = true;
+  try {
+    const [fRes, cRes] = await Promise.all([
+      api.get<{ friends?: FriendRow[] }>(
+        `/zalo-accounts/${accountId}/friends-db`,
+        { params: { kind: 'all', page: 1, limit: 10, search: query } },
+      ),
+      api.get<{ contacts?: ContactRow[] }>(`/contacts`, {
+        params: { search: query, limit: 10, page: 1 },
+      }),
+    ]);
+    const fs = fRes.data?.friends || [];
+    const cs = cRes.data?.contacts || [];
+    const friendContactIds = new Set(fs.map(f => f.contact?.id).filter(Boolean));
+    globalFriendRows.value = fs;
+    globalContactRows.value = cs.filter(c => !friendContactIds.has(c.id));
+  } catch (err) {
+    console.error('[ConversationList] global search failed:', err);
+  } finally {
+    isSearchingGlobal.value = false;
+  }
+}
+
+async function runZaloLookupInline() {
+  const accountId = composeDefaultAccountId.value;
+  const q = (props.search || '').trim();
+  if (!accountId || !q) return;
+  const digits = q.replace(/[^\\d]/g, '');
+  if (digits.length < 9) return;
+  
+  isLookingUpZalo.value = true;
+  lookupNotFound.value = null;
+  try {
+    const res = await api.post<LookupResult & { detail?: string }>(
+      `/zalo-accounts/${accountId}/friends/lookup-by-phone`,
+      { phone: q },
+    );
+    if (!res.data?.found) {
+      lookupNotFound.value = res.data?.detail || 'Không tra được trên Zalo';
+      return;
+    }
+    zaloLookupResult.value = res.data;
+  } catch (err: any) {
+    lookupNotFound.value = err?.response?.data?.detail || 'Lookup thất bại';
+  } finally {
+    isLookingUpZalo.value = false;
+  }
+}
+
+async function onInlineClickContact(kind: 'friend' | 'contact' | 'lookup', idOrData: any) {
+  const accountId = composeDefaultAccountId.value;
+  if (!accountId) {
+    toast.error('Vui lòng chọn nick Zalo trước');
+    return;
+  }
+  
+  try {
+    if (kind === 'friend') {
+      const res = await api.post<{ conversationId: string; created: boolean }>(
+        `/friends/${idOrData}/ensure-conversation`, {}
+      );
+      if (res.data?.created) toast.success('Đã tạo cuộc trò chuyện mới');
+      emit('select', res.data.conversationId);
+      emit('update:search', '');
+    } else if (kind === 'contact') {
+      const c = globalContactRows.value.find(x => x.id === idOrData);
+      if (!c?.phone) {
+        toast.error('KH này chưa có SĐT');
+        return;
+      }
+      toast.success('Đang kết nối KH...');
+      const lookupRes = await api.post<LookupResult>(
+        `/zalo-accounts/${accountId}/friends/lookup-by-phone`,
+        { phone: c.phone },
+      );
+      if (!lookupRes.data?.found) {
+        toast.error('Không tìm thấy trên Zalo');
+        return;
+      }
+      const friendRes = await api.post<{ conversationId: string; created: boolean }>(
+        `/zalo-accounts/${accountId}/friends/link-contact`,
+        {
+          contactId: c.id,
+          zaloGlobalId: lookupRes.data.globalId,
+          zaloUsername: lookupRes.data.username,
+          zaloUid: lookupRes.data.uid,
+          zaloDisplayName: lookupRes.data.zaloName,
+          zaloAvatarUrl: lookupRes.data.avatar,
+        }
+      );
+      if (friendRes.data?.created) toast.success('Đã tạo cuộc trò chuyện mới');
+      emit('select', friendRes.data.conversationId);
+      emit('update:search', '');
+    } else if (kind === 'lookup') {
+      toast.success('Đang tạo khách hàng mới...');
+      const contactRes = await api.post<{ contact: { id: string } }>('/contacts', {
+        fullName: zaloLookupResult.value?.zaloName || `KH-${zaloLookupResult.value?.uid.slice(-4)}`,
+        phone: zaloLookupResult.value?.phone,
+        leadSource: 'zalo_lookup',
+        zaloGlobalId: zaloLookupResult.value?.globalId,
+        zaloUsername: zaloLookupResult.value?.username,
+        zaloUid: zaloLookupResult.value?.uid,
+      });
+      const friendRes = await api.post<{ conversationId: string; created: boolean }>(
+        `/zalo-accounts/${accountId}/friends/link-contact`,
+        {
+          contactId: contactRes.data.contact.id,
+          zaloGlobalId: zaloLookupResult.value?.globalId,
+          zaloUsername: zaloLookupResult.value?.username,
+          zaloUid: zaloLookupResult.value?.uid,
+          zaloDisplayName: zaloLookupResult.value?.zaloName,
+          zaloAvatarUrl: zaloLookupResult.value?.avatar,
+        }
+      );
+      toast.success('Đã tạo khách hàng và cuộc trò chuyện');
+      emit('select', friendRes.data.conversationId);
+      emit('update:search', '');
+    }
+  } catch (err: any) {
+    toast.error('Có lỗi xảy ra: ' + (err?.response?.data?.message || err.message));
+  }
 }
 
 // 2026-06-12 — xóa ô tìm kiếm (nút X / phím Esc) + focus lại để gõ tiếp ngay.
@@ -772,6 +1011,23 @@ async function toggleFollowFromMenu() {
     window.alert('Lỗi cập nhật theo dõi — thử lại sau');
   } finally {
     contextMenu.followBusy = false;
+  }
+}
+
+// ── Đánh dấu chưa đọc ───────────────────────────────────────────────────────
+async function markUnreadFromMenu() {
+  const cid = contextMenu.convId;
+  if (!cid) return;
+  
+  // Optimistic UI update
+  const conv = props.conversations.find(c => c.id === cid);
+  if (conv) conv.isMarkedUnread = true;
+  
+  try {
+    await api.post(`/conversations/${cid}/mark-unread`);
+  } catch (err) {
+    console.error('[mark-unread] failed:', err);
+    if (conv) conv.isMarkedUnread = false; // rollback
   }
 }
 
@@ -1181,6 +1437,20 @@ function onPatternLeave() {
 </script>
 
 <style scoped>
+.inline-result-card {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.inline-result-card:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
 .conv-list {
   background: var(--smax-bg);
   display: flex; flex-direction: column;
@@ -1501,6 +1771,12 @@ function onPatternLeave() {
   border-radius: 9px;
   display: inline-flex; align-items: center; justify-content: center;
   line-height: 1;
+}
+.ci-unread-count.is-marked {
+  min-width: 12px;
+  height: 12px;
+  padding: 0;
+  background: var(--smax-unread, #ff3b30);
 }
 
 /* Phase 8 — Engagement pattern badge */

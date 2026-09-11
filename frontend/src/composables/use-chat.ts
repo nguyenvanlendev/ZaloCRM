@@ -127,6 +127,7 @@ export interface Conversation {
   messages?: ConversationMessage[];
   /** M53 2026-05-30: Virtual conversation cho KH no-Zalo. Tin nhắn lưu nội bộ, KHÔNG gửi qua Zalo SDK. */
   isVirtual?: boolean;
+  isMarkedUnread?: boolean;
 }
 
 export interface MessageReactionView {
@@ -756,7 +757,10 @@ export function useChat() {
       try {
         await api.post(`/conversations/${convId}/mark-read`);
         const conv = conversations.value.find(c => c.id === convId);
-        if (conv) conv.unreadCount = 0;
+        if (conv) {
+          conv.unreadCount = 0;
+          conv.isMarkedUnread = false;
+        }
       } catch {
         // Ignore mark-read errors
       }
@@ -769,6 +773,18 @@ export function useChat() {
     // AI summary + sentiment KHÔNG auto-fire mỗi lần đổi conv — user bấm nút refresh khi cần.
     // Trước đây 2 LLM call awaited mỗi switch = 2-10s + tốn quota.
     void fetchAiUsage();
+  }
+
+  async function markUnread(convId: string) {
+    try {
+      await api.post(`/conversations/${convId}/mark-unread`);
+      const conv = conversations.value.find(c => c.id === convId);
+      if (conv) {
+        conv.isMarkedUnread = true;
+      }
+    } catch (err) {
+      console.error('[useChat] markUnread error:', err);
+    }
   }
 
   async function sendMessage(content: string, replyMessageId?: string | null, styles?: Array<{ st: string; start: number; len: number }>, mentions?: Array<{ uid: string; pos: number; len: number }>) {
@@ -1254,6 +1270,7 @@ export function useChat() {
     fetchAiUsage,
     fetchMessages,
     selectConversation,
+    markUnread,
     patchContactProfile,
     sendMessage,
     sendMessageTo,

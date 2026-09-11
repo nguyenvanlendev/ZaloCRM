@@ -777,6 +777,7 @@ model Conversation {
   lastMessageAt     DateTime? @map("last_message_at")
   unreadCount       Int       @default(0) @map("unread_count")
   isReplied         Boolean   @default(true) @map("is_replied")
+  isMarkedUnread    Boolean   @default(false) @map("is_marked_unread")
   tab               String    @default("main") @map("tab") // main, other
   // M53 (2026-05-30): Virtual conversation cho KH no-Zalo. isVirtual=true → chat-routes skip
   // Zalo SDK send, lưu thẳng Message isLocal=true. externalThreadId synthetic 'virtual:{contactId}:{nickId}'.
