@@ -154,6 +154,36 @@ class ZaloRateLimiter {
     return daily && daily.date === today ? daily.count : 0;
   }
 
+  /**
+   * Batch lấy daily count cho nhiều cặp (accountId, category) cùng lúc.
+   * Sử dụng Redis pipeline để gom tất cả query thành 1 network roundtrip duy nhất.
+   */
+  async getBatchDailyCounts(
+    pairs: Array<{ accountId: string; category: OpCategory }>
+  ): Promise<number[]> {
+    if (pairs.length === 0) return [];
+    const r = await this.getRedisClient();
+    const today = new Date().toISOString().split('T')[0];
+
+    if (r) {
+      try {
+        const pipeline = r.pipeline();
+        for (const { accountId, category } of pairs) {
+          pipeline.hget(DAILY_KEY(accountId, category), today);
+        }
+        const results = await pipeline.exec();
+        if (results && results.length === pairs.length) {
+          return results.map(([err, val]) =>
+            err ? 0 : (val ? parseInt(val as string, 10) : 0)
+          );
+        }
+      } catch { /* fall through to fallback */ }
+    }
+
+    // Fallback in-memory hoặc khi pipeline fail
+    return Promise.all(pairs.map((p) => this.getDailyCount(p.accountId, p.category)));
+  }
+
   async getAllDailyCounts(accountId: string): Promise<Record<string, number>> {
     const result: Record<string, number> = {};
     for (const cat of ALL_CATEGORIES) {

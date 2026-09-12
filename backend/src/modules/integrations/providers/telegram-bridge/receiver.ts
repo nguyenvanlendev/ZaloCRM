@@ -227,8 +227,11 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
       return;
     }
 
-    const report = await formatQuotaReport(orgId, targetAccountId);
-    await sendMessage(cmdChatId, report, m.message_thread_id);
+    const reportChunks = await formatQuotaReport(orgId, targetAccountId);
+    for (let i = 0; i < reportChunks.length; i++) {
+      if (i > 0) await sleep(200);
+      await sendMessage(cmdChatId, reportChunks[i]!, m.message_thread_id);
+    }
     return;
   }
 

@@ -188,12 +188,74 @@ export async function checkAndTriggerQuotaAlert(accountId: string, category: OpC
 }
 
 /**
+ * Chia nhỏ danh sách báo cáo quota thành nhiều chunk ≤ 3800 ký tự (an toàn với trần 4096 của Telegram).
+ * Mỗi chunk có tiêu đề riêng, tự động đánh số [1/N], [2/N] nếu bị chia nhỏ.
+ */
+function splitTelegramChunks(
+  envBadge: string,
+  timeStr: string,
+  accountBlocks: string[]
+): string[] {
+  if (accountBlocks.length === 0) {
+    return ['ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.'];
+  }
+
+  const MAX_CHARS = 3800;
+  const footer = ['────────────────────', '💡 <i>Gõ <code>/quota</code> để cập nhật lại số liệu mới nhất.</i>'].join('\n');
+  const baseHeader = `📊 <b>BÁO CÁO TIÊU THỤ QUOTA SDK HÔM NAY</b> ${envBadge}`;
+  const headerTime = `🕐 <i>${timeStr}</i>\n────────────────────`;
+
+  const chunkGroups: string[][] = [];
+  let currentGroup: string[] = [];
+  let currentLen = baseHeader.length + headerTime.length + footer.length + 50;
+
+  for (const block of accountBlocks) {
+    const addedLen = block.length + 2;
+    if (currentGroup.length > 0 && currentLen + addedLen > MAX_CHARS) {
+      chunkGroups.push(currentGroup);
+      currentGroup = [block];
+      currentLen = baseHeader.length + headerTime.length + footer.length + 50 + addedLen;
+    } else {
+      currentGroup.push(block);
+      currentLen += addedLen;
+    }
+  }
+  if (currentGroup.length > 0) {
+    chunkGroups.push(currentGroup);
+  }
+
+  const total = chunkGroups.length;
+  if (total <= 1) {
+    return [
+      [
+        `${baseHeader}\n${headerTime}`,
+        chunkGroups[0]!.join('\n\n'),
+        footer,
+      ].join('\n\n'),
+    ];
+  }
+
+  return chunkGroups.map((group, idx) => {
+    const isLast = idx === total - 1;
+    const chunkBadge = ` <b>[${idx + 1}/${total}]</b>`;
+    const chunkHeader = `${baseHeader}${chunkBadge}\n${headerTime}`;
+
+    const parts = [chunkHeader, group.join('\n\n')];
+    if (isLast) {
+      parts.push(footer);
+    }
+    return parts.join('\n\n');
+  });
+}
+
+/**
  * Format báo cáo quota tổng hợp cho 1 nick hoặc toàn bộ nick của org (dùng cho lệnh /quota, /stats).
+ * Trả về danh sách chuỗi tin nhắn (mỗi tin nhắn ≤ 4000 ký tự) để gửi Telegram an toàn.
  */
 export async function formatQuotaReport(
   orgId: string,
   targetAccountId?: string | null
-): Promise<string> {
+): Promise<string[]> {
   const accounts = await prisma.zaloAccount.findMany({
     where: {
       orgId,
@@ -210,15 +272,8 @@ export async function formatQuotaReport(
   });
 
   if (accounts.length === 0) {
-    return 'ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.';
+    return ['ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.'];
   }
-
-  const envBadge = getEnvBadge();
-  const lines: string[] = [
-    `📊 <b>BÁO CÁO TIÊU THỤ QUOTA SDK HÔM NAY</b> ${envBadge}`,
-    `🕐 <i>${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</i>`,
-    '────────────────────',
-  ];
 
   // Các category quan trọng nhất cần theo dõi
   const TRACKED_CATEGORIES: OpCategory[] = [
@@ -230,15 +285,34 @@ export async function formatQuotaReport(
     'friend_action',
   ];
 
+  // 1. Chuẩn bị danh sách query song song
+  const pairs: Array<{ accountId: string; category: OpCategory }> = [];
+  for (const acc of accounts) {
+    for (const cat of TRACKED_CATEGORIES) {
+      pairs.push({ accountId: acc.id, category: cat });
+    }
+  }
+
+  // 2. Batch query Redis bằng Pipeline gom 1 roundtrip + song song resolve EffectiveLimits
+  const [counts, limits] = await Promise.all([
+    zaloRateLimiter.getBatchDailyCounts(pairs),
+    Promise.all(pairs.map((p) => getEffectiveLimit(p.accountId, p.category))),
+  ]);
+
+  // 3. Render từng account block
+  let pairIdx = 0;
+  const accountBlocks: string[] = [];
   for (const acc of accounts) {
     const nickName = acc.displayName || acc.phone || acc.id.slice(0, 8);
     const statusIcon = acc.status === 'connected' ? '🟢' : '⚪️';
-    lines.push(`\n${statusIcon} <b>${nickName}</b>`);
+    const lines: string[] = [`${statusIcon} <b>${nickName}</b>`];
 
     let hasAnyUsage = false;
     for (const cat of TRACKED_CATEGORIES) {
-      const limit = await getEffectiveLimit(acc.id, cat);
-      const count = await zaloRateLimiter.getDailyCount(acc.id, cat);
+      const count = counts[pairIdx] ?? 0;
+      const limit = limits[pairIdx] ?? { daily: 0, burst: 0, burstWindowMs: 0 };
+      pairIdx++;
+
       if (count > 0 || cat === 'message' || cat === 'group_read') {
         const catName = CATEGORY_NAMES[cat] || cat;
         const pct = limit.daily > 0 ? Math.round((count / limit.daily) * 100) : 0;
@@ -253,9 +327,10 @@ export async function formatQuotaReport(
     if (!hasAnyUsage) {
       lines.push('  • <i>Chưa có phát sinh quota hôm nay</i>');
     }
+    accountBlocks.push(lines.join('\n'));
   }
 
-  lines.push('\n────────────────────');
-  lines.push('💡 <i>Gõ <code>/quota</code> để cập nhật lại số liệu mới nhất.</i>');
-  return lines.join('\n');
+  const envBadge = getEnvBadge();
+  const timeStr = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  return splitTelegramChunks(envBadge, timeStr, accountBlocks);
 }
