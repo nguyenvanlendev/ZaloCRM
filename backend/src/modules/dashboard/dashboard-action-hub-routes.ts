@@ -206,7 +206,7 @@ export async function dashboardActionHubRoutes(app: FastifyInstance): Promise<vo
       // Prefetch nick của target (dùng cho cả tương tác hôm nay + quota nick bên dưới).
       const quotaNicksPrefetch = await prisma.zaloAccount.findMany({
         where: { orgId: viewer.orgId, ownerUserId: targetUserId, archivedAt: null },
-        select: { id: true, displayName: true, privacyMode: true },
+        select: { id: true, displayName: true, privacyMode: true, dailyStrangerMessageCap: true },
       });
 
       // 🔭 Phiên theo dõi (CareSession) — REUSE model, RBAC theo ownerUserId.
