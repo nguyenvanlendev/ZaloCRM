@@ -358,14 +358,20 @@ export async function dashboardActionHubRoutes(app: FastifyInstance): Promise<vo
               friendsToday: null,
             };
           }
-          const [msgs, friends] = await Promise.all([
-            prisma.message.count({
-              where: {
-                conversation: { zaloAccountId: n.id },
-                senderType: 'self',
-                sentAt: { gte: today, lt: tomorrow },
-              },
-            }),
+          const [msgsResult, friends] = await Promise.all([
+            prisma.$queryRaw<Array<{ count: bigint }>>`
+              SELECT COUNT(*)::bigint as count
+              FROM messages m
+              INNER JOIN conversations c ON c.id = m.conversation_id
+              LEFT JOIN friends f ON f.contact_id = c.contact_id
+                AND f.zalo_account_id = c.zalo_account_id
+                AND f.friendship_status = 'accepted'
+              WHERE c.zalo_account_id = ${n.id}
+                AND m.sender_type = 'self'
+                AND m.sent_at >= ${today}
+                AND m.sent_at < ${tomorrow}
+                AND f.id IS NULL
+            `,
             prisma.friendshipAttempt.count({
               where: {
                 zaloAccountId: n.id,
@@ -377,8 +383,9 @@ export async function dashboardActionHubRoutes(app: FastifyInstance): Promise<vo
             id: n.id,
             displayName: n.displayName,
             isPrivate: false,
-            messagesToday: msgs,
+            messagesToday: Number(msgsResult[0]?.count || 0),
             friendsToday: friends,
+            dailyStrangerMessageCap: n.dailyStrangerMessageCap || 300,
           };
         }),
       );
