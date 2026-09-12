@@ -101,7 +101,7 @@ export function mapGender(g: unknown): 'male' | 'female' | null {
   return null;
 }
 
-const BATCH_SIZE = 50;     // Số UID tối đa mỗi lần gọi getGroupMembersInfo (an toàn SDK)
+const BATCH_SIZE = 10;     // Số UID tối đa mỗi lần gọi getGroupMembersInfo (an toàn SDK)
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];

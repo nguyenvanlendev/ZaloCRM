@@ -118,8 +118,8 @@ async function linkOrphanedConversations(
   const validOrphaned = orphaned.filter((conv) => Boolean(conv.externalThreadId));
   if (validOrphaned.length === 0) return 0;
 
-  // Cắt thành từng chunk 50 UIDs để gọi getGroupMembersInfo (an toàn SDK, chống khóa nick)
-  const CHUNK_SIZE = 50;
+  // Cắt thành từng chunk 10 UIDs để gọi getGroupMembersInfo (an toàn SDK, chống khóa nick)
+  const CHUNK_SIZE = 10;
   const chunks: Array<typeof validOrphaned> = [];
   for (let i = 0; i < validOrphaned.length; i += CHUNK_SIZE) {
     chunks.push(validOrphaned.slice(i, i + CHUNK_SIZE));
