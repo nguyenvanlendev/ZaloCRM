@@ -15,6 +15,14 @@ import { isTelegramBridgeConfigured, getNickBridgeConfig } from '../../shared/te
 import { getEffectiveLimit, ALL_CATEGORIES, type CategoryLimit } from './sdk-limit-service.js';
 import { zaloRateLimiter } from './zalo-rate-limiter.js';
 import type { OpCategory } from '../../shared/zalo-operations.js';
+import { config } from '../../config/index.js';
+
+export function getEnvBadge(): string {
+  const env = (process.env.APP_ENV || process.env.ENVIRONMENT_NAME || (config.disableZaloConnection ? 'dev' : 'prod')).toLowerCase();
+  return env.includes('dev') || env.includes('local')
+    ? '🛠️ [DEV / LOCAL]'
+    : '🚀 [PROD]';
+}
 
 // Cache in-memory chống lặp khi Redis không khả dụng
 const memoryAlertedSet = new Set<string>();
@@ -126,8 +134,9 @@ export async function checkAndTriggerQuotaAlert(accountId: string, category: OpC
       ? 'Tài khoản đã chạm trần giới hạn hôm nay. Các hành động tiếp theo thuộc nhóm này sẽ bị chặn để chống khóa nick.'
       : 'Tài khoản sắp chạm trần giới hạn hôm nay. Vui lòng giảm tần suất thao tác để bảo vệ an toàn nick.';
 
+    const envBadge = getEnvBadge();
     const message = [
-      `${icon} <b>[ZaloCRM] ${title}</b>`,
+      `${icon} <b>[ZaloCRM - ${envBadge}] ${title}</b>`,
       '',
       `📱 <b>Nick:</b> ${nickName}`,
       `📌 <b>Nhóm chức năng:</b> <code>${catName}</code> (${category})`,
@@ -204,8 +213,9 @@ export async function formatQuotaReport(
     return 'ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.';
   }
 
+  const envBadge = getEnvBadge();
   const lines: string[] = [
-    '📊 <b>BÁO CÁO TIÊU THỤ QUOTA SDK HÔM NAY</b>',
+    `📊 <b>BÁO CÁO TIÊU THỤ QUOTA SDK HÔM NAY</b> ${envBadge}`,
     `🕐 <i>${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</i>`,
     '────────────────────',
   ];

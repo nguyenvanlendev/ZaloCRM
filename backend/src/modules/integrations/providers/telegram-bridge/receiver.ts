@@ -22,6 +22,7 @@ import { zaloPool } from '../../../zalo/zalo-pool.js';
 import { redeemLinkCode, getLinkedUser } from './link.js';
 import { hasZaloAccess } from '../../../zalo/zalo-access-middleware.js';
 import { formatQuotaReport } from '../../../zalo/quota-alert-service.js';
+import { config } from '../../../../config/index.js';
 
 // Rút thông tin media từ tin Telegram → file_id + cách gửi Zalo + TÊN GỐC (Zalo hiển thị theo tên này).
 function extractMedia(
@@ -148,6 +149,12 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
     const parts = m.text.trim().split(/\s+/);
     const arg = parts[1]?.toLowerCase();
 
+    const isCurrentDev = (process.env.APP_ENV || process.env.ENVIRONMENT_NAME || (config.disableZaloConnection ? 'dev' : 'prod')).toLowerCase().includes('dev');
+
+    // Lọc theo môi trường nếu người dùng truyền tham số /quota dev hoặc /quota prod
+    if (arg === 'dev' && !isCurrentDev) return;
+    if (arg === 'prod' && isCurrentDev) return;
+
     // 1. Kiểm tra chat hiện tại có gắn với TelegramBridgeConfig của nick nào không
     let orgId: string | null = null;
     let targetAccountId: string | null = null;
@@ -159,7 +166,7 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
 
     if (bridgeConfig) {
       orgId = bridgeConfig.orgId;
-      if (arg !== 'all') {
+      if (arg !== 'all' && arg !== 'dev' && arg !== 'prod') {
         targetAccountId = bridgeConfig.zaloAccountId;
       }
     }
@@ -232,7 +239,9 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
       '🤖 <b>ZaloCRM Telegram Bot Assistant</b>',
       '',
       '📌 <b>Các lệnh khả dụng:</b>',
-      '• <code>/quota</code> hoặc <code>/stats</code>: Báo cáo tiêu thụ Quota SDK Zalo hôm nay.',
+      '• <code>/quota</code> hoặc <code>/stats</code>: Báo cáo tiêu thụ Quota SDK (kèm nhãn DEV/PROD).',
+      '• <code>/quota dev</code>: Chỉ xem báo cáo hệ thống DEV / Local.',
+      '• <code>/quota prod</code>: Chỉ xem báo cáo hệ thống Production.',
       '• <code>/quota all</code>: Xem toàn bộ các nick trong tổ chức.',
       '• <code>/link &lt;mã&gt;</code>: Liên kết tài khoản Telegram với tài khoản CRM.',
       '• <code>/help</code>: Xem hướng dẫn sử dụng.',
