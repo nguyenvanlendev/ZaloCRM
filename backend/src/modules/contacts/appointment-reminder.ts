@@ -10,6 +10,7 @@ import type { Server } from 'socket.io';
 import { prisma } from '../../shared/database/prisma-client.js';
 import { withTenant } from '../../shared/tenant/tenant-context.js';
 import { logger } from '../../shared/utils/logger.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 /**
  * Parse `Organization.appointmentReminderOffsetsHours` (JSON) → mảng KHOẢNG CÁCH giờ.
@@ -34,9 +35,24 @@ export function reminderDueMs(startMs: number, offsets: number[], alreadySent: n
 }
 
 export function startAppointmentReminder(io: Server): void {
+  cronTracker.register('appointment-reminder-daily', {
+    description: 'Nhắc lịch hẹn ngày mai',
+    schedule: '0 1 * * * (08:00 VN)',
+  });
+  cronTracker.register('appointment-overdue-flip', {
+    description: 'Tự động chuyển lịch hẹn quá hạn (overdue)',
+    schedule: '*/5 * * * *',
+  });
+  cronTracker.register('appointment-action-prompt', {
+    description: 'Nhắc sale hoàn thành lịch hẹn sau giờ hẹn',
+    schedule: '*/5 * * * *',
+  });
+
   // 01:00 UTC = 08:00 Vietnam time (UTC+7)
   cron.schedule('0 1 * * *', async () => {
     logger.info('[reminder] Checking tomorrow appointments...');
+    const startedAt = Date.now();
+    cronTracker.markRunning('appointment-reminder-daily');
 
     try {
       const tomorrow = new Date();
@@ -77,8 +93,10 @@ export function startAppointmentReminder(io: Server): void {
       }
 
       logger.info(`[reminder] Sent ${appointments.length} reminder(s)`);
+      cronTracker.markFinished('appointment-reminder-daily', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[reminder] Cron job error:', err);
+      cronTracker.markFinished('appointment-reminder-daily', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
 
@@ -88,6 +106,8 @@ export function startAppointmentReminder(io: Server): void {
   // (Trước: 30 min — quá lag. Frontend giờ tính effectiveStatus client-side nhưng
   // cron vẫn cần để DB đồng bộ cho query filter / report.)
   async function flipOverdue() {
+    const startedAt = Date.now();
+    cronTracker.markRunning('appointment-overdue-flip');
     try {
       const now = new Date();
       const result = await prisma.appointment.updateMany({
@@ -97,8 +117,10 @@ export function startAppointmentReminder(io: Server): void {
       if (result.count > 0) {
         logger.info(`[appointment] Auto-flipped ${result.count} scheduled → overdue`);
       }
+      cronTracker.markFinished('appointment-overdue-flip', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[appointment] Overdue auto-flip error:', err);
+      cronTracker.markFinished('appointment-overdue-flip', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   }
 
@@ -118,6 +140,8 @@ export function startAppointmentReminder(io: Server): void {
       return;
     }
     actionPromptsRunning = true;
+    const startedAt = Date.now();
+    cronTracker.markRunning('appointment-action-prompt');
     try {
       const now = new Date();
       // Prefilter rộng (buffer 12h): appointmentDate là 00:00 UTC của NGÀY; lọc chính xác bằng dueMs.
@@ -133,7 +157,10 @@ export function startAppointmentReminder(io: Server): void {
         select: { id: true, orgId: true, appointmentDate: true, appointmentTime: true, actionPromptCount: true },
         take: 200,
       });
-      if (!candidates.length) return;
+      if (!candidates.length) {
+        cronTracker.markFinished('appointment-action-prompt', { ok: true, durationMs: Date.now() - startedAt });
+        return;
+      }
       const orgIds = [...new Set(candidates.map((c) => c.orgId))];
       const orgs = await prisma.organization.findMany({
         where: { id: { in: orgIds } },
@@ -164,8 +191,10 @@ export function startAppointmentReminder(io: Server): void {
         }
       }
       if (sent > 0) logger.info(`[appointment] Đã gửi ${sent} nhắc hoàn thành`);
+      cronTracker.markFinished('appointment-action-prompt', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[appointment] action-prompt cron error:', err);
+      cronTracker.markFinished('appointment-action-prompt', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     } finally {
       actionPromptsRunning = false;
     }
@@ -173,3 +202,4 @@ export function startAppointmentReminder(io: Server): void {
   cron.schedule('*/5 * * * *', sendActionPrompts);
   logger.info('[appointment] Nhắc hoàn thành cron started (every 5 min, 3 lần)');
 }
+

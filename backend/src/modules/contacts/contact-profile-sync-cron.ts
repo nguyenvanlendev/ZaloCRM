@@ -22,6 +22,7 @@ import cron from 'node-cron';
 import { prisma } from '../../shared/database/prisma-client.js';
 import { logger } from '../../shared/utils/logger.js';
 import { zaloOps } from '../../shared/zalo-operations.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 // 03:00 mỗi ngày (giờ VN) — khung thấp điểm. 2026-06-18: friend-sync nay backfill gender/dob
 // HÀNG LOẠT từ getAllFriends mỗi lần nick connect (0 call SDK thêm) → cron chỉ còn VÉT ĐUÔI
@@ -34,6 +35,11 @@ let cronRunning = false;
 let cronTask: ReturnType<typeof cron.schedule> | null = null;
 
 export function startContactProfileSyncCron(): void {
+  cronTracker.register('contact-profile-sync', {
+    description: 'Đồng bộ giới tính & ngày sinh KH',
+    schedule: `${CRON_SCHEDULE} (VN)`,
+  });
+
   if (cronTask) {
     logger.info('[contact-profile-sync] Already started, skipping');
     return;
@@ -45,10 +51,13 @@ export function startContactProfileSyncCron(): void {
     }
     cronRunning = true;
     const startedAt = Date.now();
+    cronTracker.markRunning('contact-profile-sync');
     try {
       await runCycle();
+      cronTracker.markFinished('contact-profile-sync', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[contact-profile-sync] Cycle error:', err);
+      cronTracker.markFinished('contact-profile-sync', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     } finally {
       cronRunning = false;
       logger.info(`[contact-profile-sync] Cycle done in ${Date.now() - startedAt}ms`);
@@ -56,6 +65,7 @@ export function startContactProfileSyncCron(): void {
   }, { timezone: 'Asia/Ho_Chi_Minh' });
   logger.info(`[contact-profile-sync] Started, schedule="${CRON_SCHEDULE}" (Asia/Ho_Chi_Minh)`);
 }
+
 
 export function stopContactProfileSyncCron(): void {
   if (cronTask) {

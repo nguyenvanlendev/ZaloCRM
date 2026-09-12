@@ -27,6 +27,7 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { withTenant } from '../../shared/tenant/tenant-context.js';
 import { logger } from '../../shared/utils/logger.js';
 import { TRASH_RETENTION_DAYS } from './media-routes.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 const GC_BATCH_CAP = 500; // tối đa asset xóa mỗi lần chạy
 
@@ -36,17 +37,27 @@ function isDryRun(): boolean {
 }
 
 export function startMediaTrashGcCron(): void {
+  cronTracker.register('media-trash-gc', {
+    description: 'Dọn dẹp thùng rác Media quá hạn 30 ngày',
+    schedule: '30 20 * * * (03:30 VN)',
+  });
+
   // 20:30 UTC = 03:30 Vietnam time (UTC+7) — sau contact-profile-sync (03:00 VN), giờ thấp điểm.
   cron.schedule('30 20 * * *', async () => {
     logger.info(`[media-trash-gc] Bắt đầu dọn thùng rác Media (dryRun=${isDryRun()})...`);
+    const startedAt = Date.now();
+    cronTracker.markRunning('media-trash-gc');
     try {
       await runMediaTrashGc();
+      cronTracker.markFinished('media-trash-gc', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[media-trash-gc] lỗi:', err);
+      cronTracker.markFinished('media-trash-gc', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
   logger.info(`[media-trash-gc] Đã lên lịch dọn thùng rác hằng ngày (20:30 UTC / 03:30 VN, retention=${TRASH_RETENTION_DAYS}d, dryRun mặc định=BẬT)`);
 }
+
 
 /**
  * Quét asset đã ở thùng rác > retention, xóa cứng hàng DB (KHÔNG byte MinIO).

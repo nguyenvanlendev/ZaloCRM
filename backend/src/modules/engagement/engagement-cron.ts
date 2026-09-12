@@ -15,21 +15,32 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { logger } from '../../shared/utils/logger.js';
 import { runSystemQuery, withTenant } from '../../shared/tenant/tenant-context.js';
 import { recomputeContactEngagement } from './engagement-service.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 const CLEANUP_RETENTION_DAYS = 84;
 
 export function startEngagementCron(): void {
+  cronTracker.register('engagement-cron', {
+    description: 'Phân loại Heatmap tương tác KH & dọn dẹp',
+    schedule: '30 19 * * * (02:30 VN)',
+  });
+
   // 19:30 UTC = 02:30 VN time
   cron.schedule('30 19 * * *', async () => {
     logger.info('[engagement-cron] Daily classification + cleanup starting');
+    const startedAt = Date.now();
+    cronTracker.markRunning('engagement-cron');
     try {
       await runEngagementCron();
+      cronTracker.markFinished('engagement-cron', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[engagement-cron] error', err);
+      cronTracker.markFinished('engagement-cron', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
   logger.info('[engagement-cron] scheduled daily at 19:30 UTC (02:30 VN)');
 }
+
 
 export async function runEngagementCron(): Promise<{
   contactsReclassified: number;

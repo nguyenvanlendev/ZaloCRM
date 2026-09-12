@@ -14,6 +14,7 @@ import cron from 'node-cron';
 import { logger } from '../../shared/utils/logger.js';
 import { detectDuplicates } from './duplicate-detector.js';
 import { computeAllLeadScores } from './lead-scoring.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 // Cron tự động: CHỈ chấm điểm lead, KHÔNG dò-gộp trùng.
 async function runScheduledPipeline(): Promise<void> {
@@ -28,18 +29,28 @@ async function runFullPipeline(): Promise<void> {
 }
 
 export function startContactIntelligence(): void {
+  cronTracker.register('contact-intelligence', {
+    description: 'Chấm điểm tiềm năng Lead (Lead scoring)',
+    schedule: '30 2 * * * (09:30 VN)',
+  });
+
   // 02:30 UTC = 09:30 Vietnam time (UTC+7)
   cron.schedule('30 2 * * *', async () => {
     logger.info('[intelligence] Starting scheduled lead-scoring cron (no auto-dedupe)...');
+    const startedAt = Date.now();
+    cronTracker.markRunning('contact-intelligence');
     try {
       await runScheduledPipeline();
       logger.info('[intelligence] Scheduled cron completed');
+      cronTracker.markFinished('contact-intelligence', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[intelligence] Cron error:', err);
+      cronTracker.markFinished('contact-intelligence', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
   logger.info('[intelligence] Contact intelligence cron started (daily 02:30 UTC — lead scoring only)');
 }
+
 
 export async function runContactIntelligence(): Promise<void> {
   logger.info('[intelligence] Manual run started (full: dedupe + lead scoring)...');

@@ -22,6 +22,7 @@ import { zaloPool } from '../../../zalo/zalo-pool.js';
 import { redeemLinkCode, getLinkedUser } from './link.js';
 import { hasZaloAccess } from '../../../zalo/zalo-access-middleware.js';
 import { formatQuotaReport } from '../../../zalo/quota-alert-service.js';
+import { formatHealthReport, formatCronListReport, formatNicksReport } from '../../../system-monitor/system-monitor-service.js';
 import { config } from '../../../../config/index.js';
 
 // Rút thông tin media từ tin Telegram → file_id + cách gửi Zalo + TÊN GỐC (Zalo hiển thị theo tên này).
@@ -101,6 +102,71 @@ async function pollLoop(): Promise<void> {
   }
 }
 
+/**
+ * Nhận diện orgId và targetAccountId từ context nhóm Telegram hoặc user liên kết.
+ */
+async function resolveContextOrgId(
+  cmdChatId: string,
+  fromUserId?: number | string
+): Promise<{ orgId: string | null; targetAccountId: string | null }> {
+  let orgId: string | null = null;
+  let targetAccountId: string | null = null;
+
+  // 1. Kiểm tra chat hiện tại có gắn với TelegramBridgeConfig của nick nào không
+  const bridgeConfig = await prisma.telegramBridgeConfig.findFirst({
+    where: { telegramChatId: cmdChatId },
+    select: { orgId: true, zaloAccountId: true },
+  });
+
+  if (bridgeConfig) {
+    orgId = bridgeConfig.orgId;
+    targetAccountId = bridgeConfig.zaloAccountId;
+  }
+
+  // 2. Tra theo user Telegram đã liên kết
+  if (!orgId && fromUserId) {
+    const linkedUser = await getLinkedUser(String(fromUserId));
+    if (linkedUser) {
+      orgId = linkedUser.orgId;
+    }
+  }
+
+  // 3. Tra theo bảng Integration của org
+  if (!orgId) {
+    const integration = await prisma.integration.findFirst({
+      where: { type: 'telegram', enabled: true },
+      select: { orgId: true, config: true },
+    });
+    const intCfg = integration?.config as { chatId?: string } | null;
+    if (intCfg?.chatId === cmdChatId && integration?.orgId) {
+      orgId = integration.orgId;
+    }
+  }
+
+  // 4. Nếu hệ thống chỉ có 1 tổ chức (Single-tenant / default org), tự động fallback
+  if (!orgId) {
+    const orgs = await prisma.organization.findMany({ select: { id: true }, take: 2 });
+    if (orgs.length === 1) {
+      orgId = orgs[0]!.id;
+      if (fromUserId) {
+        const adminUser = await prisma.user.findFirst({
+          where: { orgId, role: { in: ['admin', 'owner'] } },
+          select: { id: true },
+        });
+        if (adminUser) {
+          await prisma.telegramUserLink.upsert({
+            where: { telegramUserId: String(fromUserId) },
+            create: { telegramUserId: String(fromUserId), userId: adminUser.id, orgId },
+            update: { userId: adminUser.id, orgId },
+          }).catch(() => {});
+        }
+      }
+    }
+  }
+
+  return { orgId, targetAccountId };
+}
+
 async function processUpdate(u: TgMessageUpdate): Promise<void> {
   const m = u.message;
   if (!m) return;
@@ -143,6 +209,73 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
     return;
   }
 
+  // /health hoặc /system — Báo cáo sức khỏe tổng quan hệ thống
+  if (m.text && /^\/(health|system)\b/i.test(m.text.trim())) {
+    const cmdChatId = String(m.chat.id);
+    const parts = m.text.trim().split(/\s+/);
+    const arg = parts[1]?.toLowerCase();
+
+    const isCurrentDev = (process.env.APP_ENV || process.env.ENVIRONMENT_NAME || (config.disableZaloConnection ? 'dev' : 'prod')).toLowerCase().includes('dev');
+    if (arg === 'dev' && !isCurrentDev) return;
+    if (arg === 'prod' && isCurrentDev) return;
+
+    const { orgId } = await resolveContextOrgId(cmdChatId, m.from?.id);
+    const report = await formatHealthReport(orgId);
+    await sendMessage(cmdChatId, report, m.message_thread_id);
+    return;
+  }
+
+  // /crons — Báo cáo danh sách các tiến trình nền định kỳ
+  if (m.text && /^\/crons\b/i.test(m.text.trim())) {
+    const cmdChatId = String(m.chat.id);
+    const parts = m.text.trim().split(/\s+/);
+    const arg = parts[1]?.toLowerCase();
+
+    const isCurrentDev = (process.env.APP_ENV || process.env.ENVIRONMENT_NAME || (config.disableZaloConnection ? 'dev' : 'prod')).toLowerCase().includes('dev');
+    if (arg === 'dev' && !isCurrentDev) return;
+    if (arg === 'prod' && isCurrentDev) return;
+
+    const reportChunks = formatCronListReport();
+    for (let i = 0; i < reportChunks.length; i++) {
+      if (i > 0) await sleep(200);
+      await sendMessage(cmdChatId, reportChunks[i]!, m.message_thread_id);
+    }
+    return;
+  }
+
+  // /nicks — Trạng thái chi tiết từng nick Zalo
+  if (m.text && /^\/nicks\b/i.test(m.text.trim())) {
+    const cmdChatId = String(m.chat.id);
+    const parts = m.text.trim().split(/\s+/);
+    const arg = parts[1]?.toLowerCase();
+
+    const isCurrentDev = (process.env.APP_ENV || process.env.ENVIRONMENT_NAME || (config.disableZaloConnection ? 'dev' : 'prod')).toLowerCase().includes('dev');
+    if (arg === 'dev' && !isCurrentDev) return;
+    if (arg === 'prod' && isCurrentDev) return;
+
+    const { orgId } = await resolveContextOrgId(cmdChatId, m.from?.id);
+    if (!orgId) {
+      await sendMessage(
+        cmdChatId,
+        [
+          '⚠️ <b>Chưa nhận diện được tổ chức liên kết!</b>',
+          '',
+          '• Hãy dùng lệnh này trong nhóm Telegram đã liên kết với ZaloCRM.',
+          '• Hoặc liên kết tài khoản cá nhân của bạn trước: <code>/link [mã từ CRM]</code>',
+        ].join('\n'),
+        m.message_thread_id,
+      );
+      return;
+    }
+
+    const reportChunks = await formatNicksReport(orgId);
+    for (let i = 0; i < reportChunks.length; i++) {
+      if (i > 0) await sleep(200);
+      await sendMessage(cmdChatId, reportChunks[i]!, m.message_thread_id);
+    }
+    return;
+  }
+
   // /quota hoặc /stats — Kiểm tra realtime quota SDK Zalo
   if (m.text && /^\/(quota|stats)\b/i.test(m.text.trim())) {
     const cmdChatId = String(m.chat.id);
@@ -155,63 +288,8 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
     if (arg === 'dev' && !isCurrentDev) return;
     if (arg === 'prod' && isCurrentDev) return;
 
-    // 1. Kiểm tra chat hiện tại có gắn với TelegramBridgeConfig của nick nào không
-    let orgId: string | null = null;
-    let targetAccountId: string | null = null;
-
-    const bridgeConfig = await prisma.telegramBridgeConfig.findFirst({
-      where: { telegramChatId: cmdChatId },
-      select: { orgId: true, zaloAccountId: true },
-    });
-
-    if (bridgeConfig) {
-      orgId = bridgeConfig.orgId;
-      if (arg !== 'all' && arg !== 'dev' && arg !== 'prod') {
-        targetAccountId = bridgeConfig.zaloAccountId;
-      }
-    }
-
-    // 2. Nếu chưa có orgId từ bridge group, tra theo user Telegram đã liên kết
-    if (!orgId && m.from?.id) {
-      const linkedUser = await getLinkedUser(String(m.from.id));
-      if (linkedUser) {
-        orgId = linkedUser.orgId;
-      }
-    }
-
-    // 3. Nếu vẫn chưa có orgId, kiểm tra bảng Integration
-    if (!orgId) {
-      const integration = await prisma.integration.findFirst({
-        where: { type: 'telegram', enabled: true },
-        select: { orgId: true, config: true },
-      });
-      const intCfg = integration?.config as { chatId?: string } | null;
-      if (intCfg?.chatId === cmdChatId && integration?.orgId) {
-        orgId = integration.orgId;
-      }
-    }
-
-    // 4. Nếu hệ thống chỉ có 1 tổ chức (Single-tenant / default org), tự động fallback
-    if (!orgId) {
-      const orgs = await prisma.organization.findMany({ select: { id: true }, take: 2 });
-      if (orgs.length === 1) {
-        orgId = orgs[0]!.id;
-        // Tự động gắn telegramUserId với admin của tổ chức nếu chưa gắn
-        if (m.from?.id) {
-          const adminUser = await prisma.user.findFirst({
-            where: { orgId, role: { in: ['admin', 'owner'] } },
-            select: { id: true },
-          });
-          if (adminUser) {
-            await prisma.telegramUserLink.upsert({
-              where: { telegramUserId: String(m.from.id) },
-              create: { telegramUserId: String(m.from.id), userId: adminUser.id, orgId },
-              update: { userId: adminUser.id, orgId },
-            }).catch(() => {});
-          }
-        }
-      }
-    }
+    const { orgId, targetAccountId: defaultAccountId } = await resolveContextOrgId(cmdChatId, m.from?.id);
+    const targetAccountId = (arg !== 'all' && arg !== 'dev' && arg !== 'prod') ? defaultAccountId : null;
 
     if (!orgId) {
       await sendMessage(
@@ -242,9 +320,11 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
       '🤖 <b>ZaloCRM Telegram Bot Assistant</b>',
       '',
       '📌 <b>Các lệnh khả dụng:</b>',
+      '• <code>/health</code> hoặc <code>/system</code>: Báo cáo sức khỏe tổng quan hệ thống (RAM, DB, Redis, Uptime, Nick, Cron, Queue).',
+      '• <code>/crons</code>: Chi tiết trạng thái các tác vụ nền định kỳ.',
+      '• <code>/nicks</code>: Chi tiết trạng thái kết nối & phiên của từng nick Zalo.',
       '• <code>/quota</code> hoặc <code>/stats</code>: Báo cáo tiêu thụ Quota SDK (kèm nhãn DEV/PROD).',
-      '• <code>/quota dev</code>: Chỉ xem báo cáo hệ thống DEV / Local.',
-      '• <code>/quota prod</code>: Chỉ xem báo cáo hệ thống Production.',
+      '• <i>(Tuỳ chọn lọc môi trường: <code>/health dev</code>, <code>/crons prod</code>, <code>/quota prod</code>...)</i>',
       '• <code>/quota all</code>: Xem toàn bộ các nick trong tổ chức.',
       '• <code>/link &lt;mã&gt;</code>: Liên kết tài khoản Telegram với tài khoản CRM.',
       '• <code>/help</code>: Xem hướng dẫn sử dụng.',
@@ -252,6 +332,7 @@ async function processUpdate(u: TgMessageUpdate): Promise<void> {
     await sendMessage(helpChatId, helpMsg, m.message_thread_id);
     return;
   }
+
 
   if (!m.message_thread_id) return; // tin ngoài topic (General) → bỏ
 

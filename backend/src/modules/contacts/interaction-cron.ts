@@ -13,21 +13,32 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { withTenant } from '../../shared/tenant/tenant-context.js';
 import { logger } from '../../shared/utils/logger.js';
 import { logActivity } from '../activity/activity-logger.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 const SILENT_THRESHOLD_DAYS = 30;
 
 export function startInteractionCron(): void {
+  cronTracker.register('silent-detection', {
+    description: 'Quét phát hiện khách hàng im lặng 30+ ngày',
+    schedule: '0 19 * * * (02:00 VN)',
+  });
+
   // 19:00 UTC = 02:00 Vietnam time (UTC+7) — chạy sau midnight VN time
   cron.schedule('0 19 * * *', async () => {
     logger.info('[interaction-cron] Scanning for silent_30d contacts...');
+    const startedAt = Date.now();
+    cronTracker.markRunning('silent-detection');
     try {
       await runSilentDetection();
+      cronTracker.markFinished('silent-detection', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[interaction-cron] silent_30d error:', err);
+      cronTracker.markFinished('silent-detection', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
   logger.info('[interaction-cron] Daily silent_30d detection scheduled (19:00 UTC / 02:00 VN)');
 }
+
 
 /**
  * Find contacts crossing 30-day silence threshold today.

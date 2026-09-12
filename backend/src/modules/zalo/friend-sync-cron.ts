@@ -22,6 +22,7 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { logger } from '../../shared/utils/logger.js';
 import { syncAccountFully } from './friend-sync-service.js';
 import { runSystemQuery } from '../../shared/tenant/tenant-context.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 // 15 phút. Đủ để bắt alias/name/avatar drift mà không spam Zalo rate-limit.
 // Sequential 50 nick × 5s = 250s = ~4min → fit trong 15min window có dư 11min.
@@ -39,6 +40,11 @@ let cronTask: ReturnType<typeof cron.schedule> | null = null;
  * Caller pass IO server để syncFriendsForAccount emit 'friend:updated' patches.
  */
 export function startFriendSyncCron(io: Server | null): void {
+  cronTracker.register('friend-sync-cron', {
+    description: 'Đồng bộ danh bạ bạn bè',
+    schedule: CRON_SCHEDULE,
+  });
+
   if (cronTask) {
     logger.info('[friend-sync-cron] Already started, skipping');
     return;
@@ -50,11 +56,14 @@ export function startFriendSyncCron(io: Server | null): void {
     }
     cronRunning = true;
     const startedAt = Date.now();
+    cronTracker.markRunning('friend-sync-cron');
     try {
       await runCronCycle(io);
+      cronTracker.markFinished('friend-sync-cron', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       // Should not reach here (per-account errors caught inside) — defensive
       logger.error('[friend-sync-cron] Unexpected cycle error:', err);
+      cronTracker.markFinished('friend-sync-cron', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     } finally {
       cronRunning = false;
       logger.info(`[friend-sync-cron] Cycle completed in ${Date.now() - startedAt}ms`);
@@ -62,6 +71,7 @@ export function startFriendSyncCron(io: Server | null): void {
   });
   logger.info(`[friend-sync-cron] Started, schedule="${CRON_SCHEDULE}"`);
 }
+
 
 /** Stop cron task (dùng cho test cleanup / graceful shutdown). */
 export function stopFriendSyncCron(): void {

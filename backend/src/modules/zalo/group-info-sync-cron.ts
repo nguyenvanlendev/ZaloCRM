@@ -26,6 +26,7 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { logger } from '../../shared/utils/logger.js';
 import { runSystemQuery, withTenant } from '../../shared/tenant/tenant-context.js';
 import { buildGroupUpdates } from './group-info-refresh.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 // 6h: avatar/tên nhóm đổi chậm. URL CDN thường sống nhiều giờ → 6h đủ tươi.
 const CRON_SCHEDULE = '0 */6 * * *';
@@ -42,6 +43,11 @@ let cronTask: ReturnType<typeof cron.schedule> | null = null;
 
 /** Start cron làm tươi group info. Idempotent — đã start thì no-op. */
 export function startGroupInfoSyncCron(): void {
+  cronTracker.register('group-info-sync-cron', {
+    description: 'Làm tươi avatar & thông tin nhóm',
+    schedule: CRON_SCHEDULE,
+  });
+
   if (cronTask) {
     logger.info('[group-info-sync-cron] Already started, skipping');
     return;
@@ -53,10 +59,13 @@ export function startGroupInfoSyncCron(): void {
     }
     cronRunning = true;
     const startedAt = Date.now();
+    cronTracker.markRunning('group-info-sync-cron');
     try {
       await runCronCycle();
+      cronTracker.markFinished('group-info-sync-cron', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[group-info-sync-cron] Unexpected cycle error:', err);
+      cronTracker.markFinished('group-info-sync-cron', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     } finally {
       cronRunning = false;
       logger.info(`[group-info-sync-cron] Cycle completed in ${Date.now() - startedAt}ms`);
@@ -64,6 +73,7 @@ export function startGroupInfoSyncCron(): void {
   });
   logger.info(`[group-info-sync-cron] Started, schedule="${CRON_SCHEDULE}"`);
 }
+
 
 /** Stop cron (test cleanup / graceful shutdown). */
 export function stopGroupInfoSyncCron(): void {

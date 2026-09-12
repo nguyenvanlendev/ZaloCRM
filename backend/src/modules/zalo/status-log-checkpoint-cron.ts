@@ -24,6 +24,7 @@ import { logger } from '../../shared/utils/logger.js';
 import { writeTransition, type ZaloStatus } from './status-log-service.js';
 import { zaloPool } from './zalo-pool.js';
 import { withTenant, runSystemQuery } from '../../shared/tenant/tenant-context.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 // 5 phút — đủ tight để uptime drift trong window 5p, đủ rộng để không spam DB.
 const CRON_SCHEDULE = '*/5 * * * *';
@@ -32,6 +33,11 @@ let cronRunning = false;
 let cronTask: ReturnType<typeof cron.schedule> | null = null;
 
 export function startStatusLogCheckpointCron(): void {
+  cronTracker.register('status-log-checkpoint', {
+    description: 'Kiểm tra trạng thái kết nối nick Zalo',
+    schedule: CRON_SCHEDULE,
+  });
+
   if (cronTask) {
     logger.info('[status-log-checkpoint] Already started, skipping');
     return;
@@ -43,10 +49,13 @@ export function startStatusLogCheckpointCron(): void {
     }
     cronRunning = true;
     const startedAt = Date.now();
+    cronTracker.markRunning('status-log-checkpoint');
     try {
       await runCheckpoint();
+      cronTracker.markFinished('status-log-checkpoint', { ok: true, durationMs: Date.now() - startedAt });
     } catch (err) {
       logger.error('[status-log-checkpoint] Unexpected cycle error:', err);
+      cronTracker.markFinished('status-log-checkpoint', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     } finally {
       cronRunning = false;
       logger.info(`[status-log-checkpoint] Cycle completed in ${Date.now() - startedAt}ms`);
@@ -54,6 +63,7 @@ export function startStatusLogCheckpointCron(): void {
   });
   logger.info(`[status-log-checkpoint] Started, schedule="${CRON_SCHEDULE}"`);
 }
+
 
 export function stopStatusLogCheckpointCron(): void {
   if (cronTask) {

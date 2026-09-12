@@ -19,6 +19,7 @@ import { zaloOps } from '../../shared/zalo-operations.js';
 import { prisma } from '../../shared/database/prisma-client.js';
 import { logger } from '../../shared/utils/logger.js';
 import { runSystemQuery } from '../../shared/tenant/tenant-context.js';
+import { cronTracker } from '../system-monitor/cron-tracker.js';
 
 export interface PresenceEntry {
   /** Unix ms timestamp from Zalo lastOnline. null = privacy off OR unknown */
@@ -128,30 +129,43 @@ let cronJob: cron.ScheduledTask | null = null;
 export function startPresenceCron(io: Server | null): void {
   ioRef = io;
 
+  cronTracker.register('presence-refresh', {
+    description: 'Cập nhật trạng thái Online bạn bè',
+    schedule: '*/1 * * * *',
+  });
+
   // Every 60s — bulk refresh all connected accounts
   cronJob = cron.schedule('*/1 * * * *', async () => {
-    // Cross-org sweep (mọi account connected mọi org) → runSystemQuery.
-    const accounts = await runSystemQuery(() =>
-      prisma.zaloAccount.findMany({
-        where: { status: 'connected' },
-        select: { id: true },
-      }),
-    );
-    let totalOnline = 0;
-    for (const acc of accounts) {
-      const result = await refreshAccountPresence(acc.id);
-      if (result) totalOnline += result.onlineCount;
-    }
-    if (accounts.length > 0) {
-      logger.debug('[presence] bulk refresh done', {
-        accounts: accounts.length,
-        totalOnline,
-        cacheSize: cache.size,
-      });
+    const startedAt = Date.now();
+    cronTracker.markRunning('presence-refresh');
+    try {
+      // Cross-org sweep (mọi account connected mọi org) → runSystemQuery.
+      const accounts = await runSystemQuery(() =>
+        prisma.zaloAccount.findMany({
+          where: { status: 'connected' },
+          select: { id: true },
+        }),
+      );
+      let totalOnline = 0;
+      for (const acc of accounts) {
+        const result = await refreshAccountPresence(acc.id);
+        if (result) totalOnline += result.onlineCount;
+      }
+      if (accounts.length > 0) {
+        logger.debug('[presence] bulk refresh done', {
+          accounts: accounts.length,
+          totalOnline,
+          cacheSize: cache.size,
+        });
+      }
+      cronTracker.markFinished('presence-refresh', { ok: true, durationMs: Date.now() - startedAt });
+    } catch (err) {
+      cronTracker.markFinished('presence-refresh', { ok: false, durationMs: Date.now() - startedAt, error: String(err) });
     }
   });
   logger.info('[presence] cron started — refresh every 60s');
 }
+
 
 export function stopPresenceCron(): void {
   if (cronJob) {

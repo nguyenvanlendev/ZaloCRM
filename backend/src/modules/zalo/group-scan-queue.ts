@@ -143,3 +143,20 @@ export async function stopGroupScanWorker(): Promise<void> {
     connection = null;
   }
 }
+
+/** Lấy thống kê hàng đợi Group Scan phục vụ giám sát hệ thống */
+export async function getGroupScanQueueStats(): Promise<{ waiting: number; active: number; failed: number }> {
+  try {
+    const q = getQueue();
+    const counts = await q.getJobCounts('waiting', 'active', 'failed');
+    return {
+      waiting: counts.waiting ?? 0,
+      active: counts.active ?? 0,
+      failed: counts.failed ?? 0,
+    };
+  } catch (err) {
+    logger.warn(`[group-scan-queue] getGroupScanQueueStats error: ${err}`);
+    return { waiting: 0, active: 0, failed: 0 };
+  }
+}
+

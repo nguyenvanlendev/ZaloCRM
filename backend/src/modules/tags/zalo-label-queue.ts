@@ -115,3 +115,21 @@ export async function stopZaloLabelQueue(): Promise<void> {
   redisConn?.disconnect();
   redisConn = null;
 }
+
+/** Lấy thống kê hàng đợi Zalo Label phục vụ giám sát hệ thống */
+export async function getLabelQueueStats(): Promise<{ waiting: number; active: number; failed: number }> {
+  try {
+    const q = getZaloLabelQueue();
+    if (!q) return { waiting: 0, active: 0, failed: 0 };
+    const counts = await q.getJobCounts('waiting', 'active', 'failed');
+    return {
+      waiting: counts.waiting ?? 0,
+      active: counts.active ?? 0,
+      failed: counts.failed ?? 0,
+    };
+  } catch (err) {
+    logger.warn(`[zalo-label-queue] getLabelQueueStats error: ${err}`);
+    return { waiting: 0, active: 0, failed: 0 };
+  }
+}
+

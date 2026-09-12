@@ -1,7 +1,7 @@
 
 services:
   app:
-    image: lennguyen03/zalo-crm-app:version-2
+    image: lennguyen03/zalo-crm-app:version-3
     container_name: zalo-crm-app
     restart: unless-stopped
     ports:
