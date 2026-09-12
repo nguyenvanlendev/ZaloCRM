@@ -96,9 +96,11 @@ export async function zaloRoutes(app: FastifyInstance): Promise<void> {
         tenantTransaction(async (tx): Promise<CreateResult> => {
           // (1) Check trùng phone (chỉ khi có phone hợp lệ).
           if (phone) {
-            const isWhitelisted = config.allowedDevZaloPhones.some(
-              (p) => p === phone || `+84${p.replace(/^0/, '')}` === phone || p === `0${phone.replace(/^\+84/, '')}`
-            );
+            const isWhitelisted =
+              config.disableZaloConnection &&
+              config.allowedDevZaloPhones.some(
+                (p) => p === phone || `+84${p.replace(/^0/, '')}` === phone || p === `0${phone.replace(/^\+84/, '')}`
+              );
 
             const dup = await tx.zaloAccount.findFirst({
               where: { orgId: user.orgId, phone, archivedAt: null },
@@ -445,9 +447,11 @@ export async function zaloRoutes(app: FastifyInstance): Promise<void> {
         let reviveAccountId: string | null = null;
         if (existing) {
           const isArchived = existing.archivedAt !== null;
-          const isWhitelisted = config.allowedDevZaloPhones.some(
-            (p) => p === normalized || `+84${p.replace(/^0/, '')}` === normalized || p === `0${normalized.replace(/^\+84/, '')}`
-          );
+          const isWhitelisted =
+            config.disableZaloConnection &&
+            config.allowedDevZaloPhones.some(
+              (p) => p === normalized || `+84${p.replace(/^0/, '')}` === normalized || p === `0${normalized.replace(/^\+84/, '')}`
+            );
           const ownedByMe = existing.ownerUserId === userId || isWhitelisted;
           duplicate = {
             accountId: existing.id,

@@ -48,4 +48,5 @@ secrets/
 
 # Telegram
 public-key-telegram
+implementation_plan.md
 public-key-telegram-product
