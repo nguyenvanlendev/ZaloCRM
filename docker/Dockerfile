@@ -4,7 +4,7 @@ WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 COPY frontend/ ./
-RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # ── Stage 2: Build backend ───────────────────────────────────────────────────
 FROM node:20-alpine AS backend-builder
@@ -19,7 +19,7 @@ COPY backend/package.json backend/package-lock.json ./
 RUN npm install --no-audit --no-fund
 COPY backend/ ./
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
-RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # ── Stage 3: Production image ────────────────────────────────────────────────
 FROM node:20-alpine

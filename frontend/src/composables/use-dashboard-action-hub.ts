@@ -96,6 +96,7 @@ export interface QuotaNick {
   isPrivate: boolean;
   messagesToday: number | null;
   friendsToday: number | null;
+  dailyStrangerMessageCap?: number;
 }
 
 export interface MeResponse {
