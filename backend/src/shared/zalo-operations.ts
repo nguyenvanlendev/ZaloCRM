@@ -13,6 +13,7 @@
 import type { Server } from 'socket.io';
 import { zaloPool } from '../modules/zalo/zalo-pool.js';
 import { zaloRateLimiter } from '../modules/zalo/zalo-rate-limiter.js';
+import { checkAndTriggerQuotaAlert } from '../modules/zalo/quota-alert-service.js';
 import { logger } from './utils/logger.js';
 import { prisma } from './database/prisma-client.js';
 
@@ -192,6 +193,7 @@ async function exec<T>(opts: ExecOptions, fn: (api: any) => Promise<T>): Promise
       // Record successful operation. (getAllFriends giờ là category 'contact_sync'
       // nên đã tự đếm vào rl:daily:nick:contact_sync — không cần recordOperation riêng.)
       zaloRateLimiter.recordSend(accountId, category);
+      void checkAndTriggerQuotaAlert(accountId, category);
 
       // 4. Emit Socket.IO event if configured
       if (opts.io && opts.socketEvent) {
@@ -220,6 +222,7 @@ async function exec<T>(opts: ExecOptions, fn: (api: any) => Promise<T>): Promise
             // Use fresh API directly — don't mutate the captured reference
             const retryResult = await fn(freshInstance.api);
             zaloRateLimiter.recordSend(accountId, category);
+            void checkAndTriggerQuotaAlert(accountId, category);
             return retryResult;
           }
         } catch (reconnectErr) {

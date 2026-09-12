@@ -13,6 +13,7 @@ import { logger } from '../../shared/utils/logger.js';
 import { randomUUID } from 'node:crypto';
 import { backfillAccountHistory } from './zalo-history-backfill.js';
 import { resolveOrCreateContact } from '../contacts/resolve-contact.js';
+import { zaloOps } from '../../shared/zalo-operations.js';
 
 export async function zaloSyncRoutes(app: FastifyInstance) {
   app.addHook('preHandler', authMiddleware);
@@ -104,7 +105,7 @@ export async function zaloSyncRoutes(app: FastifyInstance) {
 async function linkOrphanedConversations(
   accountId: string,
   orgId: string,
-  api: any,
+  _api: any,
 ): Promise<number> {
   const orphaned = await prisma.conversation.findMany({
     where: { zaloAccountId: accountId, contactId: null, threadType: 'user' },
@@ -113,53 +114,71 @@ async function linkOrphanedConversations(
 
   if (orphaned.length === 0) return 0;
 
+  // Lọc lấy danh sách các cuộc hội thoại hợp lệ có threadId
+  const validOrphaned = orphaned.filter((conv) => Boolean(conv.externalThreadId));
+  if (validOrphaned.length === 0) return 0;
+
+  // Cắt thành từng chunk 50 UIDs để gọi getGroupMembersInfo (an toàn SDK, chống khóa nick)
+  const CHUNK_SIZE = 50;
+  const chunks: Array<typeof validOrphaned> = [];
+  for (let i = 0; i < validOrphaned.length; i += CHUNK_SIZE) {
+    chunks.push(validOrphaned.slice(i, i + CHUNK_SIZE));
+  }
+
   let linked = 0;
-  for (const conv of orphaned) {
-    const uid = conv.externalThreadId;
-    if (!uid) continue;
+  for (const batch of chunks) {
+    const uids = batch.map((c) => c.externalThreadId!);
 
-    // Check if contact already exists for this UID
-    let contact = await prisma.contact.findFirst({
-      where: { zaloUid: uid, orgId },
-      select: { id: true },
-    });
-
-    if (!contact) {
-      // Resolve name from Zalo API
-      let zaloName = '';
-      let avatar = '';
-      let phone = '';
-      try {
-        const result = await api.getUserInfo(uid);
-        const profiles = result?.changed_profiles || {};
-        const profile = profiles[uid] || profiles[`${uid}_0`];
-        if (profile) {
-          zaloName = profile.zaloName || profile.zalo_name || profile.displayName || profile.display_name || '';
-          avatar = profile.avatar || '';
-          phone = profile.phoneNumber || '';
-        }
-      } catch (err) {
-        logger.warn(`[sync] getUserInfo failed for ${uid}:`, err);
-      }
-
-      contact = await prisma.contact.create({
-        data: {
-          id: randomUUID(),
-          orgId,
-          zaloUid: uid,
-          fullName: zaloName || 'Unknown',
-          avatarUrl: avatar || null,
-          phone: phone || null,
-        },
-        select: { id: true },
-      });
+    // Gọi API lấy profiles theo lô 50
+    let profiles: Record<string, any> = {};
+    try {
+      const result = (await zaloOps.getGroupMembersInfo(accountId, uids)) as {
+        profiles?: Record<string, any>;
+      };
+      profiles = result?.profiles || {};
+    } catch (err) {
+      logger.warn(`[sync] getGroupMembersInfo failed for batch of ${uids.length} (account ${accountId}):`, err);
     }
 
-    await prisma.conversation.update({
-      where: { id: conv.id },
-      data: { contactId: contact.id },
-    });
-    linked++;
+    for (const conv of batch) {
+      const uid = conv.externalThreadId!;
+
+      // Check if contact already exists for this UID
+      let contact = await prisma.contact.findFirst({
+        where: { zaloUid: uid, orgId },
+        select: { id: true },
+      });
+
+      if (!contact) {
+        const profile = profiles[uid] || profiles[`${uid}_0`];
+        const zaloName = profile?.zaloName || profile?.zalo_name || profile?.displayName || profile?.display_name || '';
+        const avatar = profile?.avatar || '';
+        const phone = profile?.phoneNumber || '';
+
+        contact = await prisma.contact.create({
+          data: {
+            id: randomUUID(),
+            orgId,
+            zaloUid: uid,
+            fullName: zaloName || 'Unknown',
+            avatarUrl: avatar || null,
+            phone: phone || null,
+          },
+          select: { id: true },
+        });
+      }
+
+      await prisma.conversation.update({
+        where: { id: conv.id },
+        data: { contactId: contact.id },
+      });
+      linked++;
+    }
+
+    // Nghỉ 1s giữa các batch nếu có nhiều hơn 1 batch để giữ an toàn tuyệt đối
+    if (chunks.length > 1) {
+      await new Promise((r) => setTimeout(r, 1000));
+    }
   }
 
   logger.info(`[sync] Linked ${linked} orphaned conversations for account ${accountId}`);

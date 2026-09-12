@@ -163,8 +163,23 @@ class ZaloAccountPool {
   // Initiate QR-based login; emits QR events to frontend via Socket.IO
   async loginQR(accountId: string, proxyUrl?: string | null): Promise<void> {
     if (config.disableZaloConnection) {
-      logger.info(`[zalo:${accountId}] loginQR() aborted — DISABLE_ZALO_CONNECTION is true`);
-      throw new Error('Chế độ DEV: Kết nối Zalo bị vô hiệu hoá để tránh ngắt kết nối tài khoản trên Production.');
+      // Cho phép bypass nếu tài khoản có SĐT nằm trong danh sách whitelist test dev
+      const acc = await runSystemQuery(() =>
+        prisma.zaloAccount.findUnique({
+          where: { id: accountId },
+          select: { phone: true },
+        })
+      );
+      const phoneNorm = acc?.phone ? acc.phone.replace(/[\s.\-()]/g, '') : '';
+      const isAllowed = phoneNorm && config.allowedDevZaloPhones.some(
+        (p) => p === phoneNorm || `+84${p.replace(/^0/, '')}` === phoneNorm || p === `0${phoneNorm.replace(/^\+84/, '')}`
+      );
+
+      if (!isAllowed) {
+        logger.info(`[zalo:${accountId}] loginQR() aborted — DISABLE_ZALO_CONNECTION is true`);
+        throw new Error('Chế độ DEV: Kết nối Zalo bị vô hiệu hoá để tránh ngắt kết nối tài khoản trên Production.');
+      }
+      logger.info(`[zalo:${accountId}] loginQR() bypass DISABLE_ZALO_CONNECTION — Phone ${phoneNorm} is in allowedDevZaloPhones`);
     }
 
     // Fix lifecycle 2026-06-10: nick kẹt qr_pending/connecting do logout bên ngoài hoặc
@@ -335,8 +350,22 @@ class ZaloAccountPool {
   // Reconnect using previously saved session credentials
   async reconnect(accountId: string, credentials: ZaloCredentials, proxyUrl?: string | null): Promise<void> {
     if (config.disableZaloConnection) {
-      logger.info(`[zalo:${accountId}] reconnect() aborted — DISABLE_ZALO_CONNECTION is true`);
-      return;
+      const acc = await runSystemQuery(() =>
+        prisma.zaloAccount.findUnique({
+          where: { id: accountId },
+          select: { phone: true },
+        })
+      );
+      const phoneNorm = acc?.phone ? acc.phone.replace(/[\s.\-()]/g, '') : '';
+      const isAllowed = phoneNorm && config.allowedDevZaloPhones.some(
+        (p) => p === phoneNorm || `+84${p.replace(/^0/, '')}` === phoneNorm || p === `0${phoneNorm.replace(/^\+84/, '')}`
+      );
+
+      if (!isAllowed) {
+        logger.info(`[zalo:${accountId}] reconnect() aborted — DISABLE_ZALO_CONNECTION is true`);
+        return;
+      }
+      logger.info(`[zalo:${accountId}] reconnect() bypass DISABLE_ZALO_CONNECTION — Phone ${phoneNorm} is in allowedDevZaloPhones`);
     }
 
     // FIX 2 nick-ghost (Anh chốt 2026-06-13): GUARD eligibility GOM 1 CHỖ. Mọi đường

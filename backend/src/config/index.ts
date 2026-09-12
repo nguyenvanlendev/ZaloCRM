@@ -165,4 +165,9 @@ export const config = {
 
   /* --- Dev flag to prevent dev environment from stealing production Zalo connection --- */
   disableZaloConnection: (envValue('DISABLE_ZALO_CONNECTION') || 'false').toLowerCase() === 'true',
+  // SĐT được phép bypass DISABLE_ZALO_CONNECTION để phục vụ test/debug tài khoản cá nhân
+  allowedDevZaloPhones: (envValue('ALLOWED_DEV_ZALO_PHONES') || '0336576760')
+    .split(',')
+    .map((p) => p.trim().replace(/[\s.\-()]/g, ''))
+    .filter(Boolean),
 };

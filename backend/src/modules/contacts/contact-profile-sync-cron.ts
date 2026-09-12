@@ -101,6 +101,14 @@ export function mapGender(g: unknown): 'male' | 'female' | null {
   return null;
 }
 
+const BATCH_SIZE = 50;     // Số UID tối đa mỗi lần gọi getGroupMembersInfo (an toàn SDK)
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
 async function runCycle(): Promise<void> {
   // KH đang TRỐNG gender HOẶC birthDate, có nick đang chăm (friend với account connected).
   // zaloUidInNick là NOT NULL trong schema nên không cần filter null.
@@ -126,39 +134,72 @@ async function runCycle(): Promise<void> {
   }
   logger.info(`[contact-profile-sync] ${contacts.length} contact(s) to enrich (cap ${MAX_PER_CYCLE})`);
 
-  let updated = 0;
+  // Gom nhóm contact theo zaloAccountId để gọi getGroupMembersInfo theo từng nick
+  const byAccount = new Map<string, Array<{ contact: typeof contacts[0]; uid: string }>>();
   let skipped = 0;
-  let errors = 0;
+
   for (const c of contacts) {
     const f = c.friends[0];
-    if (!f?.zaloAccountId || !f.zaloUidInNick) { skipped++; continue; }
-    try {
-      const result = await zaloOps.getUserInfo(f.zaloAccountId, f.zaloUidInNick);
-      const profiles = (result as { changed_profiles?: Record<string, unknown> })?.changed_profiles || {};
-      const profile = (profiles[f.zaloUidInNick] || profiles[`${f.zaloUidInNick}_0`]) as Record<string, unknown> | undefined;
-      if (!profile) { skipped++; continue; }
-
-      const data: { gender?: string; birthDate?: Date } = {};
-      // #2 2026-06-18: tôn trọng khoá — KH đã chỉnh tay (genderLocked) thì không điền/đè.
-      if (c.gender == null && !c.genderLocked) {
-        const g = mapGender(profile.gender);
-        if (g) data.gender = g;
-      }
-      if (c.birthDate == null) {
-        const bd = parseBirthDate(profile.sdob, profile.dob);
-        if (bd) data.birthDate = bd;
-      }
-      if (Object.keys(data).length) {
-        await prisma.contact.update({ where: { id: c.id }, data });
-        updated++;
-      } else {
-        skipped++;
-      }
-    } catch (err) {
-      errors++;
-      logger.debug(`[contact-profile-sync] getUserInfo failed for contact ${c.id}: ${(err as Error).message}`);
+    if (!f?.zaloAccountId || !f.zaloUidInNick) {
+      skipped++;
+      continue;
     }
-    await new Promise((r) => setTimeout(r, THROTTLE_MS));
+    const list = byAccount.get(f.zaloAccountId) || [];
+    list.push({ contact: c, uid: f.zaloUidInNick });
+    byAccount.set(f.zaloAccountId, list);
+  }
+
+  let updated = 0;
+  let errors = 0;
+
+  for (const [accountId, items] of byAccount.entries()) {
+    const batches = chunk(items, BATCH_SIZE);
+    for (const batch of batches) {
+      const uids = batch.map((item) => item.uid);
+      try {
+        // Gọi getGroupMembersInfo theo batch tối đa 50 UIDs (chống rate-limit / ban nick)
+        const result = (await zaloOps.getGroupMembersInfo(accountId, uids)) as {
+          profiles?: Record<string, { gender?: unknown; sdob?: unknown; dob?: unknown }>;
+        };
+        const profiles = result?.profiles || {};
+
+        for (const item of batch) {
+          const profile = profiles[item.uid] || profiles[`${item.uid}_0`];
+          if (!profile) {
+            skipped++;
+            continue;
+          }
+
+          const data: { gender?: string; birthDate?: Date } = {};
+          // #2 2026-06-18: tôn trọng khoá — KH đã chỉnh tay (genderLocked) thì không điền/đè.
+          if (item.contact.gender == null && !item.contact.genderLocked) {
+            const g = mapGender(profile.gender);
+            if (g) data.gender = g;
+          }
+          if (item.contact.birthDate == null) {
+            const bd = parseBirthDate(profile.sdob, profile.dob);
+            if (bd) data.birthDate = bd;
+          }
+
+          if (Object.keys(data).length) {
+            await prisma.contact.update({ where: { id: item.contact.id }, data });
+            updated++;
+          } else {
+            skipped++;
+          }
+        }
+      } catch (err) {
+        errors += batch.length;
+        logger.warn(
+          `[contact-profile-sync] getGroupMembersInfo failed for account ${accountId} (batch of ${batch.length}): ${(err as Error).message}`
+        );
+      }
+
+      // Nghỉ giữa các batch để bảo vệ tuyệt đối quota và chống burst
+      if (batches.length > 1) {
+        await new Promise((r) => setTimeout(r, THROTTLE_MS));
+      }
+    }
   }
 
   logger.info(`[contact-profile-sync] Cycle stats: updated=${updated} skipped=${skipped} errors=${errors}`);

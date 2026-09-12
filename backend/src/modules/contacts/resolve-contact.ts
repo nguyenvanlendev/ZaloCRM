@@ -120,10 +120,10 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
         profile = cached.profile;
       } else {
         const raw: any = await Promise.race([
-          zaloOps.getUserInfo(input.zaloAccountId!, input.zaloUidInNick!),
+          zaloOps.getGroupMembersInfo(input.zaloAccountId!, [input.zaloUidInNick!]),
           timeoutPromise(8000),
         ]);
-        const profiles = raw?.changed_profiles || {};
+        const profiles = raw?.profiles || raw?.changed_profiles || {};
         profile = profiles[input.zaloUidInNick!] || profiles[`${input.zaloUidInNick}_0`];
         if (profile) {
           enrichCache.set(cacheKey, { profile, expiresAt: now + ENRICH_CACHE_TTL_MS });
@@ -150,7 +150,7 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
         }
       }
     } catch (err) {
-      logger.debug(`[resolve-contact] getUserInfo(${input.zaloUidInNick}) failed:`, err);
+      logger.debug(`[resolve-contact] getGroupMembersInfo(${input.zaloUidInNick}) failed:`, err);
     }
   }
 
