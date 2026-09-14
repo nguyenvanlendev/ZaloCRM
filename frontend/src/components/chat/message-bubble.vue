@@ -520,8 +520,18 @@ function parseDisplayContent(content: string | null): string {
   if (!content.startsWith('{')) return content;
   try {
     const p = JSON.parse(content);
+    // 1. Zalo PC Rich Text Format message: { action: 'rtf', title: '...' }
+    if (p.action === 'rtf' && p.title) return p.title;
+    // 2. Standard title + link
     if (p.title && p.href) return `${p.title}\n🔗 ${p.href}`;
     if (p.title) return p.title;
+    // 3. Multi-article / OA Broadcast list message: { "0": { title: "...", href: "..." }, ... }
+    if (p['0'] && typeof p['0'] === 'object') {
+      const art = p['0'];
+      if (art.title && art.href) return `${art.title}\n🔗 ${art.href}`;
+      if (art.title) return art.title;
+      if (art.description) return art.description;
+    }
     if (p.text) return p.text;
     if (p.description) return p.description;
     if (p.href) return `🔗 ${p.href}`;
