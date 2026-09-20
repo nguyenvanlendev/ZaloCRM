@@ -50,6 +50,7 @@ services:
     image: postgres:16
     container_name: zalo-crm-db
     restart: unless-stopped
+    shm_size: 512mb
     environment:
       POSTGRES_USER: ${DB_USER:-crmuser}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
