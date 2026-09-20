@@ -123,7 +123,8 @@ jobs:
             echo "✓ Đang sử dụng Docker Compose: ${COMPOSE_FILE}"
 
             # Đảm bảo service app trong compose trỏ tới tag latest
-            sed -i -E 's|image:[[:space:]]*lennguyen03/zalo-crm-app:[^[:space:]]+|image: ${{ secrets.DOCKERHUB_USERNAME || "lennguyen03" }}/zalo-crm-app:latest|g' "$COMPOSE_FILE"
+            DOCKER_IMG="${{ secrets.DOCKERHUB_USERNAME || 'lennguyen03' }}/zalo-crm-app:latest"
+            sed -i -E "s|image:[[:space:]]*.*zalo-crm-app:.*|image: ${DOCKER_IMG}|g" "$COMPOSE_FILE"
 
             # 1. Tự động sao lưu Database trước khi deploy (An toàn tuyệt đối)
             SKIP_BACKUP="${{ github.event.inputs.skip_backup || 'false' }}"
@@ -133,6 +134,8 @@ jobs:
               BACKUP_FILE="./backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql"
               DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
               if [ -n "$DB_ID" ]; then
+                DB_USER=$(grep -E "^DB_USER=" .env 2>/dev/null | cut -d= -f2- || echo "crmuser")
+                DB_NAME=$(grep -E "^DB_NAME=" .env 2>/dev/null | cut -d= -f2- || echo "zalocrm")
                 docker exec "$DB_ID" pg_dump -U "${DB_USER:-crmuser}" "${DB_NAME:-zalocrm}" > "$BACKUP_FILE" || {
                   echo "Cảnh báo: Không thể backup bằng container db, tiếp tục kiểm tra..."
                 }
@@ -185,6 +188,8 @@ jobs:
             echo "▶ 6/6: Tối ưu hóa Database & dọn dẹp Docker..."
             DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
             if [ -n "$DB_ID" ]; then
+              DB_USER=$(grep -E "^DB_USER=" .env 2>/dev/null | cut -d= -f2- || echo "crmuser")
+              DB_NAME=$(grep -E "^DB_NAME=" .env 2>/dev/null | cut -d= -f2- || echo "zalocrm")
               docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
                 -c "VACUUM ANALYZE conversations; VACUUM ANALYZE messages; VACUUM ANALYZE appointments; VACUUM ANALYZE friends;" || true
             fi
