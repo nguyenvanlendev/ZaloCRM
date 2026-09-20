@@ -17,11 +17,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ── BƯỚC 1: CI TEST, CHECK, BUILD & PUSH DOCKER IMAGE LÊN DOCKER HUB ────────
-  # Toàn bộ việc kiểm thử cú pháp, build TypeScript và build Docker image được thực
-  # hiện 100% trên GitHub Runner. TUYỆT ĐỐI KHÔNG BUILD TRÊN SERVER PRODUCTION.
-  ci-build-push:
-    name: CI Test, Build & Push Docker Image
+  # ── STAGE 1: KIỂM TRA CẤU HÌNH & CÚ PHÁP (LINT & SYNTAX) ───────────────────
+  stage-1-validate-config:
+    name: "1. Lint & Validate Config"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configurations
+        run: |
+          echo "Kiểm tra cú pháp docker-compose.yml..."
+          docker compose config --quiet
+          echo "Kiểm tra cú pháp docker-compose-yoedu-crm.yml..."
+          docker compose -f docker-compose-yoedu-crm.yml config --quiet
+          echo "✓ Tất cả các file Docker Compose đều hợp lệ!"
+
+  # ── STAGE 2: KIỂM THỬ & BIÊN DỊCH BACKEND (TYPESCRIPT + PRISMA) ────────────
+  stage-2-backend-check:
+    name: "2. Backend Quality Check (TS & Prisma)"
+    needs: stage-1-validate-config
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -32,30 +47,61 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Validate Docker Compose Syntax
-        run: |
-          docker compose config --quiet
-          docker compose -f docker-compose-yoedu-crm.yml config --quiet
-          echo "✓ Docker Compose files are valid."
-
-      - name: Test & Validate Backend (TypeScript + Prisma)
+      - name: Install Dependencies
         run: |
           cd backend
           npm ci
-          DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
-          npm run build
-          echo "✓ Backend build PASSED (0 errors)."
 
-      - name: Test & Validate Frontend
+      - name: Generate Prisma Client
+        run: |
+          cd backend
+          DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
+
+      - name: TypeScript Build Check (tsc)
+        run: |
+          cd backend
+          npm run build
+          echo "✓ Backend TypeScript build PASSED (0 errors)!"
+
+  # ── STAGE 3: KIỂM THỬ & ĐÓNG GÓI FRONTEND (VITE BUILD) ─────────────────────
+  # Chạy song song với Backend Check để tiết kiệm thời gian CI
+  stage-3-frontend-check:
+    name: "3. Frontend Quality Check (Vite Build)"
+    needs: stage-1-validate-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
         run: |
           cd frontend
           npm ci --legacy-peer-deps
+
+      - name: Vite Production Build Check
+        run: |
+          cd frontend
           npm run build
-          echo "✓ Frontend build PASSED (0 errors)."
+          echo "✓ Frontend bundle build PASSED (0 errors)!"
+
+  # ── STAGE 4: BUILD DOCKER IMAGE & PUSH DOCKER HUB ──────────────────────────
+  # Thực thi 100% trên GitHub Actions Runner. TUYỆT ĐỐI KHÔNG BUILD TRÊN SERVER PROD.
+  stage-4-docker-build-push:
+    name: "4. Build & Push Docker Image"
+    needs: [stage-2-backend-check, stage-3-frontend-check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -66,7 +112,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image to Docker Hub
+      - name: Build and Push Multi-Stage Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -78,11 +124,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── BƯỚC 2: DEPLOY LÊN SERVER PRODUCTION QUA SSH (PULL IMAGE, ZERO BUILD) ───
+  # ── STAGE 5: DEPLOY LÊN SERVER PRODUCTION QUA SSH (PULL-ONLY & MIGRATE) ─────
   # Server production (4 CPU / 8GB RAM) CHỈ PULL IMAGE ĐÃ BUILD, KHÔNG CẦN CÀI GIT
-  deploy-production:
-    name: Deploy to Production Server (Pull & Migrate)
-    needs: ci-build-push
+  stage-5-deploy-production:
+    name: "5. Deploy Production (Pull & Migrate)"
+    needs: stage-4-docker-build-push
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
