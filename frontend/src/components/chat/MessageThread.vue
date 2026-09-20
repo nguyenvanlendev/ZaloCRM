@@ -2799,7 +2799,10 @@ function onTypingEvent() {
 }
 
 function openTemplatePopup() {
-  showTemplatePopup.value = true;
+  showTemplatePopup.value = !showTemplatePopup.value;
+  if (showTemplatePopup.value) {
+    void loadTemplates();
+  }
   slashTriggerPos.value = -1; // mở bằng nút → không có "/" cần cắt
   templateQuery.value = '';
 }

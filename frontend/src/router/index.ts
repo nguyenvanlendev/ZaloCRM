@@ -152,7 +152,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'crm/appointments', name: 'Settings.Appointments', component: () => import('@/views/settings/AppointmentSettingsPage.vue'), meta: { resource: 'settings' } },
       { path: 'crm/stuck',       name: 'Settings.Stuck',       component: () => import('@/views/settings/SettingsComingSoon.vue'), props: { feature: 'stuck' }, meta: { resource: 'settings' } },
       { path: 'crm/folders',     name: 'Settings.Folders',     component: () => import('@/views/settings/SettingsComingSoon.vue'), props: { feature: 'folders' }, meta: { resource: 'settings' } },
-      { path: 'crm/templates',   name: 'Settings.Templates',   component: () => import('@/views/settings/TemplatesSettingsPage.vue'), meta: { resource: 'settings' } },
+      { path: 'crm/templates',   name: 'Settings.Templates',   component: () => import('@/views/settings/TemplatesSettingsPage.vue'), meta: { requiresAuth: true } },
       // Lead Pool routes → extension bundle (eeSettingsChildren).
       // M53 2026-05-30 — Trợ Lý AI Virtual Chat
       { path: 'crm/ai-assistant',      name: 'Settings.AiAssistant',     component: () => import('@/views/settings/AiAssistantPage.vue'), meta: { resource: 'settings' } },
@@ -225,9 +225,10 @@ const routes: RouteRecordRaw[] = [
           // Tệp khách hàng (Customer Lists) — open-core, dùng được ở Community.
           { path: 'lists', name: 'CE.Lists', component: () => import('@/views/marketing/ListsView.vue'), meta: { requiresAuth: true } },
           { path: 'lists/:id', name: 'CE.ListDetail', component: () => import('@/views/marketing/ListDetailView.vue'), meta: { requiresAuth: true } },
-          // Marketing Automation (Blocks & Sequences)
+          // Marketing Automation (Blocks & Sequences & Templates)
           { path: 'blocks', name: 'CE.Blocks', component: () => import('@/views/marketing/BlocksView.vue'), meta: { requiresAuth: true } },
           { path: 'sequences', name: 'CE.Sequences', component: () => import('@/views/marketing/SequencesView.vue'), meta: { requiresAuth: true } },
+          { path: 'templates', name: 'CE.Templates', component: () => import('@/views/settings/TemplatesSettingsPage.vue'), meta: { requiresAuth: true } },
         ],
       } as RouteRecordRaw]
     : []),
@@ -401,6 +402,7 @@ const ROUTE_TITLES: Record<string, string> = {
   'Marketing.CareSessions': 'Phiên chăm sóc',
   'Marketing.Blocks': 'Khối',
   'Marketing.Templates': 'Mẫu tin nhắn',
+  'CE.Templates': 'Mẫu tin nhắn',
   'Marketing.Sequences': 'Luồng kịch bản',
   'Marketing.SequenceStats': 'Thống kê luồng',
   'Marketing.Broadcasts': 'Broadcast',

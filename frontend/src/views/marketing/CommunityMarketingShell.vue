@@ -43,6 +43,7 @@ const navItems = [
   { to: '/marketing/lists', label: 'Tệp khách hàng', icon: 'mdi-format-list-bulleted' },
   { to: '/marketing/blocks', label: 'Khối nội dung', icon: 'mdi-cube-outline' },
   { to: '/marketing/sequences', label: 'Luồng kịch bản', icon: 'mdi-sitemap-outline' },
+  { to: '/marketing/templates', label: 'Mẫu tin nhắn', icon: 'mdi-message-flash-outline' },
 ];
 
 function isActive(to: string): boolean {

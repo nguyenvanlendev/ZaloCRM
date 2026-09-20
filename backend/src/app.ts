@@ -221,6 +221,13 @@ async function bootstrap() {
     await app.register(fastifyStatic, {
       root: path.join(__dirname, '../static'),
       prefix: '/',
+      setHeaders: (res, pathName) => {
+        if (pathName.endsWith('.html') || pathName.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        } else if (pathName.includes('/assets/')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+      },
     });
   }
 
@@ -371,6 +378,7 @@ async function bootstrap() {
       if (request.url.startsWith('/api/')) {
         return reply.status(404).send({ error: 'not_found' });
       }
+      reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
       return reply.sendFile('index.html');
     });
   }
