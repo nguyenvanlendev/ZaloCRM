@@ -174,12 +174,23 @@ export async function chatRoutes(app: FastifyInstance) {
     return { unread, unreplied, total, otherUnread };
   });
 
+  // Cache 10s cho event-counts badge để tránh chạy lại JOIN LATERAL nặng liên tục
+  const eventCountsCache = new Map<string, { data: any; cachedAt: number }>();
+  const EVENT_COUNTS_CACHE_TTL_MS = 10_000;
+
   // ── Event counts cho badge cột 1 (sinh nhật 7d / hẹn 24h / quá hạn) ──────
   // 2026-06-08 (anh chốt) — badge đếm THẬT thay hardcode 0. Đếm số KH (Contact)
   // distinct, scope org + zalo access. Phải đăng ký TRƯỚC /conversations/:id.
   app.get('/api/v1/conversations/event-counts', async (request: FastifyRequest, _reply: FastifyReply) => {
     const user = request.user!;
     const { folderId = '', accountId = '', tab = '', threadType = '' } = request.query as QueryParams;
+
+    const cacheKey = `${user.id}:${user.orgId}:${folderId}:${accountId}:${tab}:${threadType}`;
+    const nowTime = Date.now();
+    const cached = eventCountsCache.get(cacheKey);
+    if (cached && nowTime - cached.cachedAt < EVENT_COUNTS_CACHE_TTL_MS) {
+      return cached.data;
+    }
 
     const now = new Date();
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -319,7 +330,7 @@ export async function chatRoutes(app: FastifyInstance) {
       `,
     ]);
 
-    return {
+    const result = {
       birthday: Number(birthdayRows[0]?.n ?? 0),
       appointmentSoon: Number(apptSoonRows[0]?.n ?? 0),
       appointmentOverdue: Number(apptOverdueRows[0]?.n ?? 0),
@@ -328,6 +339,8 @@ export async function chatRoutes(app: FastifyInstance) {
       msgBotNoSale: Number(replyStateRows[0]?.bot_no_sale ?? 0),
       msgSaleReplied: Number(replyStateRows[0]?.sale_replied ?? 0),
     };
+    eventCountsCache.set(cacheKey, { data: result, cachedAt: nowTime });
+    return result;
   });
 
   // ── Sidebar tags theo Phạm vi xem (anh chốt 2026-06-09) ─────────────────

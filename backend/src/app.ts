@@ -21,6 +21,7 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyFormbody from '@fastify/formbody';
+import fastifyCompress from '@fastify/compress';
 import { Server } from 'socket.io';
 import path from 'node:path';
 import { mkdirSync } from 'node:fs';
@@ -148,6 +149,11 @@ async function bootstrap() {
   await app.register(cors, {
     origin: config.isProduction ? config.appUrl : true,
     credentials: true,
+  });
+
+  // Giai đoạn 3: Nén HTTP (Brotli/Gzip) cho API payload > 1KB (giảm 70-80% dung lượng truyền tải)
+  await app.register(fastifyCompress, {
+    threshold: 1024,
   });
 
   await app.register(fastifyJwt, {

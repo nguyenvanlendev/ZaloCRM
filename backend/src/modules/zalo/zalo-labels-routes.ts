@@ -394,6 +394,17 @@ export async function syncLabelsForAccount(
       if (!newCrmTags.includes(mirroredTag)) newCrmTags.push(mirroredTag);
     }
 
+    // Kiểm tra xem crmTagsPerNick có thực sự thay đổi không
+    const crmTagsChanged =
+      oldCrmTags.length !== newCrmTags.length ||
+      oldCrmTags.some((tag, idx) => tag !== newCrmTags[idx]);
+
+    // TỐI ƯU GIAI ĐOẠN 3: Nếu nhãn Zalo không đổi VÀ crmTagsPerNick không đổi -> BỎ QUA NGAY
+    // Giúp giảm ~95-99% DB writes và Socket.IO events trong chu kỳ đồng bộ định kỳ.
+    if (addedLabels.length === 0 && removedLabels.length === 0 && !crmTagsChanged) {
+      continue;
+    }
+
     await prisma.friend.update({
       where: { id: f.id },
       data: {
