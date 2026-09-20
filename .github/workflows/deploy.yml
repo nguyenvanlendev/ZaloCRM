@@ -143,10 +143,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.PROD_HOST || '180.93.172.36' }}
-          username: ${{ secrets.PROD_USER || 'root' }}
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
           password: ${{ secrets.PROD_PASSWORD }}
-          key: ${{ secrets.PROD_SSH_KEY }}
           port: ${{ secrets.PROD_PORT || 22 }}
           script_stop: true
           timeout: 300s
