@@ -97,7 +97,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            TARGET_DIR="${{ secrets.PROD_APP_DIR || '/opt/zalocrm' }}"
+            TARGET_DIR="${{ secrets.PROD_APP_DIR || '/root/YOEDU/YOEDUCRM' }}"
             echo "=========================================================="
             echo "  BẮT ĐẦU TRIỂN KHAI ZALOCRM TẠI: ${TARGET_DIR}"
             echo "=========================================================="
@@ -109,7 +109,19 @@ jobs:
 
             cd "$TARGET_DIR"
 
-            # 1. Kéo file cấu hình mới nhất từ git (docker-compose, migrations, scripts)
+            # Xác định file docker-compose được sử dụng trên server
+            COMPOSE_FILE="${{ secrets.COMPOSE_FILE || 'docker-compose-yoedu-crm.yml' }}"
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              if [ -f "docker-compose.yml" ]; then
+                COMPOSE_FILE="docker-compose.yml"
+              else
+                echo "Lỗi: Không tìm thấy file docker-compose ($COMPOSE_FILE hoặc docker-compose.yml) tại ${TARGET_DIR}!" >&2
+                exit 1
+              fi
+            fi
+            echo "✓ Đang sử dụng Docker Compose: ${COMPOSE_FILE}"
+
+            # 1. Kéo file cấu hình mới nhất từ git (migrations, backend, frontend, scripts)
             echo "▶ 1/7: Cập nhật cấu hình git..."
             git fetch origin main
             git reset --hard origin/main
@@ -120,9 +132,10 @@ jobs:
               echo "▶ 2/7: Tự động sao lưu Database phòng ngừa..."
               mkdir -p ./backups
               BACKUP_FILE="./backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql"
-              if docker ps -q -f name=zalo-crm-db | grep -q .; then
-                docker exec zalo-crm-db pg_dump -U "${DB_USER:-crmuser}" "${DB_NAME:-zalocrm}" > "$BACKUP_FILE" || {
-                  echo "Cảnh báo: Không thể backup bằng container, tiếp tục kiểm tra..."
+              DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
+              if [ -n "$DB_ID" ]; then
+                docker exec "$DB_ID" pg_dump -U "${DB_USER:-crmuser}" "${DB_NAME:-zalocrm}" > "$BACKUP_FILE" || {
+                  echo "Cảnh báo: Không thể backup bằng container db, tiếp tục kiểm tra..."
                 }
                 if [ -s "$BACKUP_FILE" ]; then
                   echo "✓ Backup thành công: $BACKUP_FILE ($(du -h "$BACKUP_FILE" | cut -f1))"
@@ -139,15 +152,15 @@ jobs:
 
             # 4. Kéo Docker Image đã build từ Docker Hub về server (KHÔNG BUILD TRÊN SERVER)
             echo "▶ 3/7: Kéo Docker Image mới nhất từ Docker Hub..."
-            docker compose pull app
+            docker compose -f "$COMPOSE_FILE" pull app
 
             # 5. Chạy Prisma Database Migration với image mới vừa tải về
             echo "▶ 4/7: Áp dụng Prisma Database Migration..."
-            docker compose run --rm app npx prisma migrate deploy
+            docker compose -f "$COMPOSE_FILE" run --rm app npx prisma migrate deploy
 
             # 6. Khởi động lại App container với cờ --no-build (TUYỆT ĐỐI KHÔNG BUILD)
             echo "▶ 5/7: Khởi động lại container bằng image mới (no-build)..."
-            docker compose up -d --no-build app
+            docker compose -f "$COMPOSE_FILE" up -d --no-build app
 
             # 7. Kiểm tra sức khỏe (Healthcheck)
             echo "▶ 6/7: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
@@ -165,14 +178,17 @@ jobs:
 
             if [ "$HEALTH_PASSED" != "true" ]; then
               echo "✗ CẢNH BÁO: App không phản hồi HTTP 200 trong 60 giây!" >&2
-              echo "Vui lòng kiểm tra log: docker logs zalo-crm-app --tail 100" >&2
+              echo "Vui lòng kiểm tra log: docker compose -f $COMPOSE_FILE logs --tail 100 app" >&2
               exit 1
             fi
 
             # 8. Tối ưu hóa Database Planner sau deploy & Dọn dẹp images cũ
             echo "▶ 7/7: Tối ưu hóa Database & dọn dẹp Docker..."
-            docker exec zalo-crm-db psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
-              -c "VACUUM ANALYZE conversations; VACUUM ANALYZE messages; VACUUM ANALYZE appointments; VACUUM ANALYZE friends;" || true
+            DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
+            if [ -n "$DB_ID" ]; then
+              docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
+                -c "VACUUM ANALYZE conversations; VACUUM ANALYZE messages; VACUUM ANALYZE appointments; VACUUM ANALYZE friends;" || true
+            fi
             docker image prune -f || true
 
             echo "=========================================================="
