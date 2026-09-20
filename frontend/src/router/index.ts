@@ -152,7 +152,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'crm/appointments', name: 'Settings.Appointments', component: () => import('@/views/settings/AppointmentSettingsPage.vue'), meta: { resource: 'settings' } },
       { path: 'crm/stuck',       name: 'Settings.Stuck',       component: () => import('@/views/settings/SettingsComingSoon.vue'), props: { feature: 'stuck' }, meta: { resource: 'settings' } },
       { path: 'crm/folders',     name: 'Settings.Folders',     component: () => import('@/views/settings/SettingsComingSoon.vue'), props: { feature: 'folders' }, meta: { resource: 'settings' } },
-      { path: 'crm/templates',   name: 'Settings.Templates',   component: () => import('@/views/settings/SettingsComingSoon.vue'), props: { feature: 'templates' }, meta: { resource: 'settings' } },
+      { path: 'crm/templates',   name: 'Settings.Templates',   component: () => import('@/views/settings/TemplatesSettingsPage.vue'), meta: { resource: 'settings' } },
       // Lead Pool routes → extension bundle (eeSettingsChildren).
       // M53 2026-05-30 — Trợ Lý AI Virtual Chat
       { path: 'crm/ai-assistant',      name: 'Settings.AiAssistant',     component: () => import('@/views/settings/AiAssistantPage.vue'), meta: { resource: 'settings' } },

@@ -587,7 +587,7 @@
           >
             <CalendarClockIcon :size="18" :stroke-width="1.5" />
           </button>
-          <button class="icon-tool" title="Template tin nhắn (gõ /)" @click="openTemplatePopup">
+          <button class="icon-tool" title="Tin nhắn nhanh (gõ /)" @click="openTemplatePopup">
             <ZapIcon :size="18" :stroke-width="1.5" />
           </button>
           <!-- M14 (2026-06-02) — Chèn Khối "Gửi tin nhắn" từ Automation Blocks vào composer.
@@ -639,6 +639,7 @@
               :anchor-el="editorWrapRef"
               @select="onTemplateSelect"
               @close="showTemplatePopup = false"
+              @refresh="loadTemplates"
             />
             <RichTextEditor
               ref="editorRef"
@@ -1059,6 +1060,7 @@ interface TemplateItem {
   id: string; name: string; shortcut?: string | null; content: string; category: string | null; isPersonal: boolean;
   contentRich?: { text: string; styles?: Array<{ st: string; start: number; len: number }> } | null;
   tagIds?: string[];
+  isMine?: boolean;
 }
 
 const props = defineProps<{
