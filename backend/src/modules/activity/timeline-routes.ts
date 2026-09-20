@@ -38,11 +38,20 @@ export async function timelineRoutes(app: FastifyInstance): Promise<void> {
       const user = request.user!;
       const { id: contactId } = request.params;
 
-      // Phase Contact Scope Hybrid 2026-05-27: scope gate
-      const visible = await assertContactVisible({
-        userId: user.id, orgId: user.orgId, legacyRole: user.role, contactId,
-      });
-      if (!visible) return reply.status(404).send({ error: 'Contact not found' });
+      const categoriesArr = request.query.categories
+        ? request.query.categories.split(',').map(s => s.trim()).filter(Boolean)
+        : null;
+      const isNotesOnly = categoriesArr && categoriesArr.length === 1 && categoriesArr[0] === 'note';
+
+      // Với tab Ghi chú (categories=['note']), mọi member trong org đều được xem ghi chú nội bộ của KH
+      if (!isNotesOnly) {
+        // Phase Contact Scope Hybrid 2026-05-27: scope gate
+        const visible = await assertContactVisible({
+          userId: user.id, orgId: user.orgId, legacyRole: user.role, contactId,
+        });
+        if (!visible) return reply.status(404).send({ error: 'Contact not found' });
+      }
+
       const contact = await prisma.contact.findFirst({
         where: { id: contactId, orgId: user.orgId },
         select: { id: true },
@@ -55,9 +64,6 @@ export async function timelineRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'Invalid cursor' });
       }
 
-      const categoriesArr = request.query.categories
-        ? request.query.categories.split(',').map(s => s.trim()).filter(Boolean)
-        : null;
       const includeNotes = !categoriesArr || categoriesArr.includes('note');
       const activityCategoriesFilter = categoriesArr
         ? categoriesArr.filter(c => c !== 'note')

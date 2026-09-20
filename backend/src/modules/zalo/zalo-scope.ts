@@ -194,11 +194,17 @@ export async function requireAccountManagement(
     return null;
   }
   if (!canManageAccount(account.ownerUserId, user.id, user.role)) {
-    reply.status(403).send({
-      error: 'Bạn không có quyền thao tác trên nick này',
-      code: 'not_account_owner',
+    const access = await prisma.zaloAccountAccess.findUnique({
+      where: { zaloAccountId_userId: { zaloAccountId: account.id, userId: user.id } },
+      select: { permission: true },
     });
-    return null;
+    if (access?.permission !== 'admin') {
+      reply.status(403).send({
+        error: 'Bạn không có quyền thao tác trên nick này',
+        code: 'not_account_owner',
+      });
+      return null;
+    }
   }
   return account;
 }

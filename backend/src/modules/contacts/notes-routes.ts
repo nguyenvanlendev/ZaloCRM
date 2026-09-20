@@ -15,7 +15,8 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { authMiddleware } from '../auth/auth-middleware.js';
 import { logger } from '../../shared/utils/logger.js';
 import { parseAppointmentFromText } from '../ai/ai-service.js';
-import { assertContactVisible } from './contact-scope.js';
+import { assertContactVisible, attachContactCollaboratorByUser } from './contact-scope.js';
+import { requireGrant, requireAnyGrant } from '../rbac/rbac-middleware.js';
 
 const NOTE_INCLUDE = {
   author:    { select: { id: true, fullName: true, email: true } },
@@ -31,16 +32,14 @@ export async function notesRoutes(app: FastifyInstance): Promise<void> {
   // ── GET /api/v1/contacts/:contactId/notes ─────────────────────────────────
   // Returns root notes (parentNoteId IS NULL) newest first, each with replies
   // ASC by createdAt (Facebook-style: replies under root in chronological order).
-  app.get('/api/v1/contacts/:contactId/notes', async (request: FastifyRequest<{ Params: { contactId: string } }>, reply: FastifyReply) => {
+  app.get('/api/v1/contacts/:contactId/notes', {
+    preHandler: requireGrant('contact', 'access'),
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user!;
-      const { contactId } = request.params;
+      const { contactId } = request.params as { contactId: string };
 
-      // Phase Contact Scope Hybrid 2026-05-27: scope gate
-      const visible = await assertContactVisible({
-        userId: user.id, orgId: user.orgId, legacyRole: user.role, contactId,
-      });
-      if (!visible) return reply.status(404).send({ error: 'Contact not found' });
+      // Mọi thành viên trong tổ chức có quyền contact.access đều xem được ghi chú nội bộ của KH
       const contact = await prisma.contact.findFirst({ where: { id: contactId, orgId: user.orgId }, select: { id: true } });
       if (!contact) return reply.status(404).send({ error: 'Contact not found' });
 
@@ -66,24 +65,19 @@ export async function notesRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // ── POST /api/v1/contacts/:contactId/notes ────────────────────────────────
-  app.post('/api/v1/contacts/:contactId/notes', async (request: FastifyRequest<{
-    Params: { contactId: string };
-    Body: { body: string; parentNoteId?: string | null };
-  }>, reply: FastifyReply) => {
+  app.post('/api/v1/contacts/:contactId/notes', {
+    preHandler: requireAnyGrant(['contact', 'create'], ['contact', 'edit']),
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user!;
-      const { contactId } = request.params;
-      const body = (request.body?.body || '').trim();
-      const parentNoteId = request.body?.parentNoteId || null;
+      const { contactId } = request.params as { contactId: string };
+      const { body = '', parentNoteId = null } = (request.body as { body?: string; parentNoteId?: string | null }) || {};
+      const trimmedBody = body.trim();
 
-      if (!body) return reply.status(400).send({ error: 'Note body is required' });
-      if (body.length > 5000) return reply.status(400).send({ error: 'Note body exceeds 5000 chars' });
+      if (!trimmedBody) return reply.status(400).send({ error: 'Note body is required' });
+      if (trimmedBody.length > 5000) return reply.status(400).send({ error: 'Note body exceeds 5000 chars' });
 
-      // Phase Contact Scope Hybrid 2026-05-27: scope gate
-      const visible = await assertContactVisible({
-        userId: user.id, orgId: user.orgId, legacyRole: user.role, contactId,
-      });
-      if (!visible) return reply.status(404).send({ error: 'Contact not found' });
+      // Mọi thành viên trong tổ chức đều có quyền tạo ghi chú cho KH thuộc tổ chức
       const contact = await prisma.contact.findFirst({ where: { id: contactId, orgId: user.orgId }, select: { id: true } });
       if (!contact) return reply.status(404).send({ error: 'Contact not found' });
 
@@ -103,16 +97,24 @@ export async function notesRoutes(app: FastifyInstance): Promise<void> {
           contactId,
           parentNoteId,
           authorUserId: user.id,
-          body,
+          body: trimmedBody,
         },
         include: NOTE_INCLUDE,
       });
 
+      // Tự động gắn quyền cộng tác chăm sóc KH cho member này (role collaborator)
+      await attachContactCollaboratorByUser({
+        orgId: user.orgId,
+        contactId,
+        userId: user.id,
+        source: 'note_created',
+      });
+
       // Phase 6 polish P2 quick win — note dài (>100 chars) → +engagement signal
       // Chỉ trigger với root note (không trigger với reply trong thread, tránh inflate)
-      if (!parentNoteId && body.length >= 100) {
+      if (!parentNoteId && trimmedBody.length >= 100) {
         const { onNoteAdded } = await import('../scoring/scoring-hooks.js');
-        onNoteAdded(user.orgId, contactId, body);
+        onNoteAdded(user.orgId, contactId, trimmedBody);
       }
 
       return reply.status(201).send({ note });

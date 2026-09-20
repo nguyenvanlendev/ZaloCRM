@@ -653,8 +653,8 @@ export async function zaloLabelsRoutes(app: FastifyInstance): Promise<void> {
   //    Frontend trigger khi switch conversation / load tab. No-op nếu vừa sync gần đây.
   app.post('/api/v1/zalo-accounts/:id/labels/touch', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     try {
-      // Phase Zalo Account Mutation Gate 2026-05-27: gate (touch là write side-effect)
-      const account = await requireAccountManagement(request, reply, request.params.id);
+      // Phase Zalo Account Gate: gate view (touch là trigger sync ngầm khi mở chat)
+      const account = await requireAccountVisible(request, reply, request.params.id);
       if (!account) return reply;
       const result = await syncLabelsIfStale(account.id, account.orgId);
       if (!result) return { ok: true, skipped: true, reason: 'cooldown' };
@@ -676,8 +676,8 @@ export async function zaloLabelsRoutes(app: FastifyInstance): Promise<void> {
     Body: { threadId: string; labelId: number | null };
   }>, reply: FastifyReply) => {
     try {
-      // Phase Zalo Account Mutation Gate 2026-05-27: gate write (label thread)
-      const account = await requireAccountManagement(request, reply, request.params.id);
+      // Phase Zalo Account Gate: gate write thread label (nhân viên có quyền truy cập nick được gán tag)
+      const account = await requireAccountVisible(request, reply, request.params.id);
       if (!account) return reply;
 
       const threadId = (request.body?.threadId || '').trim();

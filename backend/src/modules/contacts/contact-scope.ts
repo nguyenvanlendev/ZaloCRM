@@ -17,6 +17,7 @@
  * Lưu ý: org-admin trả `isOrgAdmin=true` + `accessibleContactIds=null` (caller bỏ filter).
  */
 import { prisma } from '../../shared/database/prisma-client.js';
+import { userHasGrant } from '../rbac/permission-group-service.js';
 
 export interface ContactScope {
   /** True nếu user có quyền view toàn org (skip filter) */
@@ -45,6 +46,17 @@ export async function getContactScope(
 
   // Org admin → skip filter, see all
   if (isOrgAdmin) {
+    return {
+      isOrgAdmin: true,
+      visibleUserIds: new Set<string>(),
+      accessibleContactIds: null,
+      primaryContactIds: new Set<string>(),
+    };
+  }
+
+  // RBAC: Check grant contact.view_all từ permission group
+  const hasViewAll = await userHasGrant(userId, 'contact', 'view_all').catch(() => false);
+  if (hasViewAll) {
     return {
       isOrgAdmin: true,
       visibleUserIds: new Set<string>(),
@@ -125,6 +137,29 @@ export async function assertContactVisible(args: {
     select: { id: true },
   });
   if (direct) return true;
+
+  // RBAC: user có grant contact.view_all -> cho phép xem
+  const hasViewAll = await userHasGrant(args.userId, 'contact', 'view_all').catch(() => false);
+  if (hasViewAll) return true;
+
+  // Zalo account connection check:
+  // Nếu user sở hữu hoặc được phân quyền nick Zalo (ZaloAccountAccess)
+  // và contact này có cuộc trò chuyện trên nick đó -> cho phép xem
+  const inUserZaloAccount = await prisma.conversation.findFirst({
+    where: {
+      contactId: args.contactId,
+      zaloAccount: {
+        orgId: args.orgId,
+        archivedAt: null,
+        OR: [
+          { ownerUserId: args.userId },
+          { access: { some: { userId: args.userId } } },
+        ],
+      },
+    },
+    select: { id: true },
+  });
+  if (inUserZaloAccount) return true;
 
   // Cascade path: nếu là leader/deputy thì check Contact thuộc subordinate
   const scope = await getContactScope(args.userId, args.orgId, args.legacyRole);
