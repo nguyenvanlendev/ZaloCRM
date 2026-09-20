@@ -25,6 +25,10 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Prepare mock .env for CI
+        run: |
+          cp .env.example .env
+
       - name: Validate Docker Compose Configurations
         run: |
           echo "Kiểm tra cú pháp docker-compose.yml..."
