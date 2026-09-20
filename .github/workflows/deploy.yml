@@ -150,7 +150,7 @@ jobs:
           username: ${{ secrets.PROD_USER }}
           password: ${{ secrets.PROD_PASSWORD || secrets.PROD_SSH_KEY }}
           port: ${{ secrets.PROD_PORT || 22 }}
-          source: "docker-compose-yoedu-crm.yml"
+          source: "docker-compose-yoedu-crm.yml,docker-compose.yml"
           target: "${{ secrets.PROD_APP_DIR || '/root/YOEDU/YOEDUCRM' }}"
           overwrite: true
 
@@ -190,9 +190,14 @@ jobs:
             fi
             echo "✓ Đang sử dụng Docker Compose: ${COMPOSE_FILE}"
 
-            # Đảm bảo service app trong compose trỏ tới tag latest
-            DOCKER_IMG="${{ secrets.DOCKERHUB_USERNAME || 'lennguyen03' }}/zalo-crm-app:latest"
-            sed -i -E "s|image:[[:space:]]*.*zalo-crm-app:.*|image: ${DOCKER_IMG}|g" "$COMPOSE_FILE"
+            # Đảm bảo service app trong compose trỏ tới tag commit SHA hiện tại (đảm bảo cache-bust và recreate)
+            DOCKER_IMG="${{ secrets.DOCKERHUB_USERNAME || 'lennguyen03' }}/zalo-crm-app:${{ github.sha }}"
+            for f in "$COMPOSE_FILE" docker-compose.yml docker-compose-yoedu-crm.yml; do
+              if [ -f "$f" ]; then
+                sed -i -E "s|image:[[:space:]]*.*zalo-crm-app:.*|image: ${DOCKER_IMG}|g" "$f"
+              fi
+            done
+            echo "✓ Đã cập nhật compose image tag: ${DOCKER_IMG}"
 
             # 1. Tự động sao lưu Database trước khi deploy (An toàn tuyệt đối)
             SKIP_BACKUP="${{ github.event.inputs.skip_backup || 'false' }}"
@@ -221,16 +226,16 @@ jobs:
             fi
 
             # 3. Kéo Docker Image đã build từ Docker Hub về server (KHÔNG BUILD TRÊN SERVER)
-            echo "▶ 2/6: Kéo Docker Image mới nhất từ Docker Hub..."
+            echo "▶ 2/6: Kéo Docker Image mới nhất (${DOCKER_IMG}) từ Docker Hub..."
             docker compose -f "$COMPOSE_FILE" pull app
 
             # 4. Chạy Prisma Database Migration với image mới vừa tải về
             echo "▶ 3/6: Áp dụng Prisma Database Migration..."
             docker compose -f "$COMPOSE_FILE" run --rm app npx prisma migrate deploy
 
-            # 5. Khởi động lại App container với cờ --no-build (TUYỆT ĐỐI KHÔNG BUILD)
-            echo "▶ 4/6: Khởi động lại container bằng image mới (no-build)..."
-            docker compose -f "$COMPOSE_FILE" up -d --no-build app
+            # 5. Khởi động lại App container với cờ --force-recreate (BẮT BUỘC ĐỂ THAY THẾ CONTAINER CŨ)
+            echo "▶ 4/6: Khởi động lại container bằng image mới (force-recreate)..."
+            docker compose -f "$COMPOSE_FILE" up -d --no-build --force-recreate app
 
             # 6. Kiểm tra sức khỏe (Healthcheck)
             echo "▶ 5/6: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
@@ -258,8 +263,9 @@ jobs:
             if [ -n "$DB_ID" ]; then
               DB_USER=$(grep -E "^DB_USER=" .env 2>/dev/null | cut -d= -f2- || echo "crmuser")
               DB_NAME=$(grep -E "^DB_NAME=" .env 2>/dev/null | cut -d= -f2- || echo "zalocrm")
-              docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
-                -c "VACUUM ANALYZE conversations; VACUUM ANALYZE messages; VACUUM ANALYZE appointments; VACUUM ANALYZE friends;" || true
+              for tbl in conversations messages appointments friends; do
+                docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" -c "VACUUM ANALYZE ${tbl};" || true
+              done
             fi
             docker image prune -f || true
 
