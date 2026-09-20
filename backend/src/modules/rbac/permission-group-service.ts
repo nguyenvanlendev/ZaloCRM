@@ -195,11 +195,13 @@ export async function updatePermissionGroup(input: {
       where: { id: input.id },
       data,
     });
-    return {
+    const res = {
       id: updated.id,
       name: updated.name,
       grants: (updated.grants ?? {}) as GrantsJson,
     };
+    invalidateUserGrantCache();
+    return res;
   });
 }
 
@@ -252,37 +254,74 @@ export async function archivePermissionGroup(orgId: string, id: string): Promise
     }
 
     await tx.permissionGroup.update({ where: { id }, data: { archivedAt: new Date() } });
+    invalidateUserGrantCache();
   });
+}
+
+interface CachedUserGrantProfile {
+  role: string;
+  grants: GrantsJson | null;
+  cachedAt: number;
+}
+
+const GRANT_CACHE_TTL_MS = 30_000; // 30s TTL
+const userGrantCache = new Map<string, CachedUserGrantProfile>();
+
+/**
+ * Invalidate cache quyền của 1 user hoặc toàn bộ user (khi sửa nhóm quyền).
+ */
+export function invalidateUserGrantCache(userId?: string): void {
+  if (userId) {
+    userGrantCache.delete(userId);
+  } else {
+    userGrantCache.clear();
+  }
 }
 
 /**
  * Check permission của 1 user trên 1 (resource, action).
- * Đây là hot path RBAC — cache layer ở D8.
+ * Áp dụng In-Memory TTL Cache 30s (hot path RBAC).
  */
 export async function userHasGrant(
   userId: string,
   resource: Resource,
   action: Action,
 ): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      permissionGroupId: true,
-      permissionGroup: { select: { grants: true, archivedAt: true } },
-      role: true, // legacy fallback
-    },
-  });
-  if (!user) return false;
+  const now = Date.now();
+  let profile = userGrantCache.get(userId);
 
-  // Permission group active
-  if (user.permissionGroup && !user.permissionGroup.archivedAt) {
-    const grants = (user.permissionGroup.grants ?? {}) as GrantsJson;
-    if (hasGrant(grants, resource, action)) return true;
+  if (!profile || now - profile.cachedAt > GRANT_CACHE_TTL_MS) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        permissionGroupId: true,
+        permissionGroup: { select: { grants: true, archivedAt: true } },
+        role: true, // legacy fallback
+      },
+    });
+    if (!user) {
+      userGrantCache.delete(userId);
+      return false;
+    }
+
+    let grants: GrantsJson | null = null;
+    if (user.permissionGroup && !user.permissionGroup.archivedAt) {
+      grants = (user.permissionGroup.grants ?? {}) as GrantsJson;
+    }
+
+    profile = {
+      role: user.role,
+      grants,
+      cachedAt: now,
+    };
+    userGrantCache.set(userId, profile);
   }
 
+  // Permission group active
+  if (profile.grants && hasGrant(profile.grants, resource, action)) return true;
+
   // Fallback: legacy role='owner' hoặc 'admin' → bypass mọi quyền.
-  // Anh chốt 2026-06-08: admin toàn quyền như owner (khớp canAccess frontend + getProfile.isFullAccess).
-  if (user.role === 'owner' || user.role === 'admin') return true;
+  if (profile.role === 'owner' || profile.role === 'admin') return true;
 
   return false;
 }

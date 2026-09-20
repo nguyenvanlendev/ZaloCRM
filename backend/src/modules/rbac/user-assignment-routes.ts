@@ -11,6 +11,7 @@ import { prisma } from '../../shared/database/prisma-client.js';
 import { authMiddleware } from '../auth/auth-middleware.js';
 import { seedDefaultPermissionGroups, migrateLegacyUsersToPermissionGroups } from './seed-default-groups.js';
 import { requireGrant } from './rbac-middleware.js';
+import { invalidateUserGrantCache } from './permission-group-service.js';
 
 export async function registerUserAssignmentRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/v1/rbac/users — list users với filter dept/group
@@ -129,6 +130,7 @@ export async function registerUserAssignmentRoutes(app: FastifyInstance): Promis
       where: { id },
       data: { permissionGroupId: body.permissionGroupId ?? null },
     });
+    invalidateUserGrantCache(id);
     return reply.send({ ok: true });
   });
 

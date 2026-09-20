@@ -34,6 +34,24 @@ export interface ContactScope {
   primaryContactIds: Set<string>;
 }
 
+interface CachedContactScope {
+  scope: ContactScope;
+  cachedAt: number;
+}
+
+const CONTACT_SCOPE_CACHE_TTL_MS = 15_000; // 15s TTL micro-cache
+const contactScopeCache = new Map<string, CachedContactScope>();
+
+export function invalidateContactScopeCache(userId?: string): void {
+  if (userId) {
+    for (const key of contactScopeCache.keys()) {
+      if (key.startsWith(`${userId}:`)) contactScopeCache.delete(key);
+    }
+  } else {
+    contactScopeCache.clear();
+  }
+}
+
 /**
  * Compute contact scope cho user. Sử dụng trong moi route trả về Contact data.
  */
@@ -42,27 +60,38 @@ export async function getContactScope(
   orgId: string,
   legacyRole: string,
 ): Promise<ContactScope> {
+  const cacheKey = `${userId}:${orgId}:${legacyRole}`;
+  const now = Date.now();
+  const cached = contactScopeCache.get(cacheKey);
+  if (cached && now - cached.cachedAt < CONTACT_SCOPE_CACHE_TTL_MS) {
+    return cached.scope;
+  }
+
   const isOrgAdmin = legacyRole === 'owner' || legacyRole === 'admin';
 
   // Org admin → skip filter, see all
   if (isOrgAdmin) {
-    return {
+    const res: ContactScope = {
       isOrgAdmin: true,
       visibleUserIds: new Set<string>(),
       accessibleContactIds: null,
       primaryContactIds: new Set<string>(),
     };
+    contactScopeCache.set(cacheKey, { scope: res, cachedAt: now });
+    return res;
   }
 
   // RBAC: Check grant contact.view_all từ permission group
   const hasViewAll = await userHasGrant(userId, 'contact', 'view_all').catch(() => false);
   if (hasViewAll) {
-    return {
+    const res: ContactScope = {
       isOrgAdmin: true,
       visibleUserIds: new Set<string>(),
       accessibleContactIds: null,
       primaryContactIds: new Set<string>(),
     };
+    contactScopeCache.set(cacheKey, { scope: res, cachedAt: now });
+    return res;
   }
 
   // Load user dept-membership (replicate logic zalo-scope.ts)
@@ -112,12 +141,14 @@ export async function getContactScope(
     accessRows.filter((r) => r.userId === userId && r.role === 'primary').map((r) => r.contactId),
   );
 
-  return {
+  const res: ContactScope = {
     isOrgAdmin: false,
     visibleUserIds,
     accessibleContactIds,
     primaryContactIds,
   };
+  contactScopeCache.set(cacheKey, { scope: res, cachedAt: now });
+  return res;
 }
 
 /**

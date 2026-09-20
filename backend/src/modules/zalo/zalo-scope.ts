@@ -56,7 +56,32 @@ export const ACTIVE_SEND_NICK_WHERE: Prisma.ZaloAccountWhereInput = {
   status: 'connected',
 };
 
+interface CachedZaloScope {
+  scope: ZaloScope;
+  cachedAt: number;
+}
+
+const ZALO_SCOPE_CACHE_TTL_MS = 15_000; // 15s TTL micro-cache
+const zaloScopeCache = new Map<string, CachedZaloScope>();
+
+export function invalidateZaloScopeCache(userId?: string): void {
+  if (userId) {
+    for (const key of zaloScopeCache.keys()) {
+      if (key.startsWith(`${userId}:`)) zaloScopeCache.delete(key);
+    }
+  } else {
+    zaloScopeCache.clear();
+  }
+}
+
 export async function getZaloScope(userId: string, orgId: string, legacyRole: string): Promise<ZaloScope> {
+  const cacheKey = `${userId}:${orgId}:${legacyRole}`;
+  const now = Date.now();
+  const cached = zaloScopeCache.get(cacheKey);
+  if (cached && now - cached.cachedAt < ZALO_SCOPE_CACHE_TTL_MS) {
+    return cached.scope;
+  }
+
   const isOrgAdmin = legacyRole === 'owner' || legacyRole === 'admin';
 
   // Org admin → tất cả accounts (trừ nick đã xóa mềm).
@@ -68,12 +93,14 @@ export async function getZaloScope(userId: string, orgId: string, legacyRole: st
       where: { orgId, ...DISPLAYABLE_NICK_WHERE },
       select: { id: true, ownerUserId: true, archivedAt: true },
     });
-    return {
+    const res: ZaloScope = {
       displayableIds: all.map((a) => a.id),
       accessibleIds: all.filter((a) => a.archivedAt === null).map((a) => a.id),
       isOrgAdmin: true,
       ownedIds: new Set(all.filter((a) => a.ownerUserId === userId && a.archivedAt === null).map((a) => a.id)),
     };
+    zaloScopeCache.set(cacheKey, { scope: res, cachedAt: now });
+    return res;
   }
 
   // Load user's dept membership
@@ -135,13 +162,15 @@ export async function getZaloScope(userId: string, orgId: string, legacyRole: st
     if (g.zaloAccount?.archivedAt === null) accessibleSet.add(g.zaloAccountId);
   }
 
-  return {
+  const res: ZaloScope = {
     displayableIds: Array.from(displayableSet),
     accessibleIds: Array.from(accessibleSet),
     isOrgAdmin: false,
     // ownedIds = nick mình sở hữu CÒN SỐNG (gate action buttons) — loại nick đã xóa.
     ownedIds: new Set(ownedAccounts.filter((a) => a.ownerUserId === userId && a.archivedAt === null).map((a) => a.id)),
   };
+  zaloScopeCache.set(cacheKey, { scope: res, cachedAt: now });
+  return res;
 }
 
 /**

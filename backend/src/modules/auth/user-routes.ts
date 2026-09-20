@@ -14,6 +14,9 @@ import { randomUUID } from 'node:crypto';
 import { logger } from '../../shared/utils/logger.js';
 import { normalizePhone } from '../../shared/utils/phone.js';
 import { sendSystemNotificationToUser } from '../system-notifications/system-notify-service.js';
+import { invalidateUserGrantCache } from '../rbac/permission-group-service.js';
+import { invalidateZaloScopeCache } from '../zalo/zalo-scope.js';
+import { invalidateContactScopeCache } from '../contacts/contact-scope.js';
 
 // 2026-06-09 (anh chốt audit) — ghi nhật ký hành động admin vào ActivityLog có sẵn
 // (category='admin'), KHÔNG tạo model mới. Fire-and-forget: lỗi log KHÔNG chặn nghiệp vụ.
@@ -202,6 +205,12 @@ export async function userRoutes(app: FastifyInstance) {
         teamId: true,
       },
     });
+
+    if (updateData.role !== undefined || updateData.isActive !== undefined) {
+      invalidateUserGrantCache(id);
+      invalidateZaloScopeCache(id);
+      invalidateContactScopeCache(id);
+    }
 
     return user;
   });
@@ -414,6 +423,14 @@ export async function userRoutes(app: FastifyInstance) {
         })).count;
       }
     });
+
+    if (body.permissionGroupId !== undefined) {
+      invalidateUserGrantCache();
+    }
+    if (body.departmentId !== undefined) {
+      invalidateZaloScopeCache();
+      invalidateContactScopeCache();
+    }
 
     await writeAudit(currentUser, 'user.bulk_assign', null, {
       count: validIds.length, departmentId: body.departmentId, permissionGroupId: body.permissionGroupId,
