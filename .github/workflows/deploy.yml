@@ -17,9 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ── BƯỚC 1: KIỂM THỬ CHẤT LƯỢNG MÃ NGUỒN (CI) ──────────────────────────────
-  quality-check:
-    name: Build & Quality Check
+  # ── BƯỚC 1: CI TEST, CHECK, BUILD & PUSH DOCKER IMAGE LÊN DOCKER HUB ────────
+  # Toàn bộ việc kiểm thử cú pháp, build TypeScript và build Docker image được thực
+  # hiện 100% trên GitHub Runner. TUYỆT ĐỐI KHÔNG BUILD TRÊN SERVER PRODUCTION.
+  ci-build-push:
+    name: CI Test, Build & Push Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -37,27 +39,49 @@ jobs:
       - name: Validate Docker Compose Syntax
         run: |
           docker compose config --quiet
-          echo "Docker Compose file is valid."
+          echo "✓ Docker Compose file is valid."
 
-      - name: Build & Validate Backend
+      - name: Test & Validate Backend (TypeScript + Prisma)
         run: |
           cd backend
           npm ci
           DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
           npm run build
-          echo "Backend build PASSED (0 errors)."
+          echo "✓ Backend build PASSED (0 errors)."
 
-      - name: Build & Validate Frontend
+      - name: Test & Validate Frontend
         run: |
           cd frontend
           npm ci --legacy-peer-deps
           npm run build
-          echo "Frontend build PASSED (0 errors)."
+          echo "✓ Frontend build PASSED (0 errors)."
 
-  # ── BƯỚC 2: TRIỂN KHAI LÊN SERVER PRODUCTION (CD) ──────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image to Docker Hub
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/zalo-crm-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/zalo-crm-app:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── BƯỚC 2: DEPLOY LÊN SERVER PRODUCTION QUA SSH (PULL IMAGE, ZERO BUILD) ───
+  # Server production (4 CPU / 8GB RAM) CHỈ PULL IMAGE ĐÃ BUILD, KHÔNG BUILD TẠI CHỖ
   deploy-production:
-    name: Deploy to Production Server
-    needs: quality-check
+    name: Deploy to Production Server (Pull & Migrate)
+    needs: ci-build-push
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -85,15 +109,15 @@ jobs:
 
             cd "$TARGET_DIR"
 
-            # 1. Kéo mã nguồn mới nhất từ branch main
-            echo "▶ 1/6: Cập nhật mã nguồn git..."
+            # 1. Kéo file cấu hình mới nhất từ git (docker-compose, migrations, scripts)
+            echo "▶ 1/7: Cập nhật cấu hình git..."
             git fetch origin main
             git reset --hard origin/main
 
             # 2. Tự động sao lưu Database trước khi deploy (An toàn tuyệt đối)
             SKIP_BACKUP="${{ github.event.inputs.skip_backup || 'false' }}"
             if [ "$SKIP_BACKUP" != "true" ]; then
-              echo "▶ 2/6: Tự động sao lưu Database phòng ngừa..."
+              echo "▶ 2/7: Tự động sao lưu Database phòng ngừa..."
               mkdir -p ./backups
               BACKUP_FILE="./backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql"
               if docker ps -q -f name=zalo-crm-db | grep -q .; then
@@ -108,23 +132,25 @@ jobs:
               fi
             fi
 
-            # 3. Chạy Prisma Database Migrations (Zero downtime)
-            echo "▶ 3/6: Áp dụng Prisma Database Migration..."
-            if docker ps -q -f name=zalo-crm-app | grep -q .; then
-              docker exec zalo-crm-app npx prisma migrate deploy || {
-                echo "Migration qua container đang chạy thất bại, thử qua compose run..."
-                docker compose run --rm app npx prisma migrate deploy
-              }
-            else
-              docker compose run --rm app npx prisma migrate deploy
+            # 3. Đăng nhập Docker Hub trên server (nếu repository private)
+            if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ] && [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+              echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin || true
             fi
 
-            # 4. Rebuild và Khởi động lại App container (Tự động bỏ qua ClamAV để tiết kiệm 1.5GB RAM)
-            echo "▶ 4/6: Rebuild và khởi động container..."
-            docker compose up -d --build app
+            # 4. Kéo Docker Image đã build từ Docker Hub về server (KHÔNG BUILD TRÊN SERVER)
+            echo "▶ 3/7: Kéo Docker Image mới nhất từ Docker Hub..."
+            docker compose pull app
 
-            # 5. Kiểm tra sức khỏe (Healthcheck)
-            echo "▶ 5/6: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
+            # 5. Chạy Prisma Database Migration với image mới vừa tải về
+            echo "▶ 4/7: Áp dụng Prisma Database Migration..."
+            docker compose run --rm app npx prisma migrate deploy
+
+            # 6. Khởi động lại App container với cờ --no-build (TUYỆT ĐỐI KHÔNG BUILD)
+            echo "▶ 5/7: Khởi động lại container bằng image mới (no-build)..."
+            docker compose up -d --no-build app
+
+            # 7. Kiểm tra sức khỏe (Healthcheck)
+            echo "▶ 6/7: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
             APP_PORT=$(grep -E "^APP_PORT=" .env 2>/dev/null | cut -d= -f2- || echo "3080")
             HEALTH_PASSED=false
             for i in $(seq 1 30); do
@@ -143,12 +169,12 @@ jobs:
               exit 1
             fi
 
-            # 6. Tối ưu hóa Database Planner sau deploy & Dọn dẹp images cũ
-            echo "▶ 6/6: Tối ưu hóa Database & dọn dẹp Docker..."
+            # 8. Tối ưu hóa Database Planner sau deploy & Dọn dẹp images cũ
+            echo "▶ 7/7: Tối ưu hóa Database & dọn dẹp Docker..."
             docker exec zalo-crm-db psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
               -c "VACUUM ANALYZE conversations; VACUUM ANALYZE messages; VACUUM ANALYZE appointments; VACUUM ANALYZE friends;" || true
             docker image prune -f || true
 
             echo "=========================================================="
-            echo "✓ TRIỂN KHAI THÀNH CÔNG LÊN PRODUCTION!"
+            echo "✓ TRIỂN KHAI HOÀN TẤT: ĐÃ PULL IMAGE & MIGRATE THÀNH CÔNG!"
             echo "=========================================================="
