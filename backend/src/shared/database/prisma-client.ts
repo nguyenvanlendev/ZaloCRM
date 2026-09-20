@@ -61,7 +61,16 @@ function createPrismaClient() {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  const adapter = new PrismaPg({ connectionString });
+  // Tinh chỉnh connection pool cho PostgreSQL:
+  // - max: 25 (chống starvation khi 20+ sales mở đồng thời, chừa headroom cho 100 max_connections của PG)
+  // - idleTimeoutMillis: 30000 (thu hồi kết nối nhàn rỗi sau 30s)
+  // - connectionTimeoutMillis: 5000 (fail-fast sau 5s thay vì treo vô tận không trả lỗi khi nghẽn pool)
+  const adapter = new PrismaPg({
+    connectionString,
+    max: 25,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
 
   const base = new PrismaClient({
     adapter,

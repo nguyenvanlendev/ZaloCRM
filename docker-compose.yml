@@ -72,11 +72,19 @@ services:
     #   → toàn bộ mốc thời gian sẽ lệch +7h (xem notes/claude-memory timezone).
     command: >
       postgres
-      -c shared_buffers=128MB
-      -c effective_cache_size=256MB
-      -c max_connections=50
+      -c shared_buffers=1GB
+      -c effective_cache_size=3GB
+      -c work_mem=16MB
+      -c maintenance_work_mem=128MB
+      -c random_page_cost=1.1
+      -c max_connections=100
       -c timezone=UTC
       -c log_timezone=Asia/Ho_Chi_Minh
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
 
   redis:
     image: redis:7-alpine
@@ -103,6 +111,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # profiles: redis  ← REMOVED M1 2026-06-01: Redis là dependency cứng của BullMQ
 
   backup:
@@ -156,6 +169,8 @@ services:
     platform: linux/amd64
     container_name: zalo-crm-clamav
     restart: unless-stopped
+    profiles:
+      - security
     environment:
       - TZ=Asia/Ho_Chi_Minh   # log ClamAV giờ VN (Cách 2)
     # KHÔNG mở port ra host — chỉ app trong cùng network gọi clamav:3310.

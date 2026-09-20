@@ -37,6 +37,12 @@ services:
       TZ: Asia/Ho_Chi_Minh
     command: >
       postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=512MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=64MB
+      -c random_page_cost=1.1
+      -c max_connections=50
       -c timezone=UTC
       -c log_timezone=Asia/Ho_Chi_Minh
     ports:

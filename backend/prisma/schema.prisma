@@ -798,6 +798,8 @@ model Conversation {
   telegramTopic TelegramTopicMap?
 
   @@unique([zaloAccountId, externalThreadId])
+  @@index([contactId])
+  @@index([orgId, externalThreadId])
   @@index([orgId, zaloAccountId, isReplied, lastMessageAt])
   @@index([orgId, zaloAccountId, lastMessageAt])
   @@index([orgId, tab, lastMessageAt])
@@ -893,6 +895,7 @@ model Message {
   // M10/M11 — attribution + filter
   @@index([automationTaskId, sentAt])
   @@index([sentVia, conversationId])
+  @@index([repliedByUserId])
   @@map("messages")
 }
 
@@ -1110,6 +1113,9 @@ model Appointment {
   actionLinks  AppointmentActionLink[]
 
   @@unique([orgId, externalRef])
+  @@index([contactId])
+  @@index([assignedUserId])
+  @@index([orgId, status, appointmentDate])
   @@index([source])
   @@index([orgId, appointmentDate])
   @@map("appointments")
@@ -2009,6 +2015,7 @@ model Friend {
   @@unique([zaloAccountId, zaloUidInNick])
   @@index([zaloAccountId, contactId])
   @@index([orgId, contactId])
+  @@index([orgId, zaloUidInNick])
   @@index([zaloAccountId, relationshipKind]) // /friends tab filtering
   @@index([zaloAccountId, friendshipStatus])
   @@index([orgId, relationshipKind])
