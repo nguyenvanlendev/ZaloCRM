@@ -127,8 +127,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/zalo-crm-app:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/zalo-crm-app:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME || 'lennguyen03' }}/zalo-crm-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME || 'lennguyen03' }}/zalo-crm-app:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
