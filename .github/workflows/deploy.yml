@@ -140,6 +140,20 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Sync updated docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          password: ${{ secrets.PROD_PASSWORD || secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT || 22 }}
+          source: "docker-compose-yoedu-crm.yml"
+          target: "${{ secrets.PROD_APP_DIR || '/root/YOEDU/YOEDUCRM' }}"
+          overwrite: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
