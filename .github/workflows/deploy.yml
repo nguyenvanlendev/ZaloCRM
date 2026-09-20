@@ -39,7 +39,8 @@ jobs:
       - name: Validate Docker Compose Syntax
         run: |
           docker compose config --quiet
-          echo "✓ Docker Compose file is valid."
+          docker compose -f docker-compose-yoedu-crm.yml config --quiet
+          echo "✓ Docker Compose files are valid."
 
       - name: Test & Validate Backend (TypeScript + Prisma)
         run: |
