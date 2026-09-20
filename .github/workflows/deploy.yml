@@ -78,7 +78,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ── BƯỚC 2: DEPLOY LÊN SERVER PRODUCTION QUA SSH (PULL IMAGE, ZERO BUILD) ───
-  # Server production (4 CPU / 8GB RAM) CHỈ PULL IMAGE ĐÃ BUILD, KHÔNG BUILD TẠI CHỖ
+  # Server production (4 CPU / 8GB RAM) CHỈ PULL IMAGE ĐÃ BUILD, KHÔNG CẦN CÀI GIT
   deploy-production:
     name: Deploy to Production Server (Pull & Migrate)
     needs: ci-build-push
@@ -88,8 +88,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
+          host: ${{ secrets.PROD_HOST || '180.93.172.36' }}
+          username: ${{ secrets.PROD_USER || 'root' }}
+          password: ${{ secrets.PROD_PASSWORD }}
           key: ${{ secrets.PROD_SSH_KEY }}
           port: ${{ secrets.PROD_PORT || 22 }}
           script_stop: true
@@ -115,21 +116,19 @@ jobs:
               if [ -f "docker-compose.yml" ]; then
                 COMPOSE_FILE="docker-compose.yml"
               else
-                echo "Lỗi: Không tìm thấy file docker-compose ($COMPOSE_FILE hoặc docker-compose.yml) tại ${TARGET_DIR}!" >&2
+                echo "Lỗi: Không tìm thấy file compose ($COMPOSE_FILE hoặc docker-compose.yml) tại ${TARGET_DIR}!" >&2
                 exit 1
               fi
             fi
             echo "✓ Đang sử dụng Docker Compose: ${COMPOSE_FILE}"
 
-            # 1. Kéo file cấu hình mới nhất từ git (migrations, backend, frontend, scripts)
-            echo "▶ 1/7: Cập nhật cấu hình git..."
-            git fetch origin main
-            git reset --hard origin/main
+            # Đảm bảo service app trong compose trỏ tới tag latest
+            sed -i -E 's|image:[[:space:]]*lennguyen03/zalo-crm-app:[^[:space:]]+|image: ${{ secrets.DOCKERHUB_USERNAME || "lennguyen03" }}/zalo-crm-app:latest|g' "$COMPOSE_FILE"
 
-            # 2. Tự động sao lưu Database trước khi deploy (An toàn tuyệt đối)
+            # 1. Tự động sao lưu Database trước khi deploy (An toàn tuyệt đối)
             SKIP_BACKUP="${{ github.event.inputs.skip_backup || 'false' }}"
             if [ "$SKIP_BACKUP" != "true" ]; then
-              echo "▶ 2/7: Tự động sao lưu Database phòng ngừa..."
+              echo "▶ 1/6: Tự động sao lưu Database phòng ngừa..."
               mkdir -p ./backups
               BACKUP_FILE="./backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql"
               DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
@@ -145,25 +144,25 @@ jobs:
               fi
             fi
 
-            # 3. Đăng nhập Docker Hub trên server (nếu repository private)
+            # 2. Đăng nhập Docker Hub trên server (nếu repository private)
             if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ] && [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
               echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin || true
             fi
 
-            # 4. Kéo Docker Image đã build từ Docker Hub về server (KHÔNG BUILD TRÊN SERVER)
-            echo "▶ 3/7: Kéo Docker Image mới nhất từ Docker Hub..."
+            # 3. Kéo Docker Image đã build từ Docker Hub về server (KHÔNG BUILD TRÊN SERVER)
+            echo "▶ 2/6: Kéo Docker Image mới nhất từ Docker Hub..."
             docker compose -f "$COMPOSE_FILE" pull app
 
-            # 5. Chạy Prisma Database Migration với image mới vừa tải về
-            echo "▶ 4/7: Áp dụng Prisma Database Migration..."
+            # 4. Chạy Prisma Database Migration với image mới vừa tải về
+            echo "▶ 3/6: Áp dụng Prisma Database Migration..."
             docker compose -f "$COMPOSE_FILE" run --rm app npx prisma migrate deploy
 
-            # 6. Khởi động lại App container với cờ --no-build (TUYỆT ĐỐI KHÔNG BUILD)
-            echo "▶ 5/7: Khởi động lại container bằng image mới (no-build)..."
+            # 5. Khởi động lại App container với cờ --no-build (TUYỆT ĐỐI KHÔNG BUILD)
+            echo "▶ 4/6: Khởi động lại container bằng image mới (no-build)..."
             docker compose -f "$COMPOSE_FILE" up -d --no-build app
 
-            # 7. Kiểm tra sức khỏe (Healthcheck)
-            echo "▶ 6/7: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
+            # 6. Kiểm tra sức khỏe (Healthcheck)
+            echo "▶ 5/6: Chờ hệ thống sẵn sàng và kiểm tra Healthcheck..."
             APP_PORT=$(grep -E "^APP_PORT=" .env 2>/dev/null | cut -d= -f2- || echo "3080")
             HEALTH_PASSED=false
             for i in $(seq 1 30); do
@@ -182,8 +181,8 @@ jobs:
               exit 1
             fi
 
-            # 8. Tối ưu hóa Database Planner sau deploy & Dọn dẹp images cũ
-            echo "▶ 7/7: Tối ưu hóa Database & dọn dẹp Docker..."
+            # 7. Tối ưu hóa Database Planner sau deploy & Dọn dẹp images cũ
+            echo "▶ 6/6: Tối ưu hóa Database & dọn dẹp Docker..."
             DB_ID=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || docker ps -q -f name=zalo-crm-db || echo "")
             if [ -n "$DB_ID" ]; then
               docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" \
