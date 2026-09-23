@@ -160,13 +160,13 @@ async function handleLogin() {
   max-width: 900px;
   min-height: 480px;
   margin: 0 16px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 30px 60px -12px rgba(6, 34, 47, 0.4), 0 12px 24px -8px rgba(6, 34, 47, 0.2);
+  box-shadow: 0 24px 50px -12px rgba(15, 23, 42, 0.35), 0 8px 16px -8px rgba(15, 23, 42, 0.15);
 }
 
 /* Banner cột trái đã tách sang component LoginBrandBanner.vue (DRY). */
@@ -181,26 +181,26 @@ async function handleLogin() {
 }
 .form-inner { width: 100%; max-width: 360px; }
 .form-title {
-  font-size: 28px; font-weight: 800; color: #06222f;
+  font-size: 26px; font-weight: 700; color: #0f172a;
   margin: 0 0 6px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.025em;
 }
 .form-sub {
-  font-size: 14px; color: #5b6975;
-  margin: 0 0 32px;
+  font-size: 13.5px; color: #64748b;
+  margin: 0 0 28px;
 }
 .login-btn {
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin-top: 8px;
-  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%) !important;
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
   color: white !important;
-  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.28) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(229, 57, 53, 0.45) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.38) !important;
 }
 
 /* ══ Responsive: ≤900px xếp dọc (banner tự thu gọn trong component) ══ */
@@ -221,6 +221,6 @@ async function handleLogin() {
 /* Phòng hờ: ép màu chữ input đọc được trên card trắng, kể cả khi thiết bị dark-mode
    (đi cùng color-scheme:light ở style.css). */
 .login-card :deep(.v-field__input),
-.login-card :deep(input) { color: #0e445a; }
-.login-card :deep(.v-field__input::placeholder) { color: #94a3b0; opacity: 1; }
+.login-card :deep(input) { color: #0f172a; }
+.login-card :deep(.v-field__input::placeholder) { color: #94a3b8; opacity: 1; }
 </style>

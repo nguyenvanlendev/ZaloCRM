@@ -64,7 +64,7 @@ watch(
   position: absolute;
   top: -80px; right: -80px;
   width: 280px; height: 280px;
-  background: radial-gradient(circle, rgba(23, 134, 190, 0.45) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.35) 0%, transparent 70%);
   pointer-events: none;
 }
 .brand-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
@@ -81,8 +81,8 @@ watch(
 }
 .brand-product {
   margin-top: 8px;
-  font-size: 14px; font-weight: 600; letter-spacing: 4px;
-  color: #a5d8f3; text-transform: uppercase;
+  font-size: 14px; font-weight: 700; letter-spacing: 4px;
+  color: #fb7185; text-transform: uppercase;
 }
 .brand-divider {
   width: 60px; height: 3px; border-radius: 2px;

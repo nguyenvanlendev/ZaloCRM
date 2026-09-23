@@ -11,7 +11,7 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden; /* khoá cuộn cấp trang — chỉ vùng tin nhắn/list bên trong cuộn (fix 2026-06-14) */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Plus Jakarta Sans", Roboto, sans-serif;
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   scroll-behavior: smooth;
   background: var(--smax-grey-100);
   color: var(--smax-text);
@@ -45,10 +45,10 @@ html, body {
 }
 
 /* Form fields — light, square corners (mockup uses 7-9px radius) */
-.v-theme--smax-light .v-field { border-radius: 7px !important; }
+.v-theme--smax-light .v-field { border-radius: 8px !important; }
 .v-theme--smax-light .v-field--focused {
   border-color: var(--smax-primary) !important;
-  box-shadow: 0 0 0 3px rgba(33,150,243,0.10);
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
 }
 
 /* Buttons — flat, no animation */

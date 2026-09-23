@@ -11,9 +11,9 @@
 </template>
 
 <style scoped>
-/* Animated Mesh Gradient Background */
+/* Linear Dark Slate Mesh Gradient Background */
 .auth-shell {
-  background: linear-gradient(-45deg, #0e445a, #1a6482, #06222f, #287a9c);
+  background: linear-gradient(-45deg, #0b0f17, #1e293b, #0f172a, #1a162b);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
 }
