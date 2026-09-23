@@ -188,22 +188,54 @@ export async function checkAndTriggerQuotaAlert(accountId: string, category: OpC
 }
 
 /**
+ * Vẽ thanh tiến độ ASCII đẹp mắt cho Telegram (ví dụ: [████░░░░] 50%).
+ */
+export function renderProgressBar(current: number, max: number, len = 8): string {
+  if (max <= 0) return '░'.repeat(len);
+  const ratio = Math.min(Math.max(current / max, 0), 1);
+  const filled = Math.round(ratio * len);
+  return '█'.repeat(filled) + '░'.repeat(len - filled);
+}
+
+/**
+ * Tính thời gian còn lại đến 00:00 (giờ reset quota hàng ngày của Zalo/CRM).
+ */
+export function getRemainingResetTime(): string {
+  const now = new Date();
+  const vnTimeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false });
+  const [h, m] = vnTimeStr.split(':').map((s) => parseInt(s, 10));
+  const currentMinutes = (h || 0) * 60 + (m || 0);
+  const totalMinutes = 24 * 60;
+  const diff = totalMinutes - currentMinutes;
+  const hoursLeft = Math.floor(diff / 60);
+  const minsLeft = diff % 60;
+  return `${hoursLeft}h ${minsLeft}m`;
+}
+
+/**
  * Chia nhỏ danh sách báo cáo quota thành nhiều chunk ≤ 3800 ký tự (an toàn với trần 4096 của Telegram).
  * Mỗi chunk có tiêu đề riêng, tự động đánh số [1/N], [2/N] nếu bị chia nhỏ.
  */
 function splitTelegramChunks(
   envBadge: string,
   timeStr: string,
-  accountBlocks: string[]
+  accountBlocks: string[],
+  summaryLine?: string,
 ): string[] {
   if (accountBlocks.length === 0) {
     return ['ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.'];
   }
 
   const MAX_CHARS = 3800;
-  const footer = ['────────────────────', '💡 <i>Gõ <code>/quota</code> để cập nhật lại số liệu mới nhất.</i>'].join('\n');
+  const resetLeft = getRemainingResetTime();
+  const footer = [
+    '────────────────────',
+    `⏳ <i>Reset quota ngày sau: <b>${resetLeft}</b> (lúc 00:00)</i>`,
+    '💡 <i>Gõ <code>/quota all</code> để xem toàn bộ danh mục | <code>/health</code> xem máy chủ.</i>',
+  ].join('\n');
+
   const baseHeader = `📊 <b>BÁO CÁO TIÊU THỤ QUOTA SDK HÔM NAY</b> ${envBadge}`;
-  const headerTime = `🕐 <i>${timeStr}</i>\n────────────────────`;
+  const headerTime = `🕐 <i>${timeStr}</i>\n${summaryLine ? summaryLine + '\n' : ''}────────────────────`;
 
   const chunkGroups: string[][] = [];
   let currentGroup: string[] = [];
@@ -251,10 +283,12 @@ function splitTelegramChunks(
 /**
  * Format báo cáo quota tổng hợp cho 1 nick hoặc toàn bộ nick của org (dùng cho lệnh /quota, /stats).
  * Trả về danh sách chuỗi tin nhắn (mỗi tin nhắn ≤ 4000 ký tự) để gửi Telegram an toàn.
+ * Hiển thị ĐẦY ĐỦ 11/11 danh mục theo dõi với thanh tiến độ trực quan.
  */
 export async function formatQuotaReport(
   orgId: string,
-  targetAccountId?: string | null
+  targetAccountId?: string | null,
+  options?: { showAll?: boolean },
 ): Promise<string[]> {
   const accounts = await prisma.zaloAccount.findMany({
     where: {
@@ -266,6 +300,7 @@ export async function formatQuotaReport(
       id: true,
       displayName: true,
       phone: true,
+      zaloUid: true,
       status: true,
     },
     orderBy: { createdAt: 'asc' },
@@ -275,20 +310,10 @@ export async function formatQuotaReport(
     return ['ℹ️ Không tìm thấy tài khoản Zalo nào trong hệ thống.'];
   }
 
-  // Các category quan trọng nhất cần theo dõi
-  const TRACKED_CATEGORIES: OpCategory[] = [
-    'message',
-    'friend_lookup',
-    'group_read',
-    'contact_sync',
-    'query',
-    'friend_action',
-  ];
-
-  // 1. Chuẩn bị danh sách query song song
+  // 1. Chuẩn bị danh sách query song song cho toàn bộ 11 category
   const pairs: Array<{ accountId: string; category: OpCategory }> = [];
   for (const acc of accounts) {
-    for (const cat of TRACKED_CATEGORIES) {
+    for (const cat of ALL_CATEGORIES) {
       pairs.push({ accountId: acc.id, category: cat });
     }
   }
@@ -302,35 +327,161 @@ export async function formatQuotaReport(
   // 3. Render từng account block
   let pairIdx = 0;
   const accountBlocks: string[] = [];
+  let totalOrgMsgs = 0;
+  let totalOrgLookups = 0;
+  let warningCountTotal = 0;
+
   for (const acc of accounts) {
     const nickName = acc.displayName || acc.phone || acc.id.slice(0, 8);
     const statusIcon = acc.status === 'connected' ? '🟢' : '⚪️';
-    const lines: string[] = [`${statusIcon} <b>${nickName}</b>`];
+    const statusText = acc.status === 'connected' ? 'Connected' : 'Disconnected';
+    const lines: string[] = [
+      `${statusIcon} <b>${nickName}</b> <i>(${statusText}${acc.phone ? ' • ' + acc.phone : ''})</i>`,
+    ];
 
     let hasAnyUsage = false;
-    for (const cat of TRACKED_CATEGORIES) {
+    let nickWarningCount = 0;
+    let nickFullCount = 0;
+
+    for (const cat of ALL_CATEGORIES) {
       const count = counts[pairIdx] ?? 0;
       const limit = limits[pairIdx] ?? { daily: 0, burst: 0, burstWindowMs: 0 };
       pairIdx++;
 
-      if (count > 0 || cat === 'message' || cat === 'group_read') {
-        const catName = CATEGORY_NAMES[cat] || cat;
-        const pct = limit.daily > 0 ? Math.round((count / limit.daily) * 100) : 0;
-        let pIcon = '🟢';
-        if (pct >= 100) pIcon = '🔴';
-        else if (pct >= 80) pIcon = '🟡';
+      if (cat === 'message') totalOrgMsgs += count;
+      if (cat === 'friend_lookup') totalOrgLookups += count;
 
-        lines.push(`  • ${catName}: <b>${count}/${limit.daily}</b> (${pct}%) ${pIcon}`);
-        hasAnyUsage = true;
+      const pct = limit.daily > 0 ? Math.round((count / limit.daily) * 100) : 0;
+      if (pct >= 100) {
+        nickFullCount++;
+        warningCountTotal++;
+      } else if (pct >= 80) {
+        nickWarningCount++;
+        warningCountTotal++;
+      }
+
+      // Luôn hiển thị các category cốt lõi HOẶC category đang có phát sinh quota HOẶC khi yêu cầu showAll
+      const isCoreCategory = cat === 'message' || cat === 'chat_action' || cat === 'friend_lookup' || cat === 'friend_action';
+      if (count > 0 || isCoreCategory || options?.showAll) {
+        const catName = CATEGORY_NAMES[cat] || cat;
+        const bar = renderProgressBar(count, limit.daily);
+        let badge = '🟢';
+        if (pct >= 100) badge = '🔴 <b>HẾT QUOTA</b>';
+        else if (pct >= 80) badge = '🟡 <b>CẢNH BÁO</b>';
+
+        lines.push(`  • ${catName}: <code>[${bar}]</code> <b>${count}/${limit.daily}</b> (${pct}%) ${badge}`);
+        if (count > 0) hasAnyUsage = true;
       }
     }
+
     if (!hasAnyUsage) {
-      lines.push('  • <i>Chưa có phát sinh quota hôm nay</i>');
+      lines.push('  • <i>Chưa phát sinh lượt gọi hôm nay</i>');
     }
+    if (nickFullCount > 0) {
+      lines.push(`  🚨 <b>Chú ý:</b> Đã có <b>${nickFullCount}</b> chức năng cạn trần trong ngày!`);
+    } else if (nickWarningCount > 0) {
+      lines.push(`  ⚠️ <b>Chú ý:</b> Có <b>${nickWarningCount}</b> chức năng đang đạt trên 80% trần.`);
+    }
+
     accountBlocks.push(lines.join('\n'));
   }
 
   const envBadge = getEnvBadge();
   const timeStr = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-  return splitTelegramChunks(envBadge, timeStr, accountBlocks);
+  const summaryLine = `📈 <b>Tổng quan hôm nay:</b> ✉️ <b>${totalOrgMsgs}</b> tin nhắn gửi | 🔍 <b>${totalOrgLookups}</b> tìm SĐT${warningCountTotal > 0 ? ` | ⚠️ <b>${warningCountTotal}</b> cảnh báo quota` : ''}`;
+
+  return splitTelegramChunks(envBadge, timeStr, accountBlocks, summaryLine);
 }
+
+/**
+ * Gửi Báo cáo Metric định kỳ 1 giờ tự động bắn về Telegram.
+ * Được gọi bởi Cron Job (0 * * * *) hoặc trigger thủ công từ API.
+ */
+export async function sendHourlyMetricReport(
+  targetOrgId?: string
+): Promise<{ success: boolean; sentCount: number; targetChatCount: number; error?: string }> {
+  try {
+    const envBadge = getEnvBadge();
+    const timeStr = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+    // 1. Thu thập đích đến nhận tin nhắn Telegram
+    const targetChatIds = new Set<string>();
+
+    // a. Đọc từ biến môi trường nếu có
+    if (process.env.TELEGRAM_REPORT_CHAT_ID) {
+      targetChatIds.add(process.env.TELEGRAM_REPORT_CHAT_ID.trim());
+    }
+    if (process.env.TELEGRAM_ADMIN_CHAT_ID) {
+      targetChatIds.add(process.env.TELEGRAM_ADMIN_CHAT_ID.trim());
+    }
+
+    // b. Đọc từ các nhóm TelegramBridgeConfig đã kích hoạt
+    const bridges = await prisma.telegramBridgeConfig.findMany({
+      where: {
+        enabled: true,
+        telegramChatId: { not: null },
+        ...(targetOrgId ? { orgId: targetOrgId } : {}),
+      },
+      select: { telegramChatId: true },
+      take: 10,
+    });
+    for (const b of bridges) {
+      if (b.telegramChatId) targetChatIds.add(b.telegramChatId);
+    }
+
+    // c. Đọc từ cấu hình Integration Telegram của Org
+    const integrations = await prisma.integration.findMany({
+      where: {
+        type: 'telegram',
+        enabled: true,
+        ...(targetOrgId ? { orgId: targetOrgId } : {}),
+      },
+      select: { config: true },
+    });
+    for (const int of integrations) {
+      const cfg = int.config as { chatId?: string } | null;
+      if (cfg?.chatId) targetChatIds.add(cfg.chatId);
+    }
+
+    // d. Nếu vẫn chưa có chat, fallback đến các user đã /link với bot
+    if (targetChatIds.size === 0) {
+      const linkedUsers = await prisma.telegramUserLink.findMany({
+        where: targetOrgId ? { orgId: targetOrgId } : {},
+        select: { telegramUserId: true },
+        take: 5,
+      });
+      for (const lu of linkedUsers) {
+        if (lu.telegramUserId) targetChatIds.add(lu.telegramUserId);
+      }
+    }
+
+    if (targetChatIds.size === 0) {
+      logger.warn('[metric-cron] Không tìm thấy ChatId Telegram nào để bắn báo cáo định kỳ 1 giờ.');
+      return { success: false, sentCount: 0, targetChatCount: 0, error: 'Chưa cấu hình ChatId Telegram nhận báo cáo' };
+    }
+
+    // 2. Lấy danh sách orgId để tạo báo cáo
+    const orgs = targetOrgId
+      ? [{ id: targetOrgId }]
+      : await prisma.organization.findMany({ select: { id: true }, take: 5 });
+
+    let sentTotal = 0;
+    for (const org of orgs) {
+      const reportChunks = await formatQuotaReport(org.id);
+      for (const chatId of targetChatIds) {
+        for (let i = 0; i < reportChunks.length; i++) {
+          if (i > 0) await new Promise((r) => setTimeout(r, 250));
+          const ok = await sendMessage(chatId, reportChunks[i]!);
+          if (ok) sentTotal++;
+        }
+      }
+    }
+
+    logger.info(`[metric-cron] Đã gửi báo cáo metric 1h tới ${targetChatIds.size} kênh Telegram (tổng ${sentTotal} tin nhắn gửi thành công).`);
+    return { success: true, sentCount: sentTotal, targetChatCount: targetChatIds.size };
+  } catch (err: any) {
+    logger.error('[metric-cron] Lỗi khi gửi báo cáo định kỳ 1h qua Telegram:', err);
+    return { success: false, sentCount: 0, targetChatCount: 0, error: err?.message || String(err) };
+  }
+}
+

@@ -119,14 +119,22 @@ export async function cleanupTempFile(tmp: string): Promise<void> {
  * Long-poll getUpdates (chiều RA — nhận tin sale gõ trong topic). offset=-1 lấy update mới
  * nhất (dùng để drain update cũ lúc boot). timeoutSec = thời gian Telegram giữ kết nối chờ.
  */
-export async function getUpdates(offset: number, timeoutSec = 25): Promise<TgMessageUpdate[] | null> {
+export async function getUpdates(offset: number, timeoutSec = 10): Promise<TgMessageUpdate[] | null> {
   const token = getTelegramBotToken();
   if (!token) return [];
   try {
     const url = `${BASE}/bot${token}/getUpdates?offset=${offset}&timeout=${timeoutSec}&allowed_updates=${encodeURIComponent('["message"]')}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout((timeoutSec + 20) * 1000) });
-    const data = (await res.json()) as { ok: boolean; result?: TgMessageUpdate[] };
-    return data.ok ? data.result ?? [] : [];
+    const res = await fetch(url, { signal: AbortSignal.timeout((timeoutSec + 15) * 1000) });
+    const data = (await res.json()) as { ok: boolean; result?: TgMessageUpdate[]; error_code?: number; description?: string };
+    if (!data.ok) {
+      if (data.error_code === 409) {
+        logger.warn('[telegram-bridge] ⚠️ Xung đột Telegram (409 Conflict): Đang có tiến trình khác dùng chung bot token. Nếu đang chạy dev, hãy đặt DISABLE_TELEGRAM_RECEIVER=true.');
+      } else {
+        logger.warn(`[telegram-bridge] getUpdates lỗi Telegram [${data.error_code}]: ${data.description}`);
+      }
+      return null;
+    }
+    return data.result ?? [];
   } catch (err) {
     // null = lỗi mạng (long-poll tới api.telegram.org chập chờn) → loop tự backoff + retry.
     logger.debug(`[telegram-bridge] getUpdates lỗi (sẽ retry): ${String(err)}`);

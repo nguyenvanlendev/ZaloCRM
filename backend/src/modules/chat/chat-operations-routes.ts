@@ -293,8 +293,9 @@ export async function chatOperationsRoutes(app: FastifyInstance) {
     if (!conv) return;
 
     try {
-      const threadType = conv.threadType === 'group' ? 1 : 0;
-      await zaloOps.sendTypingEvent(conv.zaloAccountId, conv.externalThreadId || '', threadType);
+      // 2026-09-23: Vô hiệu hóa gọi sang Zalo SDK để tránh cạn kiệt trần 500 chat_action/ngày
+      // (làm kẹt tính năng Thu hồi/Xóa tin) và tránh spam request thừa sang máy chủ Zalo.
+      // eventBuffer.recordTyping được giữ nguyên để hiển thị nội bộ CRM giữa các nhân viên.
       eventBuffer.recordTyping(id, user.id, user.email);
       return { success: true };
     } catch (err) { return handleError(err, reply); }

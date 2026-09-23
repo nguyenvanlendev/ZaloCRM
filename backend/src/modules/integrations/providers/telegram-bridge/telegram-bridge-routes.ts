@@ -10,8 +10,29 @@ import { generateLinkCode } from './link.js';
 import { isTelegramBridgeConfigured, getNickBridgeConfig } from '../../../../shared/telegram-bridge-config.js';
 import { prisma } from '../../../../shared/database/prisma-client.js';
 
+import { sendHourlyMetricReport } from '../../../zalo/quota-alert-service.js';
+
 export async function telegramBridgeRoutes(app: FastifyInstance): Promise<void> {
   app.addHook('preHandler', authMiddleware);
+
+  // Kích hoạt gửi báo cáo Metric & Quota SDK sang Telegram ngay lập tức
+  app.post(
+    '/api/v1/telegram-bridge/metrics/send',
+    { preHandler: requireGrant('settings', 'access') },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user = request.user!;
+      const result = await sendHourlyMetricReport(user.orgId);
+      if (!result.success) {
+        return reply.status(400).send({ ok: false, error: result.error });
+      }
+      return reply.send({
+        ok: true,
+        sentCount: result.sentCount,
+        targetChatCount: result.targetChatCount,
+        message: `Đã gửi báo cáo metric tới ${result.targetChatCount} kênh Telegram thành công.`,
+      });
+    },
+  );
 
   // Trạng thái cầu của 1 nick (cho UI: nút Bật cầu + hiển thị). Không cần grant đặc biệt
   // (chỉ đọc). Có guard tenant: chỉ trả config nếu cùng org.

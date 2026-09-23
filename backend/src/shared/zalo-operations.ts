@@ -387,9 +387,10 @@ async function addReaction(
     (api) => api.addReaction(reaction, dest));
 }
 
-async function sendTypingEvent(accountId: string, threadId: string, threadType: 0 | 1) {
-  return exec({ accountId, category: 'chat_action', operation: 'sendTypingEvent' },
-    (api) => api.sendTypingEvent(threadId, threadType));
+async function sendTypingEvent(_accountId: string, _threadId: string, _threadType: 0 | 1): Promise<void> {
+  // 2026-09-23: Vô hiệu hóa gửi typing sang Zalo SDK để tránh cạn kiệt trần 500 chat_action/ngày
+  // (làm kẹt tính năng Thu hồi/Xóa tin) và giảm request thừa sang Zalo server.
+  return Promise.resolve();
 }
 
 async function deleteMessage(accountId: string, msgId: string, cliMsgId: string, ownerId: string, threadId: string, threadType: 0 | 1, onlyMe: boolean) {
