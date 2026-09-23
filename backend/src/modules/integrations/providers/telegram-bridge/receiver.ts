@@ -66,6 +66,10 @@ function markBridgeSent(zaloMsgId: string): void {
 
 export function startTelegramReceiver(): void {
   if (running) return;
+  if (process.env.DISABLE_TELEGRAM_RECEIVER === 'true') {
+    logger.info('[telegram-bridge] receiver TẮT do DISABLE_TELEGRAM_RECEIVER=true.');
+    return;
+  }
   running = true;
   void pollLoop();
   logger.info('[telegram-bridge] receiver BẬT — long-poll getUpdates (chiều ra).');
@@ -83,21 +87,20 @@ async function pollLoop(): Promise<void> {
 
   let consecutiveFails = 0;
   while (running) {
-    const updates = await getUpdates(offset, 25);
+    const updates = await getUpdates(offset, 10);
     if (updates === null) {
-      // Long-poll tới Telegram chập chờn → backoff tăng dần (2s → tối đa 15s) rồi retry.
+      // Long-poll tới Telegram chập chờn → backoff tăng dần (1.5s → tối đa 10s) rồi retry.
       consecutiveFails++;
-      await sleep(Math.min(2000 * consecutiveFails, 15_000));
+      await sleep(Math.min(1500 * consecutiveFails, 10_000));
       continue;
     }
     consecutiveFails = 0;
     for (const u of updates) {
       offset = u.update_id + 1;
-      try {
-        await processUpdate(u);
-      } catch (err) {
+      // Xử lý bất đồng bộ (non-blocking) để không làm nghẽn vòng lặp nhận tin kế tiếp
+      void processUpdate(u).catch((err) => {
         logger.warn(`[telegram-bridge] processUpdate lỗi: ${String(err)}`);
-      }
+      });
     }
   }
 }
