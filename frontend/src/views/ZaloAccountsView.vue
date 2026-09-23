@@ -892,7 +892,7 @@ onMounted(async () => {
   font-family: inherit; color: #374151;
 }
 .chip-btn:hover { background: #F9FAFB; border-color: #C7CCEB; }
-.chip-multi.open .chip-btn { border-color: var(--brand); background: var(--brand-softer); color: #4F5BC4; }
+.chip-multi.open .chip-btn { border-color: var(--brand); background: var(--brand-softer); color: var(--brand); }
 .chip-count {
   background: var(--brand); color: white;
   font-size: 10px; font-weight: 700;
@@ -983,13 +983,13 @@ onMounted(async () => {
 .btn:disabled { opacity: 0.55; cursor: not-allowed }
 .btn svg { width: 14px; height: 14px }
 .btn-primary {
-  background: #6366F1;
+  background: var(--brand);
   color: white;
-  border-color: #6366F1;
+  border-color: var(--brand);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: var(--brand-600);
+  border-color: var(--brand-600);
   color: white;
 }
 .btn-danger {
@@ -1107,7 +1107,10 @@ onMounted(async () => {
   outline: none;
   font-family: inherit;
 }
-.field input:focus { border-color: #6366F1 }
+.field input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-soft);
+}
 .hint {
   font-size: 11px;
   color: #9CA3AF;
@@ -1137,8 +1140,8 @@ onMounted(async () => {
   text-align: left;
 }
 .qr-step.active {
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: var(--brand-soft);
+  color: var(--brand-700);
 }
 .qr-step .n {
   width: 20px;
@@ -1152,7 +1155,7 @@ onMounted(async () => {
   font-weight: 700;
   font-size: 10.5px;
 }
-.qr-step.active .n { background: #6366F1; color: white }
+.qr-step.active .n { background: var(--brand); color: white }
 .qr-scanned p { color: #047857; font-weight: 500; margin: 8px 0 }
 .qr-scanned .muted { color: #6B7280; font-weight: 400; font-size: 12px }
 .error-text {
@@ -1167,7 +1170,7 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
   border: 3px solid #F3F4F6;
-  border-top-color: #6366F1;
+  border-top-color: var(--brand);
   border-radius: 50%;
   margin: 20px auto;
   animation: spin 0.9s linear infinite;

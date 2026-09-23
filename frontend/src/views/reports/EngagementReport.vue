@@ -53,7 +53,7 @@ function pct(n: number | null | undefined): string {
   return nf.format(Math.round(n))
 }
 
-const AV_COLORS = ['#1786be', '#7a4fb0', '#b0734f', '#4fb09a', '#b04f6e', '#4f7ab0', '#b0a14f', '#5b8f4f']
+const AV_COLORS = ['#e11d48', '#7a4fb0', '#b0734f', '#4fb09a', '#b04f6e', '#0284c7', '#b0a14f', '#5b8f4f']
 function initials(name: string): string {
   if (!name) return '?'
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -70,8 +70,8 @@ function avColor(name: string): string {
 const PATTERN_META: Record<string, { label: string; color: string }> = {
   hot: { label: 'Nóng (ready)', color: '#f04438' },
   champion: { label: 'Champion (bền)', color: '#f79009' },
-  stable: { label: 'Ổn định', color: '#1786be' },
-  cooling: { label: 'Đang nguội', color: '#5bb8e5' },
+  stable: { label: 'Ổn định', color: '#0284c7' },
+  cooling: { label: 'Đang nguội', color: '#38bdf8' },
   cold: { label: 'Lạnh (im lặng)', color: '#97a0ac' },
 }
 const PATTERN_ORDER = ['hot', 'champion', 'stable', 'cooling', 'cold']

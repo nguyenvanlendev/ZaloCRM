@@ -1758,17 +1758,17 @@ function onPatternLeave() {
   color: #fff;
   background: linear-gradient(135deg, #2962ff, #6366f1);
 }
-.conv-item.active .ci-nick-mini { border-color: var(--smax-primary-soft, #e3f2fd); }
+.conv-item.active .ci-nick-mini { border-color: var(--smax-primary-soft, #ffe4e6); }
 .conv-item:hover { background: var(--smax-grey-50); }
 .conv-item.unread .ci-name { font-weight: 700; }
-/* Active: nền xanh nhạt đồng nhất + bo góc + viền xanh nhẹ */
+/* Active: nền Crimson Rose soft + bo góc + viền rose hairline */
 .conv-item.active,
 .conv-item.is-group.active {
   background: var(--smax-primary-soft) !important;
   border-radius: 12px;
   margin: 2px 6px;
   border-bottom-color: transparent !important;
-  box-shadow: inset 0 0 0 1.5px #64b5f6 !important;
+  box-shadow: inset 0 0 0 1.5px var(--brand-bright, #fb7185) !important;
 }
 .conv-item.active:hover,
 .conv-item.is-group.active:hover {
@@ -1848,7 +1848,7 @@ function onPatternLeave() {
 .ci-avatar {
   width: 41px; height: 41px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #90caf9, #1976d2);
+  background: linear-gradient(135deg, #cbd5e1, #64748b);
   display: flex; align-items: center; justify-content: center;
   color: white; font-weight: 600; font-size: 14px;
   flex-shrink: 0; position: relative;

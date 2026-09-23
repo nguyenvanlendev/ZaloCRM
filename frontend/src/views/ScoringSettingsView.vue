@@ -425,8 +425,11 @@ onMounted(load);
   cursor: pointer;
 }
 .btn-primary {
-  background: #6366F1;
+  background: var(--brand);
   color: white;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-600);
 }
 .btn-primary:disabled {
   opacity: 0.5;

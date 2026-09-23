@@ -8,7 +8,7 @@
         <div v-if="isEditing" class="qtp-form-panel">
           <div class="qtp-form-head">
             <div class="qtp-form-title">
-              <v-icon size="15" color="#1786be">{{ editingId ? 'mdi-pencil' : 'mdi-plus-circle' }}</v-icon>
+              <v-icon size="15" color="#e11d48">{{ editingId ? 'mdi-pencil' : 'mdi-plus-circle' }}</v-icon>
               <span>{{ editingId ? 'Chỉnh sửa mẫu tin nhắn' : 'Tạo mẫu tin nhắn mới' }}</span>
             </div>
             <button class="qtp-btn-icon" title="Đóng" @click="cancelEdit">
@@ -119,7 +119,7 @@
           <div class="qtp-head">
             <div class="qtp-title-row">
               <div class="qtp-title">
-                <v-icon size="14" color="#1786be">mdi-message-flash-outline</v-icon>
+                <v-icon size="14" color="#e11d48">mdi-message-flash-outline</v-icon>
                 <span>MẪU TIN NHẮN</span>
                 <span class="qtp-count">{{ filtered.length }}</span>
               </div>
@@ -184,7 +184,7 @@
               <v-icon
                 :icon="tpl.isPersonal ? 'mdi-account' : 'mdi-account-group'"
                 size="15"
-                :color="tpl.isPersonal ? '#1786be' : '#9ca3af'"
+                :color="tpl.isPersonal ? '#e11d48' : '#9ca3af'"
                 class="qtp-item-icon"
               />
               <div class="qtp-item-body">
@@ -638,8 +638,8 @@ defineExpose({ onKey });
   letter-spacing: 0.4px;
 }
 .qtp-count {
-  background: #e6f3fb;
-  color: #0f6ea3;
+  background: var(--brand-soft, #ffe4e6);
+  color: var(--brand-700, #9f1239);
   font-size: 10.5px;
   font-weight: 700;
   padding: 1px 7px;
@@ -650,7 +650,7 @@ defineExpose({ onKey });
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #1786be;
+  background: var(--brand, #e11d48);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -688,8 +688,8 @@ defineExpose({ onKey });
   color: #111827;
 }
 .qtp-search-input:focus {
-  border-color: #1786be;
-  box-shadow: 0 0 0 2px rgba(23, 134, 190, 0.15);
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
 }
 .qtp-search-clear {
   position: absolute;
@@ -726,13 +726,13 @@ defineExpose({ onKey });
   transition: all 0.15s ease;
 }
 .qtp-tag:hover {
-  border-color: #1786be;
-  color: #1786be;
+  border-color: var(--brand, #e11d48);
+  color: var(--brand, #e11d48);
 }
 .qtp-tag.active {
-  background: #e6f3fb;
-  border-color: #1786be;
-  color: #0f6ea3;
+  background: var(--brand-soft, #ffe4e6);
+  border-color: var(--brand, #e11d48);
+  color: var(--brand-700, #9f1239);
   font-weight: 600;
 }
 
@@ -875,7 +875,7 @@ defineExpose({ onKey });
 }
 .qtp-empty-btn {
   margin-top: 8px;
-  background: #1786be;
+  background: var(--brand, #e11d48);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -999,8 +999,8 @@ defineExpose({ onKey });
   color: #0f172a;
 }
 .qtp-input:focus {
-  border-color: #1786be;
-  box-shadow: 0 0 0 2px rgba(23, 134, 190, 0.15);
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
 }
 
 .qtp-input-prefix {
@@ -1012,8 +1012,8 @@ defineExpose({ onKey });
   overflow: hidden;
 }
 .qtp-input-prefix:focus-within {
-  border-color: #1786be;
-  box-shadow: 0 0 0 2px rgba(23, 134, 190, 0.15);
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
 }
 .qtp-input-prefix .pfx {
   padding: 0 7px;
@@ -1049,8 +1049,8 @@ defineExpose({ onKey });
   transition: all 0.15s ease;
 }
 .qtp-scope-btn:hover {
-  border-color: #1786be;
-  color: #1786be;
+  border-color: var(--brand, #e11d48);
+  color: var(--brand, #e11d48);
 }
 .qtp-scope-btn.active {
   background: #e0f2fe;
@@ -1099,8 +1099,8 @@ defineExpose({ onKey });
   font-family: inherit;
 }
 .qtp-textarea:focus {
-  border-color: #1786be;
-  box-shadow: 0 0 0 2px rgba(23, 134, 190, 0.15);
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.15);
 }
 
 .qtp-form-foot {
@@ -1132,13 +1132,13 @@ defineExpose({ onKey });
   font-size: 12px;
   font-weight: 600;
   border: none;
-  background: #1786be;
+  background: var(--brand, #e11d48);
   color: #ffffff;
   border-radius: 6px;
   cursor: pointer;
 }
 .qtp-btn-primary:hover {
-  background: #0f6ea3;
+  background: var(--brand-600, #be123c);
 }
 .qtp-btn-primary:disabled,
 .qtp-btn-secondary:disabled {

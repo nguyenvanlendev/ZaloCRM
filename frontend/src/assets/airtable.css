@@ -46,9 +46,9 @@
   --at-yellow: var(--warning, #f4d35e);
   --at-mustard: var(--warning, #d9a441);
 
-  --at-link: var(--brand, #1786be);
-  --at-link-active: var(--brand-700, #0b5880);
-  --at-info-border: var(--brand-bright, #5bb8e5);
+  --at-link: var(--brand, #e11d48);
+  --at-link-active: var(--brand-700, #9f1239);
+  --at-info-border: var(--brand-bright, #fb7185);
   --at-success: var(--success, #12b76a);
 
   --at-on-primary: #ffffff;
@@ -256,9 +256,9 @@
      Anh chốt 2026-06-04: action button trong page body dùng xanh sáng. */
   /* HS re-skin — action button trong page body = brand HS metallic blue
      (thay #0068ff Atlassian). active/soft theo brand-700/brand-soft. */
-  --at-action: var(--brand, #1786be);
-  --at-action-active: var(--brand-700, #0b5880);
-  --at-action-soft: var(--brand-soft, #e4f1f8);
+  --at-action: var(--brand, #e11d48);
+  --at-action-active: var(--brand-700, #9f1239);
+  --at-action-soft: var(--brand-soft, #ffe4e6);
 
   /* Atlas semantic → HS semantic. prefix -atlas- vẫn giữ tên, chỉ đổi giá trị. */
   --at-atlas-success: var(--success, #12b76a);

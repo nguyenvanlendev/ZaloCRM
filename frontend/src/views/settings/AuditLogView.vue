@@ -149,7 +149,7 @@ onMounted(load);
   border: 1px solid transparent; padding: 6px 13px; border-radius: 9999px; cursor: pointer;
 }
 .al-chip:hover { background: #e4e6e9; }
-.al-chip.active { background: #e4f1f8; border-color: #1786be; color: #1786be; font-weight: 600; }
+.al-chip.active { background: var(--brand-soft, #ffe4e6); border-color: var(--brand, #e11d48); color: var(--brand, #e11d48); font-weight: 600; }
 .al-count { font-size: 12px; color: #6b7280; margin-left: auto; }
 .al-loading, .al-empty { text-align: center; padding: 48px; color: #6b7280; }
 .al-empty-icon { font-size: 36px; display: block; margin-bottom: 8px; }

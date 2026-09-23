@@ -238,7 +238,7 @@ onMounted(async () => { await loadNicks(); await reload(); });
 .sp-overlay { position:fixed; inset:0; z-index:120; background:rgba(15,23,42,.32); display:flex; align-items:center; justify-content:center; }
 .sp-box {
   --ink:#181d26; --muted:#41454d; --hairline:#dddddd; --canvas:#fff; --soft:#f8fafc; --coral:#aa2d00; --forest:#006400;
-  --action:#1786be;
+  --action:var(--brand, #e11d48);
   width:440px; max-width:94vw; max-height:74vh; background:var(--canvas); border:1px solid var(--hairline);
   border-radius:12px; box-shadow:0 16px 48px rgba(15,23,42,.22); display:flex; flex-direction:column; overflow:hidden;
   position:relative;

@@ -98,7 +98,7 @@ const initials = computed(() => {
 
 // 6 gradient palettes — pick by hash of seed
 const GRADIENTS = [
-  'linear-gradient(135deg,#90caf9,#1976d2)',
+  'linear-gradient(135deg,#fda4af,#e11d48)',
   'linear-gradient(135deg,#ff7043,#bf360c)',
   'linear-gradient(135deg,#ce93d8,#7b1fa2)',
   'linear-gradient(135deg,#80cbc4,#00695c)',
@@ -183,7 +183,7 @@ const platformBadgeStyle = computed(() => {
   display: flex; align-items: center; justify-content: center;
   color: white; font-weight: 600;
   letter-spacing: 0.3px;
-  background: linear-gradient(135deg, #90caf9, #1976d2);
+  background: linear-gradient(135deg, #cbd5e1, #64748b);
 }
 
 /* ════════ Group treatment ════════ */

@@ -932,7 +932,7 @@ const activeStatKey = ref<string | null>(null);
 // Màu chấm KPI (thay emoji — line/dot HS theme).
 const STAT_DOT: Record<string, string> = {
   total: 'var(--ink-3, #6b7488)', withNick: 'var(--success, #12b76a)', active7d: 'var(--warning, #f5a524)',
-  newToday: 'var(--brand, #1786be)', highScore: '#f5a524', multiClaim: 'var(--purple, #8b5cf6)', noZalo: 'var(--error, #f04438)',
+  newToday: 'var(--brand, #e11d48)', highScore: '#f5a524', multiClaim: 'var(--purple, #8b5cf6)', noZalo: 'var(--error, #f04438)',
 };
 const statBoxes = computed<StatBox[]>(() => [
   { key: 'total', icon: '📋', label: 'Tổng KH', value: stats.value.total ?? total.value },
@@ -1953,7 +1953,7 @@ watch(
 .avatar.avatar-customer {
   width: 32px; height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #90caf9, #1976d2);
+  background: linear-gradient(135deg, #cbd5e1, #64748b);
   display: flex; align-items: center; justify-content: center;
   color: var(--surface); font-weight: 600; font-size: 13px;
 }

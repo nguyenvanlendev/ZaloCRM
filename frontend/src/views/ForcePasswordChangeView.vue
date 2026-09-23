@@ -240,12 +240,12 @@ async function handleSubmit() {
 .fpc-bbox img { width: 26px; height: auto; display: block; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
 .fpc-bwm { display: flex; flex-direction: column; line-height: 1.08; }
 .fpc-b1 { font-size: 15px; font-weight: 800; color: var(--ink, #141a24); letter-spacing: .01em; }
-.fpc-b2 { font-size: 10px; font-weight: 700; letter-spacing: .26em; color: var(--brand, #1786be); text-transform: uppercase; }
+.fpc-b2 { font-size: 10px; font-weight: 700; letter-spacing: .26em; color: var(--brand, #e11d48); text-transform: uppercase; }
 
 .fpc-icon {
   width: 60px; height: 60px;
-  background: var(--brand-soft, #e4f1f8);
-  color: var(--brand, #1786be);
+  background: var(--brand-soft, #ffe4e6);
+  color: var(--brand, #e11d48);
   border-radius: var(--r-lg, 14px);
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 14px;
@@ -293,8 +293,8 @@ async function handleSubmit() {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .fpc-input:focus {
-  border-color: var(--brand, #1786be);
-  box-shadow: 0 0 0 3px var(--brand-soft, #e4f1f8);
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 3px var(--brand-soft, #ffe4e6);
 }
 .fpc-input-error {
   border-color: var(--error, #ef4444);
@@ -312,7 +312,7 @@ async function handleSubmit() {
 .pw-eye:hover { color: var(--ink-2, #475066); background: rgba(0,0,0,.04); }
 
 .fpc-strength {
-  background: var(--brand-softer, #f2f8fc);
+  background: var(--brand-softer, #fff1f2);
   border: 1px solid var(--line, #e7eaf0);
   padding: 10px 14px;
   border-radius: var(--r-sm, 8px);
@@ -353,7 +353,7 @@ async function handleSubmit() {
 
 .fpc-submit {
   margin-top: 14px;
-  background: var(--brand, #1786be);
+  background: var(--brand, #e11d48);
   color: #fff;
   border: none;
   padding: 13px 24px;

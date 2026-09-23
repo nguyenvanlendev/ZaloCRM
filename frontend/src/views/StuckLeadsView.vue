@@ -371,12 +371,12 @@ onMounted(loadData);
   font-weight: 600;
 }
 .scan-btn {
-  background: #6366F1;
+  background: var(--brand);
   color: white;
-  border-color: #6366F1;
+  border-color: var(--brand);
 }
 .scan-btn:hover {
-  background: #4F46E5;
+  background: var(--brand-600);
 }
 .stuck-actions {
   display: flex;
@@ -403,8 +403,8 @@ onMounted(loadData);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .search-input:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
 }
 .search-input::placeholder { color: #9CA3AF; }
 .clear-search {
@@ -591,11 +591,11 @@ onMounted(loadData);
   white-space: nowrap;
 }
 .btn-primary {
-  background: #6366F1;
+  background: var(--brand);
   color: white;
 }
 .btn-primary:hover {
-  background: #4F46E5;
+  background: var(--brand-600);
 }
 .btn-secondary {
   background: #F3F4F6;
