@@ -269,6 +269,95 @@ jobs:
             fi
             docker image prune -f || true
 
+            # 8. Báo cáo trạng thái Deploy lên Telegram trực tiếp từ Server
+            echo "▶ 7/7: Gửi thông báo hoàn tất deploy lên Telegram..."
+            TG_TOKEN=$(grep -E "^TELEGRAM_BRIDGE_BOT_TOKEN=" .env 2>/dev/null | cut -d= -f2- || echo "")
+            if [ -n "$TG_TOKEN" ]; then
+              # Tìm chat ID nhận thông báo từ env hoặc database
+              TG_CHAT_ID=$(grep -E "^(TELEGRAM_REPORT_CHAT_ID|TELEGRAM_ADMIN_CHAT_ID)=" .env 2>/dev/null | head -n1 | cut -d= -f2- || echo "")
+              if [ -z "$TG_CHAT_ID" ] && [ -n "$DB_ID" ]; then
+                TG_CHAT_ID=$(docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" -t -A -c "SELECT telegram_chat_id FROM telegram_bridge_config WHERE enabled = true AND telegram_chat_id IS NOT NULL LIMIT 1;" 2>/dev/null || echo "")
+                if [ -z "$TG_CHAT_ID" ]; then
+                  TG_CHAT_ID=$(docker exec "$DB_ID" psql -U "${DB_USER:-crmuser}" -d "${DB_NAME:-zalocrm}" -t -A -c "SELECT telegram_user_id FROM telegram_user_link ORDER BY created_at ASC LIMIT 1;" 2>/dev/null || echo "")
+                fi
+              fi
+
+              if [ -n "$TG_CHAT_ID" ]; then
+                COMMIT_MSG="${{ github.event.head_commit.message || 'Deploy version mới' }}"
+                COMMIT_MSG_FIRST=$(echo "$COMMIT_MSG" | head -n 1 | sed 's/"/\\"/g' | sed 's/<//g' | sed 's/>//g')
+                NOW_STR=$(TZ='Asia/Ho_Chi_Minh' date '+%H:%M:%S %d/%m/%Y' 2>/dev/null || date '+%H:%M:%S %d/%m/%Y')
+                TEXT="🚀 <b>[CI/CD] DEPLOY PRODUCTION THÀNH CÔNG!</b>%0A%0A📦 <b>Repo:</b> ${{ github.repository }}%0A🔖 <b>Commit:</b> <code>${{ github.sha }}</code>%0A📝 <b>Nội dung:</b> <i>${COMMIT_MSG_FIRST}</i>%0A👤 <b>Người deploy:</b> ${{ github.actor }}%0A🏷 <b>Image Tag:</b> <code>${DOCKER_IMG}</code>%0A🌐 <b>Cổng App:</b> HTTP ${HTTP_CODE} (Port ${APP_PORT})%0A🕐 <i>${NOW_STR} (Giờ VN)</i>"
+
+                curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+                  -d "chat_id=${TG_CHAT_ID}" \
+                  -d "parse_mode=HTML" \
+                  -d "text=${TEXT}" > /dev/null 2>&1 || true
+                echo "✓ Đã gửi thông báo deploy thành công tới Telegram chat: ${TG_CHAT_ID}"
+              fi
+            fi
+
             echo "=========================================================="
             echo "✓ TRIỂN KHAI HOÀN TẤT: ĐÃ PULL IMAGE & MIGRATE THÀNH CÔNG!"
             echo "=========================================================="
+
+  # ── STAGE 6: THÔNG BÁO TỔNG THỂ KẾT QUẢ CI/CD QUA TELEGRAM ─────────────────
+  stage-6-notify-telegram:
+    name: "6. Notify Telegram CI/CD Status"
+    needs: [stage-1-validate-config, stage-2-backend-check, stage-3-frontend-check, stage-4-docker-build-push, stage-5-deploy-production]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Workflow Status to Telegram
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BRIDGE_BOT_TOKEN || secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_REPORT_CHAT_ID || secrets.TELEGRAM_ADMIN_CHAT_ID || secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; then
+            echo "Stage 6: Bỏ qua (Chưa cấu hình TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong GitHub Secrets)."
+            exit 0
+          fi
+
+          STAGE1="${{ needs.stage-1-validate-config.result }}"
+          STAGE2="${{ needs.stage-2-backend-check.result }}"
+          STAGE3="${{ needs.stage-3-frontend-check.result }}"
+          STAGE4="${{ needs.stage-4-docker-build-push.result }}"
+          STAGE5="${{ needs.stage-5-deploy-production.result }}"
+
+          if [ "$STAGE1" = "success" ] && [ "$STAGE2" = "success" ] && [ "$STAGE3" = "success" ] && [ "$STAGE4" = "success" ] && [ "$STAGE5" = "success" ]; then
+            STATUS_ICON="🚀"
+            STATUS_TITLE="CI/CD DEPLOY PRODUCTION THÀNH CÔNG!"
+          else
+            STATUS_ICON="🚨"
+            STATUS_TITLE="CI/CD WORKFLOW GẶP LỖI!"
+          fi
+
+          icon() {
+            if [ "$1" = "success" ]; then echo "✅";
+            elif [ "$1" = "skipped" ]; then echo "⚪️";
+            else echo "❌"; fi
+          }
+
+          COMMIT_MSG="${{ github.event.head_commit.message || 'Deploy version mới' }}"
+          COMMIT_MSG_FIRST=$(echo "$COMMIT_MSG" | head -n 1 | sed 's/"/\\"/g' | sed 's/<//g' | sed 's/>//g')
+          NOW_STR=$(date -u -d '+7 hours' '+%H:%M:%S %d/%m/%Y' 2>/dev/null || date '+%H:%M:%S %d/%m/%Y')
+
+          MSG="${STATUS_ICON} <b>[ZaloCRM] ${STATUS_TITLE}</b>%0A%0A"
+          MSG="${MSG}📦 <b>Repo:</b> ${{ github.repository }}%0A"
+          MSG="${MSG}🔖 <b>Commit:</b> <code>${{ github.sha }}</code>%0A"
+          MSG="${MSG}📝 <b>Nội dung:</b> <i>${COMMIT_MSG_FIRST}</i>%0A"
+          MSG="${MSG}👤 <b>Người deploy:</b> ${{ github.actor }}%0A"
+          MSG="${MSG}🔗 <a href=\"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\">Xem log GitHub Actions</a>%0A%0A"
+          MSG="${MSG}<b>Chi tiết các bước CI/CD:</b>%0A"
+          MSG="${MSG}$(icon $STAGE1) 1. Validate Config: <b>${STAGE1}</b>%0A"
+          MSG="${MSG}$(icon $STAGE2) 2. Backend Check (TS): <b>${STAGE2}</b>%0A"
+          MSG="${MSG}$(icon $STAGE3) 3. Frontend Check (Vite): <b>${STAGE3}</b>%0A"
+          MSG="${MSG}$(icon $STAGE4) 4. Docker Build & Push: <b>${STAGE4}</b>%0A"
+          MSG="${MSG}$(icon $STAGE5) 5. Deploy Production: <b>${STAGE5}</b>%0A%0A"
+          MSG="${MSG}🕐 <i>${NOW_STR} (Giờ VN)</i>"
+
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d "chat_id=${TG_CHAT_ID}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" \
+            -d "text=${MSG}" > /dev/null 2>&1 || true
+          echo "✓ Đã gửi thông báo tổng hợp CI/CD qua Telegram."
