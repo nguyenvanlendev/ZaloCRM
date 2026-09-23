@@ -8,9 +8,9 @@
 --   type TMention = { uid: string; pos: number; len: number; type: 0 | 1 };
 --   type TGroupMessage = TMessage & { mentions: TMention[] | undefined };
 --
--- Ví dụ: "Nay lên đó bắn vạch à @Trung Trường - Hs Holding"
---   mentions: [{ uid: "2250...", pos: 22, len: 26, type: 0 }]
---   → FE bôi từ pos=22 dài 26 ký tự = "@Trung Trường - Hs Holding" ĐỦ.
+-- Ví dụ: "Nay lên đó bắn vạch à @Trung Trường"
+--   mentions: [{ uid: "2250...", pos: 22, len: 13, type: 0 }]
+--   → FE bôi từ pos=22 dài 13 ký tự = "@Trung Trường" ĐỦ.
 --
 -- Chỉ group message có mentions (TGroupMessage). User 1-1 không có.
 -- ════════════════════════════════════════════════════════════════════════

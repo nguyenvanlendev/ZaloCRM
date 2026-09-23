@@ -18,8 +18,8 @@
  */
 
 .airtable-scope {
-  /* HS re-skin 2026-06-05 — map --at-* (Airtable palette cũ) sang token HS
-     Holding (--brand/--ink/--surface…). Giữ NGUYÊN tên biến → 12 view trong
+  /* Re-skin — map --at-* (Airtable palette cũ) sang token YOEDU
+     CRM (--brand/--ink/--surface…). Giữ NGUYÊN tên biến → 12 view trong
      cụm Marketing tự đổi giao diện, không phải sửa template. Spacing + radius
      giữ nguyên (đã hợp HD-first). */
   /* Colors */

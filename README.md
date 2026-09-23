@@ -543,7 +543,6 @@ nhãn hiệu). Bạn được fork và phân phối lại mã nguồn theo AGPL,
 ## Lời cảm ơn
 
 Xin chân thành cảm ơn:
-- [hsholding](https://github.com/hsholding) — vì những đóng góp ý tưởng, kinh nghiệm thực tế quý báu và codebase giúp đưa các logic và chức năng thiết thực vào sản phẩm
 - [vuongnguyenbinh/ZaloCRM](https://github.com/vuongnguyenbinh/ZaloCRM) — vì những ý tưởng và codebase cho khóa học này
 - [darkamenosa/openzca](https://github.com/darkamenosa/openzca) — vì CLI tích hợp Zalo (zca-js wrapper) mà ZCRM dùng làm cầu nối tới các tài khoản Zalo
 
