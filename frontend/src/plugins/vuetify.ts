@@ -22,26 +22,26 @@ export const vuetify = createVuetify({
       'hsLight': {
         dark: false,
         colors: {
-          primary: '#d32f2f',          // --brand
-          'primary-darken-1': '#b71c1c',
-          secondary: '#ff5252',        // --brand-bright
-          accent: '#981010',           // --brand-700
-          background: '#f7f9fc',       // --surface-2
+          primary: '#e11d48',          // --brand (Crimson Rose)
+          'primary-darken-1': '#be123c',
+          secondary: '#64748b',        // --ink-3 (Slate 500)
+          accent: '#fb7185',           // --brand-bright (Rose 400)
+          background: '#f8fafc',       // --canvas / --surface-2 (Slate 50)
           surface: '#ffffff',
-          'surface-variant': '#f1f4f9',
-          success: '#12b76a',
-          warning: '#f5a524',
-          error: '#f04438',
-          info: '#d32f2f',
-          'nav-a': '#1e293b',
-          'nav-b': '#0f172a',
-          'nav-accent': '#ff5252',
-          'on-surface': '#141a24',
-          'on-background': '#141a24',
+          'surface-variant': '#f1f4f9', // Slate 100
+          success: '#10b981',
+          warning: '#f59e0b',
+          error: '#ef4444',
+          info: '#0284c7',
+          'nav-a': '#0f172a',
+          'nav-b': '#0b0f17',
+          'nav-accent': '#fb7185',
+          'on-surface': '#0f172a',
+          'on-background': '#0f172a',
           'on-primary': '#ffffff',
         },
         variables: {
-          'border-color': '#e7eaf0',
+          'border-color': '#e2e8f0',
           'border-opacity': 1,
           'high-emphasis-opacity': 1,
           'medium-emphasis-opacity': 0.78,

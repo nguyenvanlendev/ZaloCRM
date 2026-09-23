@@ -3,60 +3,60 @@
    Used by DefaultLayout (top nav), ChatView, ContactsView, FriendsView.
    ════════════════════════════════════════════════════════════ */
 :root {
-  /* Brand palette — YOEDU xanh ngọc (đổi từ #2962ff, /plan-design-review 2026-06-06) */
-  --smax-primary: #1786be;
-  --smax-primary-hover: #0f6fa0;
-  --smax-primary-soft: #e4f1f8;
-  --smax-primary-700: #0b5880;
-  --smax-success: #00c853;
-  --smax-warning: #ff9100;
-  --smax-info: #2196f3;
-  --smax-error: #ff3d00;
+  /* Brand palette — Crimson Rose (Linear-grade #e11d48) */
+  --smax-primary: #e11d48;
+  --smax-primary-hover: #be123c;
+  --smax-primary-soft: #ffe4e6;
+  --smax-primary-700: #9f1239;
+  --smax-success: #10b981;
+  --smax-warning: #f59e0b;
+  --smax-info: #0284c7;
+  --smax-error: #ef4444;
 
-  /* Grey scale */
-  --smax-grey-50: #fafbfc;
-  --smax-grey-100: #f5f6fa;
-  --smax-grey-200: #ebedf0;
-  --smax-grey-300: #d4d8de;
-  --smax-grey-700: #5a6478;
-  --smax-text: #212121;
+  /* Slate grey scale (Linear neutral) */
+  --smax-grey-50: #f8fafc;
+  --smax-grey-100: #f1f5f9;
+  --smax-grey-200: #e2e8f0;
+  --smax-grey-300: #cbd5e1;
+  --smax-grey-700: #475569;
+  --smax-text: #0f172a;
 
   /* Surfaces */
   --smax-bg: #ffffff;
-  --smax-header-bg: #1f2330;
-  --smax-bubble-self: #d7ecf7;
-  --smax-group-bg: #ffeae3;
+  --smax-header-bg: #0f172a;
+  --smax-bubble-self: #ffe4e6;
+  --smax-group-bg: #fff1f2;
 
   /* Gender */
-  --smax-female: #e91e63;
-  --smax-male: #1e88e5;
+  --smax-female: #ec4899;
+  --smax-male: #2563eb;
 
-  /* CRM label chip colors */
-  --smax-chip-red: #ef5350;            --smax-chip-red-text: #c62828;
-  --smax-chip-red-active: #ef5350;
-  --smax-chip-purple: #ab47bc;         --smax-chip-purple-text: #6a1b9a;
-  --smax-chip-purple-active: #6a1b9a;
-  --smax-chip-orange: #ffa726;         --smax-chip-orange-text: #ef6c00;
-  --smax-chip-orange-active: #ff9800;
-  --smax-chip-green: #66bb6a;          --smax-chip-green-text: #2e7d32;
-  --smax-chip-green-active: #43a047;
-  --smax-chip-blue: #42a5f5;           --smax-chip-blue-text: #1565c0;
-  --smax-chip-blue-active: #1976d2;
-  --smax-chip-yellow: #fbc02d;         --smax-chip-yellow-text: #f57f17;
-  --smax-chip-yellow-active: #f9a825;
+  /* CRM label chip colors (Harmonized pastel) */
+  --smax-chip-red: #ef4444;            --smax-chip-red-text: #991b1b;
+  --smax-chip-red-active: #dc2626;
+  --smax-chip-purple: #a855f7;         --smax-chip-purple-text: #6b21a8;
+  --smax-chip-purple-active: #9333ea;
+  --smax-chip-orange: #f97316;         --smax-chip-orange-text: #9a3412;
+  --smax-chip-orange-active: #ea580c;
+  --smax-chip-green: #22c55e;          --smax-chip-green-text: #166534;
+  --smax-chip-green-active: #16a34a;
+  --smax-chip-blue: #3b82f6;           --smax-chip-blue-text: #1e40af;
+  --smax-chip-blue-active: #2563eb;
+  --smax-chip-yellow: #eab308;         --smax-chip-yellow-text: #854d0e;
+  --smax-chip-yellow-active: #ca8a04;
 
-  /* Typography (mockup uses 14.3px base — +10% from 13px) */
-  --smax-font-base: 14.3px;
+  /* Typography */
+  --smax-font-base: 14px;
   --smax-font-small: 12px;
   --smax-font-tiny: 11px;
-  --smax-line-height: 1.45;
+  --smax-line-height: 1.5;
 
-  /* Spacing & radii (mockup-derived) */
-  --smax-radius-sm: 4px;
-  --smax-radius-md: 7px;
-  --smax-radius-lg: 9px;
-  --smax-radius-xl: 13px;
-  --smax-topnav-h: 48px; /* khớp chiều cao thật .smax-topnav (DefaultLayout) — fix cuộn dư 2px 2026-06-14 */
+  /* Spacing & radii (Linear standard) */
+  --smax-radius-sm: 6px;
+  --smax-radius-md: 8px;
+  --smax-radius-lg: 12px;
+  --smax-radius-xl: 16px;
+  --smax-topnav-h: 50px;
 }
 
 /* ════════ Helper utility classes ════════ */
