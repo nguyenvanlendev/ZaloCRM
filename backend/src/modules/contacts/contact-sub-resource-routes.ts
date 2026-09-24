@@ -8,13 +8,16 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../shared/database/prisma-client.js';
 import { authMiddleware } from '../auth/auth-middleware.js';
+import { requireGrant } from '../rbac/rbac-middleware.js';
 import { logger } from '../../shared/utils/logger.js';
 
 export async function contactSubResourceRoutes(app: FastifyInstance): Promise<void> {
   app.addHook('preHandler', authMiddleware);
 
   // ── GET /api/v1/contacts/:id/appointments — appointments for contact ───────
-  app.get('/api/v1/contacts/:id/appointments', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/contacts/:id/appointments', {
+    preHandler: requireGrant('contact', 'access'),
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user!;
       const { id } = request.params as { id: string };
@@ -38,7 +41,9 @@ export async function contactSubResourceRoutes(app: FastifyInstance): Promise<vo
 
   // ── GET /api/v1/contacts/by-zalo-uid/:uid — lookup CRM contact by Zalo UID
   // Trả contact info + assigned user + count conversations để dùng cho user dialog
-  app.get('/api/v1/contacts/by-zalo-uid/:uid', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/contacts/by-zalo-uid/:uid', {
+    preHandler: requireGrant('contact', 'access'),
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user!;
       const { uid } = request.params as { uid: string };
