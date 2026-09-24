@@ -97,8 +97,8 @@ const authStore = useAuthStore();
 // ── Branding hiển thị (mặc định = giá trị hardcode YOEDU) ────────────────
 // Login chạy pre-auth: render mặc định NGAY, fetch org-branding xong mới thay vào
 // (D4-A). Nếu endpoint lỗi/chậm/chưa có org → giữ mặc định, login không bị chặn.
-const DEFAULT_LOGO = '/brand/hs-monogram.png';
-const DEFAULT_PLACEHOLDER = `admin@hs.com hoặc ${SAMPLE_PHONE}`;
+const DEFAULT_LOGO = '/brand/zalocrm-logo.png';
+const DEFAULT_PLACEHOLDER = `admin@yoedu.vn hoặc ${SAMPLE_PHONE}`;
 const brandLogo = ref(DEFAULT_LOGO);
 const brandName = ref('YOEDU');
 const brandSlogan = ref('Bền vững · Trường tồn');
@@ -220,6 +220,17 @@ async function handleLogin() {
 
 /* Phòng hờ: ép màu chữ input đọc được trên card trắng, kể cả khi thiết bị dark-mode
    (đi cùng color-scheme:light ở style.css). */
+.login-card :deep(.v-field) {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  transition: all 0.15s ease;
+}
+.login-card :deep(.v-field--focused) {
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12) !important;
+}
+.login-card :deep(.v-field--focused .v-field__outline) {
+  color: #e11d48 !important;
+}
 .login-card :deep(.v-field__input),
 .login-card :deep(input) { color: #0f172a; }
 .login-card :deep(.v-field__input::placeholder) { color: #94a3b8; opacity: 1; }

@@ -136,7 +136,7 @@ const router = useRouter();
 const auth = useAuthStore();
 
 // Branding lockup — đồng bộ logo + tên tổ chức với trang /login.
-const DEFAULT_LOGO = '/brand/hs-monogram.png';
+const DEFAULT_LOGO = '/brand/zalocrm-logo.png';
 const brandLogo = ref(DEFAULT_LOGO);
 const brandName = ref('YOEDU');
 function onLogoError() {

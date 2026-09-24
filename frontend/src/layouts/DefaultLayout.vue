@@ -245,7 +245,7 @@ function dismissInternalContactBanner() {
 }
 
 // Brand lockup trên menu — logo + tên tổ chức (đồng bộ /login, /setup-password).
-const DEFAULT_LOGO = '/brand/hs-monogram.png';
+const DEFAULT_LOGO = '/brand/zalocrm-logo.png';
 const brandLogo = ref(DEFAULT_LOGO);
 const brandName = ref('YOEDU');
 function onLogoError() {

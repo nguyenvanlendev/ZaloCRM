@@ -55,7 +55,7 @@
         <v-text-field
           v-model="logoUrl"
           label="Logo (đường dẫn ảnh)"
-          placeholder="/brand/hs-monogram.png hoặc https://..."
+          placeholder="/brand/zalocrm-logo.png hoặc https://..."
           :disabled="!authStore.isOwner || saving"
           variant="outlined"
           density="compact"
@@ -325,7 +325,7 @@ watch(logoUrl, () => { logoBroken.value = false; });
 // Placeholder email cho preview — khớp logic LoginView (#3: kèm SĐT mẫu).
 const previewEmailPlaceholder = computed(() => {
   const d = emailDomain.value.trim();
-  return d ? `user@${d} hoặc ${SAMPLE_PHONE}` : `admin@hs.com hoặc ${SAMPLE_PHONE}`;
+  return d ? `user@${d} hoặc ${SAMPLE_PHONE}` : `admin@yoedu.vn hoặc ${SAMPLE_PHONE}`;
 });
 
 async function fetchOrg() {
