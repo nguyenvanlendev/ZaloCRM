@@ -256,13 +256,13 @@ function toggleSort() {
   font-family: inherit;
 }
 .cfb-tabs.main-tab-style .cfb-tab:hover {
-  background: rgba(255, 255, 255, 0.6);
-  color: #4338CA;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--brand, #e11d48);
 }
 .cfb-tabs.main-tab-style .cfb-tab.active {
   background: white;
-  color: #6366F1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(99, 102, 241, 0.1);
+  color: var(--brand, #e11d48);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(225, 29, 72, 0.15);
 }
 /* 2026-06-11 — tab Ưu tiên có tin chưa đọc: in ĐẬM hơn + đậm màu + chấm báo nhỏ.
    Không hiện con số (theo yêu cầu). Đọc hết → class này biến mất → trở lại thường. */

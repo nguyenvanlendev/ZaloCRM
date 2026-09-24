@@ -530,21 +530,34 @@ function avatarColor(name: string): string {
 .hero-title { font-size: 30px; font-weight: 400; line-height: 1.2; margin: 0 0 6px; }
 .hero-sub { font-size: 13px; color: #41454d; margin: 0; max-width: 600px; }
 
-/* Stats */
+/* Stats — Linear-grade neutral cards with semantic left border */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-.stat-card { border-radius: 12px; padding: 14px 18px; position: relative; overflow: hidden; }
+.stat-card {
+  background: #ffffff;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 10px;
+  padding: 14px 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+}
 .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-.stat-primary { background: #f8fafc; }
-.stat-primary::before { background: #181d26; }
-.stat-forest { background: #e3ede4; }
-.stat-forest::before { background: #0a2e0e; }
-.stat-mustard { background: #fdf3df; }
-.stat-mustard::before { background: #d9a441; }
-.stat-cream { background: #f5e9d4; }
-.stat-cream::before { background: #aa2d00; }
-.stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #41454d; margin-bottom: 4px; }
-.stat-value { font-size: 24px; font-weight: 400; color: #181d26; letter-spacing: -0.3px; }
-.stat-unit { font-size: 13px; color: #9297a0; }
+.stat-primary { background: #ffffff; }
+.stat-primary::before { background: var(--brand, #e11d48); }
+.stat-forest { background: #ffffff; }
+.stat-forest::before { background: var(--success, #12b76a); }
+.stat-mustard { background: #ffffff; }
+.stat-mustard::before { background: var(--warning, #f59e0b); }
+.stat-cream { background: #ffffff; }
+.stat-cream::before { background: #94a3b8; }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--ink-3, #64748b); margin-bottom: 4px; }
+.stat-value { font-size: 24px; font-weight: 700; color: var(--ink, #0f172a); letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+.stat-unit { font-size: 13px; font-weight: 500; color: #94a3b8; }
 
 /* Toolbar */
 .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }

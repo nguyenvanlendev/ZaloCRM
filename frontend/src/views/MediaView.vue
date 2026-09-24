@@ -523,7 +523,7 @@ onMounted(() => { reload(); loadFolders(); loadUploaders(); });
 .media-page {
   --ink:#181d26; --body:#333840; --muted:#41454d; --hairline:#dddddd;
   --canvas:#fff; --soft:#f8fafc; --strong:#e0e2e6; --coral:#aa2d00; --success:#006400;
-  --r-sm:6px; --r-md:10px; --pill:9999px;
+  --r-sm:6px; --r-md:8px; --pill:9999px;
   /* Chiều cao CỐ ĐỊNH theo viewport (trừ topnav 48px) — v-main chỉ có min-height nên
      height:100% không phân giải → flex chain hỏng, cột 3 detail không cuộn được, accordion
      mở ra tràn khỏi màn (anh báo 2026-06-16). Cố định height → .p-body cuộn đúng. */
@@ -581,17 +581,32 @@ onMounted(() => { reload(); loadFolders(); loadUploaders(); });
 .finfo { flex:1; min-width:0; }
 .fname { font-size:14px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
 .fmeta { font-size:12px; color:var(--muted); }
-.card { border:1px solid var(--hairline); border-radius:var(--r-md); overflow:hidden; cursor:pointer; background:var(--canvas); }
-.card.sel { border-color:var(--ink); box-shadow:0 0 0 2px var(--ink); }
+.card {
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md, 8px);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--canvas);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+.card.sel {
+  border-color: var(--brand, #e11d48);
+  box-shadow: 0 0 0 2px var(--brand, #e11d48);
+}
 .thumb { height:108px; background:var(--strong); position:relative; display:flex; align-items:center; justify-content:center; }
 .thumb img { width:100%; height:100%; object-fit:cover; }
 .thumb .ph { color:var(--muted); display:flex; align-items:center; justify-content:center; }
 .thumb .badge { position:absolute; top:6px; right:6px; background:rgba(24,29,38,.82); color:#fff; border-radius:var(--pill); padding:3px 6px; display:inline-flex; align-items:center; }
 .meta { padding:8px 10px; }
 .fn { font-size:12.5px; color:var(--ink); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.stat { font-size:11px; margin-top:3px; }
-.stat.pub { color:var(--success); }
-.stat.lk { color:var(--coral); }
+.stat { font-size:11px; margin-top:3px; display:inline-flex; align-items:center; gap:4px; }
+.stat.pub { color:var(--success, #12b76a); }
+.stat.lk { color:#b45309; }
 .m-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--muted); padding:60px 20px; text-align:center; }
 .empty-ic { opacity:.5; color:var(--muted); display:flex; align-items:center; justify-content:center; }
 .empty-ttl { font-size:17px; color:var(--ink); font-weight:500; }

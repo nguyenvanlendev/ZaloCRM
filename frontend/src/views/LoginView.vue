@@ -219,10 +219,10 @@ async function handleLogin() {
 }
 
 /* Phòng hờ: ép màu chữ input đọc được trên card trắng, kể cả khi thiết bị dark-mode
-   (đi cùng color-scheme:light ở style.css). */
+   (đi cùng color-scheme:light ở style.css). Đồng bộ chuẩn --smax-radius-md: 8px (Linear grade). */
 .login-card :deep(.v-field) {
   background: #ffffff !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   transition: all 0.15s ease;
 }
 .login-card :deep(.v-field--focused) {

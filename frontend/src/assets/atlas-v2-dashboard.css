@@ -85,7 +85,8 @@
 .at-card { background: var(--at-canvas); border: 1px solid var(--at-hairline); border-radius: var(--at-r-md, 9px); overflow: hidden; }
 .at-card__head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--at-hairline); }
 .at-card__title { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--at-ink); }
-.at-card__link { font-size: 11.5px; color: var(--at-action); cursor: pointer; font-weight: 600; }
+.at-card__link { font-size: 11.5px; color: var(--at-action, #e11d48); cursor: pointer; font-weight: 600; transition: opacity 0.15s ease; }
+.at-card__link:hover { text-decoration: underline; opacity: 0.85; }
 .at-card__badge { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: var(--at-r-pill, 999px); }
 .at-card__badge--d { background: var(--at-atlas-danger-soft); color: var(--at-atlas-danger); }
 .at-card__badge--w { background: var(--at-atlas-warning-soft); color: #92400e; }

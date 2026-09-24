@@ -280,7 +280,16 @@ function quotaW(v: any): string {
                 </div>
               </div>
             </div>
-            <div v-else class="rk-empty">Chưa có dữ liệu phễu</div>
+            <div v-else class="rk-empty-funnel">
+              <div class="empty-funnel-art">
+                <span class="funnel-step-bar s1"></span>
+                <span class="funnel-step-bar s2"></span>
+                <span class="funnel-step-bar s3"></span>
+                <span class="funnel-step-bar s4"></span>
+              </div>
+              <div class="empty-funnel-label">Chưa có dữ liệu phễu chốt</div>
+              <div class="empty-funnel-sub">Dữ liệu sẽ tự động xuất hiện khi có phát sinh chuyển đổi trạng thái khách hàng.</div>
+            </div>
           </div>
         </div>
       </div>

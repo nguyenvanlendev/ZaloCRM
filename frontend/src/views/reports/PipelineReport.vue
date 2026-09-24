@@ -96,7 +96,16 @@
                 </div>
               </div>
             </div>
-            <div v-else class="rk-empty">Chưa có dữ liệu phễu.</div>
+            <div v-else class="rk-empty-funnel">
+              <div class="empty-funnel-art">
+                <span class="funnel-step-bar s1"></span>
+                <span class="funnel-step-bar s2"></span>
+                <span class="funnel-step-bar s3"></span>
+                <span class="funnel-step-bar s4"></span>
+              </div>
+              <div class="empty-funnel-label">Chưa có dữ liệu phễu chuyển đổi</div>
+              <div class="empty-funnel-sub">Dữ liệu sẽ hiển thị khi khách hàng được phân loại qua từng giai đoạn pipeline.</div>
+            </div>
           </div>
         </div>
 

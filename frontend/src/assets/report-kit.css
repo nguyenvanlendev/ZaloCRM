@@ -107,6 +107,15 @@
 .rpt-scope .muted{color:var(--rk-muted)}.rpt-scope .faint{color:var(--rk-faint)}.rpt-scope .right{text-align:right}.rpt-scope .b{font-weight:700}
 .rpt-scope .rk-loading{padding:48px;text-align:center;color:var(--rk-faint);font-size:13px}
 .rpt-scope .rk-empty{padding:28px;text-align:center;color:var(--rk-faint);font-size:12.5px;font-style:italic}
+.rpt-scope .rk-empty-funnel{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;text-align:center}
+.rpt-scope .empty-funnel-art{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:12px;opacity:0.85}
+.rpt-scope .funnel-step-bar{height:6px;border-radius:3px;background:var(--line,#e2e8f0);transition:all .2s ease}
+.rpt-scope .funnel-step-bar.s1{width:88px;background:rgba(225,29,72,0.18)}
+.rpt-scope .funnel-step-bar.s2{width:64px;background:rgba(225,29,72,0.30)}
+.rpt-scope .funnel-step-bar.s3{width:42px;background:rgba(225,29,72,0.45)}
+.rpt-scope .funnel-step-bar.s4{width:22px;background:var(--brand,#e11d48)}
+.rpt-scope .empty-funnel-label{font-size:13px;font-weight:600;color:var(--rk-ink,#1e293b);margin-bottom:4px}
+.rpt-scope .empty-funnel-sub{font-size:11.5px;color:var(--rk-faint,#94a3b8);max-width:280px;line-height:1.45}
 /* shell — app khoá cuộn cấp trang (main.css overflow:hidden) nên shell PHẢI tự cuộn:
    flex-column chiều cao = viewport - topnav(48px); sub-nav cố định; vùng nội dung cuộn. */
 .rpt-shell{background:var(--bg,#f5f7fa);height:calc(100vh - var(--smax-topnav-h, 48px));display:flex;flex-direction:column;overflow:hidden}

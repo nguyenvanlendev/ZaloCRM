@@ -15,14 +15,14 @@
           </th>
           <th>Khách hàng</th>
           <th class="nick-care-col" title="Nick CRM đang chăm cặp này">Nick chăm</th>
-          <th class="nick-log-col" title="Số nick Zalo đã có log nhật ký với KH này">Nick log</th>
-          <th>Tên CRM / Nick</th>
+          <th v-if="visibleCols.nickLog" class="nick-log-col" title="Số nick Zalo đã có log nhật ký với KH này">Nick log</th>
+          <th v-if="visibleCols.alias">Tên CRM / Nick</th>
           <th>Trạng thái KB</th>
           <th>Trạng thái KH</th>
-          <th title="Auto tag system (active/cold/stuck/ready) + CRM tag manual">🤖 Tag</th>
-          <th>Tag CRM</th>
-          <th title="Ngày kết bạn Zalo">🕒 KB từ</th>
+          <th v-if="visibleCols.tags !== false" title="Auto tag system (active/cold/stuck/ready) + CRM tag manual">Tag</th>
+          <th v-if="visibleCols.becameFriendAt" title="Ngày kết bạn Zalo">🕒 KB từ</th>
           <th
+            v-if="visibleCols.stuckSince"
             class="stuck-col sortable"
             :class="{ 'sort-active': sortBy === 'stuck' }"
             title="KH bị flag stuck — click để sort theo stuck trước"
@@ -40,12 +40,13 @@
           <th v-if="visibleCols.healthBars" class="health-col" title="Score 4 chiều (engage/intent/fit/velocity)">🌡 Health</th>
           <th>Tương tác cuối</th>
           <th
+            v-if="visibleCols.score !== false"
             class="sortable"
             :class="{ 'sort-active': sortBy === 'score-desc' || sortBy === 'score-asc' }"
             title="Click để sort theo Score (desc → asc → off)"
             @click="toggleScoreSort"
           >Score<span class="sort-arrow">{{ sortBy === 'score-desc' ? ' ↓' : sortBy === 'score-asc' ? ' ↑' : '' }}</span></th>
-          <th>Tin (in/out)</th>
+          <th v-if="visibleCols.inOutMsg">Tin (in/out)</th>
           <th class="action-col">Action</th>
         </tr>
       </thead>
@@ -115,12 +116,12 @@
             </div>
             <span v-else class="dim-cell">—</span>
           </td>
-          <td>
+          <td v-if="visibleCols.nickLog">
             <div class="nick-log" :class="nickLogLevel(f)">
               <b>{{ nickLogCount(f) }}</b>nick
             </div>
           </td>
-          <td>
+          <td v-if="visibleCols.alias">
             <span v-if="f.aliasInNick" class="alias-cell">{{ f.aliasInNick }}</span>
             <span v-else class="alias-empty">chưa đặt</span>
           </td>
@@ -129,9 +130,9 @@
             <span v-if="careLabel(f)" class="badge" :class="careClass(f)">{{ careLabel(f) }}</span>
             <span v-else class="dim-cell">—</span>
           </td>
-          <!-- 🤖 Auto tag (Tier 1, always visible) -->
-          <td>
-            <div v-if="getAutoTags(f).length" class="tag-chips">
+          <!-- Tag (Auto tag + CRM tag gộp gọn gàng) -->
+          <td v-if="visibleCols.tags !== false">
+            <div v-if="getAutoTags(f).length || getCrmTags(f).length || getZaloLabels(f).length" class="tag-chips">
               <span
                 v-for="t in getAutoTags(f)"
                 :key="'at-' + t"
@@ -139,12 +140,6 @@
                 :class="autoTagColor(t)"
                 :title="'Auto tag system: ' + t"
               >🤖 {{ autoTagLabel(t) }}</span>
-            </div>
-            <span v-else class="dim-cell">—</span>
-          </td>
-          <td>
-            <div v-if="getCrmTags(f).length || getZaloLabels(f).length" class="tag-chips">
-              <!-- CRM tag per-pair -->
               <span
                 v-for="t in getCrmTags(f)"
                 :key="'crm-' + t"
@@ -152,7 +147,6 @@
                 :class="tagColor(t)"
                 :title="'Tag CRM: ' + t"
               >{{ t }}</span>
-              <!-- Zalo label per-pair (đồng bộ từ Zalo native), prefix 🏷 phân biệt -->
               <span
                 v-for="l in getZaloLabels(f)"
                 :key="'zlb-' + l.name"
@@ -163,15 +157,15 @@
             </div>
             <span v-else class="dim-cell">—</span>
           </td>
-          <!-- 🕒 KB từ ngày (Tier 1) -->
-          <td>
+          <!-- 🕒 KB từ ngày -->
+          <td v-if="visibleCols.becameFriendAt">
             <span v-if="f.becameFriendAt" class="kb-date" :title="formatExactDate(f.becameFriendAt)">
               {{ relativeDate(f.becameFriendAt) }}
             </span>
             <span v-else class="dim-cell">—</span>
           </td>
-          <!-- ⚠ Đình trệ (Tier 1) -->
-          <td class="stuck-col">
+          <!-- ⚠ Đình trệ -->
+          <td v-if="visibleCols.stuckSince" class="stuck-col">
             <span v-if="f.stuckSince" class="stuck-badge" :title="'Đình trệ từ ' + formatExactDate(f.stuckSince)">
               ⚠ {{ stuckDaysLabel(f.stuckSince) }}
             </span>
@@ -229,13 +223,13 @@
             <span v-if="f.lastInteractionAt" class="last-int">📥 {{ relativeDate(f.lastInteractionAt) }}</span>
             <span v-else class="dim-cell">chưa nhắn</span>
           </td>
-          <td>
+          <td v-if="visibleCols.score !== false">
             <div class="score">
               <div class="score-bar"><div class="fill" :style="{ width: (f.leadScore ?? 0) + '%' }" /></div>
               <span class="score-num">{{ f.leadScore ?? 0 }}</span>
             </div>
           </td>
-          <td><span class="dim-cell">{{ f.totalInbound }} / {{ f.totalOutbound }}</span></td>
+          <td v-if="visibleCols.inOutMsg"><span class="dim-cell">{{ f.totalInbound }} / {{ f.totalOutbound }}</span></td>
           <td class="action-col" @click.stop>
             <div class="row-actions">
               <button title="Mở chat" @click="$emit('open-chat', f)">💬</button>
@@ -266,16 +260,23 @@ import type { DbFriend } from '@/composables/use-friends';
 import type { DensityMode } from '@/composables/use-friends-state';
 
 interface VisibleColsMap {
-  zaloGlobalId: boolean;
-  zaloUsername: boolean;
-  lastInboundAt: boolean;
-  lastOutboundAt: boolean;
-  firstMessageAt: boolean;
-  stageEnteredAt: boolean;
+  tags?: boolean;
+  score?: boolean;
+  alias?: boolean;
+  nickLog?: boolean;
+  becameFriendAt?: boolean;
+  stuckSince?: boolean;
+  inOutMsg?: boolean;
+  zaloGlobalId?: boolean;
+  zaloUsername?: boolean;
+  lastInboundAt?: boolean;
+  lastOutboundAt?: boolean;
+  firstMessageAt?: boolean;
+  stageEnteredAt?: boolean;
   // Phase 2 derived
-  silent: boolean;
-  replyRate: boolean;
-  healthBars: boolean;
+  silent?: boolean;
+  replyRate?: boolean;
+  healthBars?: boolean;
 }
 
 type SortBy = 'recent' | 'score-desc' | 'score-asc' | 'stuck';

@@ -589,7 +589,27 @@
           </template>
 
           <tr v-if="!loading && !contacts.length">
-            <td :colspan="totalColumnsCount" class="empty-state">Không tìm thấy KH nào khớp bộ lọc.</td>
+            <td :colspan="totalColumnsCount" class="empty-state">
+              <div class="contacts-empty-box">
+                <div class="empty-icon-circle">
+                  <UserPlus :size="30" :stroke-width="1.75" />
+                </div>
+                <div class="empty-title">
+                  {{ hasAnyFilter ? 'Không tìm thấy khách hàng nào khớp bộ lọc' : 'Chưa có dữ liệu khách hàng' }}
+                </div>
+                <div class="empty-desc">
+                  {{ hasAnyFilter ? 'Thử thay đổi từ khoá tìm kiếm hoặc đặt lại các bộ lọc đang chọn.' : 'Bắt đầu thêm khách hàng mới hoặc đồng bộ bạn bè từ nick Zalo để quản lý.' }}
+                </div>
+                <div class="empty-actions">
+                  <button v-if="hasAnyFilter" class="btn btn-secondary" @click="clearAllFilters">
+                    <RotateCcw :size="14" /> Đặt lại bộ lọc
+                  </button>
+                  <button class="btn btn-primary" @click="openCreate">
+                    <Plus :size="14" /> Thêm Khách Hàng
+                  </button>
+                </div>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -606,11 +626,19 @@
     </aside>
     </div><!-- /.dual-pane -->
 
-    <!-- Pagination -->
-    <div class="pagination">
-      <button class="btn" :disabled="pagination.page <= 1" @click="changePage(pagination.page - 1)">← Trước</button>
-      <span class="page-info">Trang {{ pagination.page }} / {{ totalPages }}</span>
-      <button class="btn" :disabled="pagination.page >= totalPages" @click="changePage(pagination.page + 1)">Sau →</button>
+    <!-- Pagination (đồng bộ chuẩn pill-numbered từ FriendsView) -->
+    <div class="pag">
+      <span>{{ pagFrom }}–{{ pagTo }} / {{ total }}</span>
+      <div class="spacer-flex" />
+      <span>Trang:</span>
+      <button :disabled="pagination.page <= 1" @click="changePage(pagination.page - 1)">« Trước</button>
+      <button
+        v-for="p in visiblePages"
+        :key="p"
+        :class="{ primary: p === pagination.page }"
+        @click="changePage(p)"
+      >{{ p }}</button>
+      <button :disabled="pagination.page >= totalPages" @click="changePage(pagination.page + 1)">Sau »</button>
     </div>
 
     <!-- Dialogs -->
@@ -666,6 +694,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { UserPlus, Plus, RotateCcw } from 'lucide-vue-next';
 import ContactDetailPanel from '@/components/contacts/ContactDetailPanel.vue';
 import CustomerProfileDialog from '@/components/contacts/CustomerProfileDialog.vue';
 import PrivateBlur from '@/components/privacy/PrivateBlur.vue';
@@ -971,6 +1000,18 @@ function debouncedFetch() {
 }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pagination.limit)));
+const pagFrom = computed(() => {
+  if (total.value === 0) return 0;
+  return (pagination.page - 1) * pagination.limit + 1;
+});
+const pagTo = computed(() => Math.min(pagination.page * pagination.limit, total.value));
+const visiblePages = computed<number[]>(() => {
+  const tot = totalPages.value;
+  const cur = pagination.page;
+  const out = new Set<number>([1, tot, cur - 1, cur, cur + 1]);
+  return [...out].filter((p) => p >= 1 && p <= tot).sort((a, b) => a - b);
+});
+
 function changePage(p: number) {
   pagination.page = p;
   fetchContacts();
@@ -2255,15 +2296,104 @@ watch(
 
 .empty-state {
   text-align: center;
-  padding: 38px;
+  padding: 16px;
   color: var(--smax-grey-700);
-  font-style: italic;
 }
 
-.pagination {
-  display: flex; align-items: center; justify-content: center; gap: 11px;
-  margin-top: 13px;
-  font-size: 13px; color: var(--smax-grey-700);
+.contacts-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px;
+}
+
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand-soft, #fff1f2);
+  color: var(--brand, #e11d48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.08);
+}
+
+.empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink, #1e293b);
+  margin-bottom: 6px;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: var(--ink-muted, #64748b);
+  max-width: 440px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-secondary {
+  background: var(--surface, #fff);
+  color: var(--ink, #334155);
+  border: 1px solid var(--line, #cbd5e1);
+}
+.btn-secondary:hover {
+  background: var(--surface-2, #f8fafc);
+  border-color: var(--ink-muted, #94a3b8);
+}
+
+.spacer-flex {
+  flex: 1;
+}
+
+.pag {
+  padding: 10px 18px;
+  background: var(--surface, #fff);
+  border-top: 1px solid var(--line, #e2e8f0);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2, #475569);
+  margin-top: 0;
+}
+
+.pag button {
+  padding: 5px 11px;
+  border: 1px solid var(--line, #e2e8f0);
+  background: var(--surface, #fff);
+  border-radius: var(--r-sm, 6px);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2, #475569);
+  font-family: inherit;
+  transition: all 0.12s ease;
+}
+
+.pag button:hover:not(:disabled) {
+  background: var(--surface-3, #f1f5f9);
+}
+
+.pag button.primary {
+  background: var(--brand, #e11d48);
+  color: #fff;
+  border-color: var(--brand, #e11d48);
+}
+
+.pag button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 

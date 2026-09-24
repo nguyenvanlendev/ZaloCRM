@@ -10,10 +10,10 @@
       <div class="hero-right" v-if="canCreateUser">
         <!-- 2026-06-07 anh chốt: DUY NHẤT 1 kênh tạo user qua Zalo (bỏ "Tạo nhanh"). -->
         <button class="btn-secondary" @click="openCreateQuickDialog" title="Tạo nhanh không qua Zalo (tự quản lý mật khẩu)" style="margin-right: 8px;">
-          <span class="btn-icon">⚡</span> Tạo nhanh
+          <Zap :size="13" :stroke-width="2.2" class="btn-icon" /> Tạo nhanh
         </button>
         <button class="btn-primary" @click="openCreateWithZaloDialog" title="Tạo nhân viên gộp Zalo handshake — tự gửi tin login qua Zalo">
-          <span class="btn-icon">＋</span> Thêm nhân viên
+          <Plus :size="13" :stroke-width="2.2" class="btn-icon" /> Thêm nhân viên
         </button>
       </div>
     </header>
@@ -40,7 +40,7 @@
     <!-- Filter bar -->
     <div class="at-toolbar" v-if="!loading && store.users.length > 0">
       <div class="search-box at-search">
-        <span class="search-icon">🔍</span>
+        <Search :size="14" :stroke-width="2" class="search-icon" />
         <input v-model="searchQ" placeholder="Tìm tên / SĐT / email..." @input="applyFilter" />
         <button v-if="searchQ" class="search-clear" @click="searchQ = ''; applyFilter()">×</button>
       </div>
@@ -140,7 +140,7 @@
             <th class="th-role">Chức vụ</th>
             <th class="th-group">Nhóm quyền</th>
             <th class="th-internal">🏠 Liên lạc nội bộ</th>
-            <th class="th-onboarding">🎯 Onboarding</th>
+            <th class="th-onboarding"><Target :size="13" :stroke-width="2" style="vertical-align: -2px; margin-right: 3px;" />Onboarding</th>
             <th class="th-status">Trạng thái</th>
             <th class="th-actions"></th>
           </tr>
@@ -280,8 +280,10 @@
                 class="at-chip"
                 :class="onboardingChipClass(u.onboarding)"
                 :title="onboardingTooltip(u.onboarding)"
+                style="display: inline-flex; align-items: center; gap: 4px;"
               >
-                {{ onboardingIcon(u.onboarding) }} {{ u.onboarding.completedCount }}/{{ u.onboarding.totalCount }}
+                <component :is="onboardingIconComponent(u.onboarding)" :size="12" :stroke-width="2" />
+                {{ u.onboarding.completedCount }}/{{ u.onboarding.totalCount }}
               </span>
               <span v-else class="at-empty">—</span>
             </td>
@@ -328,6 +330,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+import { Zap, Plus, Search, CheckCircle2, Lock, Target } from 'lucide-vue-next';
 import {
   useRbacStore,
   type RbacUser,
@@ -598,10 +601,10 @@ function onboardingChipClass(s: OnboardingSummary): string {
   if (s.percent >= 50) return 'chip-onboarding-progress';
   return 'chip-onboarding-pending';
 }
-function onboardingIcon(s: OnboardingSummary): string {
-  if (s.percent === 100) return '✅';
-  if (s.changePassword === false) return '🔒'; // ưu tiên cảnh báo chưa đổi pw
-  return '🎯';
+function onboardingIconComponent(s: OnboardingSummary) {
+  if (s.percent === 100) return CheckCircle2;
+  if (s.changePassword === false) return Lock;
+  return Target;
 }
 const STEP_LABEL_VI: Record<string, string> = {
   change_password: 'Đổi mật khẩu',

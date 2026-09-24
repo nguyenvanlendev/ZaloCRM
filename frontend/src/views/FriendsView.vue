@@ -212,37 +212,57 @@ const DENSITY_OPTIONS: { value: DensityMode; label: string }[] = [
   { value: 'detailed', label: 'Rộng' },
 ];
 
-// ─── Column toggle (Tier 1 default vs Tier 2 optional) ───
-// Tier 1: KB từ ngày, Đình trệ, Auto tag — luôn hiện, không toggle được (subheader disable)
+// ─── Column toggle (Tier 1 core vs Tier 2 optional) ───
+// Tier 1: Khách hàng, Nick chăm, Trạng thái KB, Trạng thái KH, Tương tác cuối — luôn hiển thị
 const DEFAULT_COLUMNS = [
-  { key: 'becameFriendAt', label: '🕒 KB từ ngày',  hint: 'Ngày trở thành bạn bè trên Zalo' },
-  { key: 'stuckSince',     label: '⚠ Đình trệ',    hint: 'KH bị cron flag stuck do không tương tác' },
-  { key: 'autoTags',       label: '🤖 Auto tag',    hint: 'System auto: active / stuck / cold / ready ...' },
+  { key: 'customer',     label: '👤 Khách hàng',     hint: 'Tên, avatar, SĐT, UID' },
+  { key: 'nickCare',     label: '💼 Nick chăm',      hint: 'Nick Zalo phụ trách' },
+  { key: 'kbStatus',     label: '🤝 Trạng thái KB',  hint: 'Bạn bè / Chưa kết bạn / Đang chờ' },
+  { key: 'crmStatus',    label: '🎯 Trạng thái KH',  hint: 'Tiềm năng / Nóng / Chốt' },
+  { key: 'lastInteract', label: '⚡ Tương tác cuối', hint: 'Thời gian nhắn tin gần nhất' },
 ] as const;
 
 // Tier 2: optional, toggle qua menu, persist localStorage
 const OPTIONAL_COLUMNS = [
-  { key: 'zaloGlobalId',  label: '🌐 Global ID',         hint: 'Zalo global identity, cross-nick' },
-  { key: 'zaloUsername',  label: '@ Username',           hint: 'Zalo handle (@t_abc...)' },
-  { key: 'lastInboundAt', label: '📥 KH nhắn cuối',      hint: 'Tách riêng inbound (tin từ KH)' },
-  { key: 'lastOutboundAt',label: '📤 Sale nhắn cuối',    hint: 'Tách riêng outbound (tin từ sale)' },
-  { key: 'firstMessageAt',label: '💬 First message',     hint: 'Mở chat 1-1 lần đầu' },
-  { key: 'stageEnteredAt',label: '⏱ Stage từ',           hint: 'Vào trạng thái KH hiện tại lúc nào' },
-  // Phase 2 — Derived cols (tính từ field có sẵn)
-  { key: 'silent',        label: '🔇 Silent',            hint: 'Số ngày KH không nhắn (KH cold tail)' },
-  { key: 'replyRate',     label: '📨 Reply rate',        hint: 'Tỷ lệ outbound/inbound — sale có chăm đủ không' },
-  { key: 'healthBars',    label: '🌡 Health bars',       hint: 'Score breakdown 4-dim mini bars (engagement/intent/fit/velocity)' },
+  { key: 'tags',           label: '🏷 Tag (Auto & CRM)',  hint: 'Gộp Auto tag và Tag CRM' },
+  { key: 'score',          label: '⭐ Score',              hint: 'Điểm tiềm năng KH' },
+  { key: 'alias',          label: '✏ Gợi nhớ / Alias',     hint: 'Tên gợi nhớ trong nick Zalo' },
+  { key: 'nickLog',        label: '📋 Nick log',           hint: 'Số lượng nick có nhật ký' },
+  { key: 'becameFriendAt', label: '🕒 KB từ ngày',         hint: 'Ngày trở thành bạn bè trên Zalo' },
+  { key: 'stuckSince',     label: '⚠ Đình trệ',           hint: 'Cảnh báo đình trệ tương tác' },
+  { key: 'inOutMsg',       label: '💬 Tin (in/out)',       hint: 'Số tin nhắn đến/đi' },
+  { key: 'zaloGlobalId',   label: '🌐 Global ID',          hint: 'Zalo global identity, cross-nick' },
+  { key: 'zaloUsername',   label: '@ Username',            hint: 'Zalo handle (@t_abc...)' },
+  { key: 'lastInboundAt',  label: '📥 KH nhắn cuối',       hint: 'Tách riêng inbound (tin từ KH)' },
+  { key: 'lastOutboundAt', label: '📤 Sale nhắn cuối',     hint: 'Tách riêng outbound (tin từ sale)' },
+  { key: 'firstMessageAt', label: '💬 First message',      hint: 'Mở chat 1-1 lần đầu' },
+  { key: 'stageEnteredAt', label: '⏱ Stage từ',           hint: 'Vào trạng thái KH hiện tại lúc nào' },
+  { key: 'silent',         label: '🔇 Silent',            hint: 'Số ngày KH không nhắn' },
+  { key: 'replyRate',      label: '📨 Reply rate',         hint: 'Tỷ lệ outbound/inbound' },
+  { key: 'healthBars',     label: '🌡 Health bars',        hint: 'Score 4 chiều (engage/intent/fit/velocity)' },
 ] as const;
 
 type OptionalColKey = (typeof OPTIONAL_COLUMNS)[number]['key'];
 
-const LS_KEY_COLS = 'friendsview.visibleCols.v1';
+const LS_KEY_COLS = 'friendsview.visibleCols.v3';
 function loadVisibleCols(): Record<OptionalColKey, boolean> {
   const def: Record<OptionalColKey, boolean> = {
-    zaloGlobalId: false, zaloUsername: false,
-    lastInboundAt: false, lastOutboundAt: false,
-    firstMessageAt: false, stageEnteredAt: false,
-    silent: false, replyRate: false, healthBars: false,
+    tags: true,
+    score: true,
+    alias: false,
+    nickLog: false,
+    becameFriendAt: false,
+    stuckSince: false,
+    inOutMsg: false,
+    zaloGlobalId: false,
+    zaloUsername: false,
+    lastInboundAt: false,
+    lastOutboundAt: false,
+    firstMessageAt: false,
+    stageEnteredAt: false,
+    silent: false,
+    replyRate: false,
+    healthBars: false,
   };
   try {
     const raw = localStorage.getItem(LS_KEY_COLS);

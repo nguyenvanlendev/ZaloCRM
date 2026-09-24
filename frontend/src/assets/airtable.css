@@ -54,10 +54,10 @@
   --at-on-primary: #ffffff;
   --at-on-dark: #ffffff;
 
-  /* Radius */
+  /* Radius (Linear-grade: sm 6px, md 9px, lg 12px) */
   --at-r-xs: 2px;
   --at-r-sm: 6px;
-  --at-r-md: 10px;
+  --at-r-md: 9px;
   --at-r-lg: 12px;
   --at-r-pill: 9999px;
 
@@ -374,7 +374,7 @@
 .at-kpi-tile {
   background: var(--at-canvas);
   border: 1px solid var(--at-hairline);
-  border-radius: var(--at-r-lg);
+  border-radius: var(--at-r-md, 9px);
   padding: 14px 16px;
 }
 .at-kpi-label {

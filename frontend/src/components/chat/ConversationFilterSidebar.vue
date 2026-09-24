@@ -440,6 +440,9 @@
       <!-- ══════ BODY SCROLL ══════ -->
       <div class="sb-body">
 
+        <!-- ════ NHÓM 1: PHÂN LOẠI KHÁCH HÀNG ════ -->
+        <div class="sb-group-header">Phân loại khách hàng</div>
+
         <!-- 🏷 TAG -->
         <section class="section" :class="{ collapsed: !sectionsOpen.tag }">
           <header class="section-header" :title="TIPS.tag" tabindex="0" role="button" :aria-expanded="sectionsOpen.tag" @click="toggleSection('tag')" @keydown.enter.prevent="toggleSection('tag')" @keydown.space.prevent="toggleSection('tag')">
@@ -669,6 +672,9 @@
           </div>
         </section>
 
+        <!-- ════ NHÓM 2: VẬN HÀNH & SỰ KIỆN ════ -->
+        <div class="sb-group-header">Vận hành &amp; Sự kiện</div>
+
         <!-- 📅 SỰ KIỆN -->
         <section class="section" :class="{ collapsed: !sectionsOpen.event }">
           <header class="section-header" :title="TIPS.event" tabindex="0" role="button" :aria-expanded="sectionsOpen.event" @click="toggleSection('event')" @keydown.enter.prevent="toggleSection('event')" @keydown.space.prevent="toggleSection('event')">
@@ -742,48 +748,39 @@
           </div>
         </section>
 
-        <!-- TIER 2: HỒ SƠ KH -->
-        <section class="section collapsed">
-          <header class="section-header" title="Lọc theo thông tin hồ sơ KH (sắp ra mắt)" tabindex="0" role="button" aria-expanded="false">
-            <div class="left"><span class="emoji"><UserCircleIcon :size="14" :stroke-width="2" /></span>Hồ sơ KH</div>
+        <!-- MỞ RỘNG (SẮP RA MẮT) -->
+        <section class="section" :class="{ collapsed: !sectionsOpenUpcoming }">
+          <header
+            class="section-header"
+            title="Các bộ lọc nâng cao sắp ra mắt (Hồ sơ KH, Nguồn, AI...)"
+            tabindex="0"
+            role="button"
+            :aria-expanded="sectionsOpenUpcoming"
+            @click="sectionsOpenUpcoming = !sectionsOpenUpcoming"
+          >
+            <div class="left">
+              <span class="emoji"><SparklesIcon :size="14" :stroke-width="2" /></span>
+              Bộ lọc nâng cao
+            </div>
             <div class="right">
-              <span class="count-badge zero">0</span>
+              <span class="defer-tag">sắp có</span>
               <span class="chevron"><ChevronDownIcon :size="14" :stroke-width="2" /></span>
             </div>
           </header>
-        </section>
-
-        <!-- TIER 2: NGUỒN -->
-        <section class="section collapsed">
-          <header class="section-header" title="Lọc theo nguồn KH đến từ đâu (sắp ra mắt)" tabindex="0" role="button" aria-expanded="false">
-            <div class="left"><span class="emoji"><MegaphoneIcon :size="14" :stroke-width="2" /></span>Nguồn khách hàng</div>
-            <div class="right">
-              <span class="count-badge zero">0</span>
-              <span class="chevron"><ChevronDownIcon :size="14" :stroke-width="2" /></span>
+          <div v-show="sectionsOpenUpcoming" class="section-body sub-upcoming-list">
+            <div class="upcoming-item" title="Lọc theo thông tin hồ sơ KH — sắp ra mắt">
+              <UserCircleIcon :size="14" :stroke-width="2" /> Hồ sơ KH <span class="upcoming-dot">· sắp có</span>
             </div>
-          </header>
-        </section>
-
-        <!-- TIER 3: BUSINESS (defer) -->
-        <section class="section collapsed disabled">
-          <header class="section-header" title="Lọc theo giá trị đơn hàng — chờ tích hợp hoá đơn">
-            <div class="left"><span class="emoji"><BriefcaseIcon :size="14" :stroke-width="2" /></span>Giá trị kinh doanh</div>
-            <div class="right">
-              <span class="defer-tag">sắp ra</span>
-              <span class="chevron"><ChevronDownIcon :size="14" :stroke-width="2" /></span>
+            <div class="upcoming-item" title="Lọc theo nguồn KH đến từ đâu — sắp ra mắt">
+              <MegaphoneIcon :size="14" :stroke-width="2" /> Nguồn khách hàng <span class="upcoming-dot">· sắp có</span>
             </div>
-          </header>
-        </section>
-
-        <!-- TIER 3: AI SIGNAL (defer) -->
-        <section class="section collapsed disabled">
-          <header class="section-header" title="Lọc theo tín hiệu do AI phân tích — sắp ra mắt">
-            <div class="left"><span class="emoji"><BotIcon :size="14" :stroke-width="2" /></span>Tín hiệu AI</div>
-            <div class="right">
-              <span class="defer-tag">sắp ra</span>
-              <span class="chevron"><ChevronDownIcon :size="14" :stroke-width="2" /></span>
+            <div class="upcoming-item" title="Lọc theo giá trị đơn hàng — chờ tích hợp hoá đơn">
+              <BriefcaseIcon :size="14" :stroke-width="2" /> Giá trị kinh doanh <span class="upcoming-dot">· sắp có</span>
             </div>
-          </header>
+            <div class="upcoming-item" title="Lọc theo tín hiệu do AI phân tích — sắp ra mắt">
+              <BotIcon :size="14" :stroke-width="2" /> Tín hiệu AI <span class="upcoming-dot">· sắp có</span>
+            </div>
+          </div>
         </section>
 
       </div>
@@ -843,6 +840,7 @@ import {
   Cake as CakeIcon,
   Phone as PhoneIcon,
   AlertTriangle as AlertTriangleIcon,
+  Sparkles as SparklesIcon,
   // 2026-06-09 — Nhóm lọc "Tin nhắn" (user vs bot)
   Inbox as InboxIcon,
   MailQuestion as MailQuestionIcon,
@@ -1019,6 +1017,7 @@ function toggleSection(k: SectionKey) {
   sectionsOpen[k] = !sectionsOpen[k];
   localStorage.setItem(`chat-sidebar.section.${k}`, sectionsOpen[k] ? '1' : '0');
 }
+const sectionsOpenUpcoming = ref(false);
 
 // ─── Workspace ───────────────────────────────────────────
 const workspaceName = computed(() => props.workspaceName || 'Workspace');
@@ -1951,12 +1950,43 @@ watch(
 .saved-chip.active { background: var(--brand); color: white; }
 .saved-chip:hover:not(.active) { border-color: #D4D6DB; }
 .saved-chip.add { background: transparent; color: var(--brand); border: 1px dashed #D4D6DB; }
+.saved-chip.add:hover { background: var(--brand-soft, #fff1f2); border-color: var(--brand); }
 .saved-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
 /* ── Body scroll ── */
 .sb-body { flex: 1; overflow-y: auto; padding: 4px 0; min-height: 0; }
 .sb-body::-webkit-scrollbar { width: 6px; }
 .sb-body::-webkit-scrollbar-thumb { background: #D4D6DB; border-radius: 3px; }
+
+.sb-group-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b98a5;
+  padding: 12px 16px 6px;
+  background: #FAFAFC;
+  user-select: none;
+}
+.sub-upcoming-list {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 4px 0;
+}
+.upcoming-dot {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: #cbd5e1;
+}
 
 /* ── Section ── */
 .section {
@@ -1967,7 +1997,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 10px 16px;
   cursor: pointer;
   user-select: none;
   font-family: inherit;
