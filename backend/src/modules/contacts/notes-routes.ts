@@ -16,7 +16,7 @@ import { authMiddleware } from '../auth/auth-middleware.js';
 import { logger } from '../../shared/utils/logger.js';
 import { parseAppointmentFromText } from '../ai/ai-service.js';
 import { assertContactVisible, attachContactCollaboratorByUser } from './contact-scope.js';
-import { requireGrant, requireAnyGrant } from '../rbac/rbac-middleware.js';
+import { requireGrant } from '../rbac/rbac-middleware.js';
 
 const NOTE_INCLUDE = {
   author:    { select: { id: true, fullName: true, email: true } },
@@ -66,7 +66,7 @@ export async function notesRoutes(app: FastifyInstance): Promise<void> {
 
   // ── POST /api/v1/contacts/:contactId/notes ────────────────────────────────
   app.post('/api/v1/contacts/:contactId/notes', {
-    preHandler: requireAnyGrant(['contact', 'create'], ['contact', 'edit']),
+    preHandler: requireGrant('contact', 'access'),
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user!;
