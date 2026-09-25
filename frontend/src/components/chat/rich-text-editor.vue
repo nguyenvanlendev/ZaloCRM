@@ -134,6 +134,18 @@
 
       <v-spacer />
 
+      <!-- 2026-09-24: Bật/tắt gõ tiếng Việt thông minh (Laban Key style autocomplete) -->
+      <button
+        type="button"
+        class="ime-toggle-btn mr-1"
+        :class="{ active: ime.isEnabled.value }"
+        :title="ime.isEnabled.value ? 'Gõ thông minh: ĐANG BẬT (bấm để tắt)' : 'Gõ thông minh: ĐÃ TẮT (bấm để bật)'"
+        @click="ime.toggleEnabled"
+      >
+        <SparklesIcon :size="12" :stroke-width="2" class="mr-1" />
+        <span>{{ ime.isEnabled.value ? 'Gõ nhanh ON' : 'Gõ nhanh OFF' }}</span>
+      </button>
+
       <!-- 2026-05-21: AI Format — gửi raw text trong editor cho AI, return styled payload,
            apply vào editor cho user xem trước khi bấm gửi. Chỉ hiện khi có text. -->
       <button
@@ -149,6 +161,16 @@
         <span>{{ aiFormatLoading ? 'Đang format...' : 'AI Format' }}</span>
       </button>
     </div>
+
+    <!-- Candidate Bar (Laban Key / Gboard style) -->
+    <VietnameseCandidateBar
+      :candidates="ime.candidates.value"
+      :selected-index="ime.selectedIndex.value"
+      :is-next-word="ime.isNextWord.value"
+      :enabled="ime.isEnabled.value"
+      @select="onSelectCandidate"
+      @toggle="ime.toggleEnabled"
+    />
 
     <!-- Editor content -->
     <EditorContent :editor="editor" class="editor-content" />
@@ -191,6 +213,9 @@ import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion
 import { api } from '@/api/index';
 import { useToast } from '@/composables/use-toast';
 import { useGroups } from '@/composables/use-groups';
+import { useVietnameseIme, checkShorthandTrailingSpace, removeAccents } from '@/composables/use-vietnamese-ime';
+import { CRM_SHORTHANDS } from '@/data/vietnamese-ime/crm-shorthands';
+import VietnameseCandidateBar from '@/components/chat/VietnameseCandidateBar.vue';
 
 // Lucide icons (anh chốt 2026-05-22 — bộ icon đồng bộ thay MDI)
 import {
@@ -296,6 +321,80 @@ const emit = defineEmits<{
 }>();
 
 const isFocused = ref(false);
+
+// ── Vietnamese IME Autocomplete & Next-Word Prediction ─────────────────────
+const ime = useVietnameseIme();
+
+function updateImeSuggestions() {
+  if (!editor.value || !ime.isEnabled.value) {
+    ime.clear();
+    return;
+  }
+  if (mentionOpen.value) {
+    ime.clear();
+    return;
+  }
+
+  const { state } = editor.value;
+  const { selection } = state;
+  const { from, to } = selection;
+  if (from !== to) {
+    ime.clear();
+    return;
+  }
+
+  const resolved = state.doc.resolve(from);
+  const textBefore = resolved.parent.textBetween(0, resolved.parentOffset, '\n', '\0');
+
+  // Tránh xung đột với slash command "/" hoặc "@"
+  if (/(^|\s)[/@][^\s]*$/.test(textBefore)) {
+    ime.clear();
+    return;
+  }
+
+  // Tự động mở rộng từ gõ tắt khi vừa gõ phím cách (hỗ trợ cả macOS Telex, Unikey, Mobile)
+  const shorthand = checkShorthandTrailingSpace(textBefore);
+  if (shorthand) {
+    const parentStart = from - resolved.parentOffset;
+    const replaceFrom = parentStart + shorthand.startOffset;
+    const replaceTo = parentStart + shorthand.endOffset;
+    editor.value
+      .chain()
+      .focus()
+      .insertContentAt({ from: replaceFrom, to: replaceTo }, shorthand.replacement + ' ')
+      .run();
+    return;
+  }
+
+  ime.onTextUpdate(textBefore);
+}
+
+function onSelectCandidate(word: string) {
+  if (!editor.value) return;
+  const ctx = ime.activeContext.value;
+  if (!ctx) return;
+
+  const { state } = editor.value;
+  const { from } = state.selection;
+  const resolved = state.doc.resolve(from);
+  const parentStart = from - resolved.parentOffset;
+
+  if (!ctx.hasTrailingSpace && ctx.currentWord) {
+    const replaceFrom = parentStart + ctx.startOffset;
+    const replaceTo = parentStart + ctx.endOffset;
+    editor.value
+      .chain()
+      .focus()
+      .insertContentAt({ from: replaceFrom, to: replaceTo }, word + ' ')
+      .run();
+  } else {
+    editor.value
+      .chain()
+      .focus()
+      .insertContent(word + ' ')
+      .run();
+  }
+}
 
 // ── @mention thành viên nhóm 2026-06-24 ──────────────────────────────────
 // Member shape thực tế từ GET /groups/:id/members: { uid, displayName?, name?, avatar? }.
@@ -447,6 +546,40 @@ const editor = useEditor({
           return true; // consume — không để Tiptap dời con trỏ / gửi tin
         }
       }
+
+      // Vietnamese IME candidate bar keyboard shortcuts
+      if (ime.isEnabled.value && ime.candidates.value.length > 0) {
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          onSelectCandidate(ime.candidates.value[ime.selectedIndex.value || 0]);
+          return true;
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          ime.clear();
+          return true;
+        }
+        // Phím Space: Nếu đang có từ gõ tắt chuẩn CSKH, tự động mở rộng
+        if (
+          event.key === ' ' &&
+          !event.shiftKey &&
+          !event.ctrlKey &&
+          !event.altKey &&
+          !ime.isNextWord.value
+        ) {
+          const ctx = ime.activeContext.value;
+          if (ctx && ctx.currentWord) {
+            const raw = ctx.currentWord.toLowerCase();
+            const unaccented = removeAccents(raw);
+            const replacement = CRM_SHORTHANDS[raw] || CRM_SHORTHANDS[unaccented];
+            if (replacement) {
+              event.preventDefault();
+              onSelectCandidate(replacement);
+              return true;
+            }
+          }
+        }
+      }
       if (event.key === 'Enter') {
         // Shift+Enter = LUÔN xuống dòng (soft break) ngay trong ô đang gõ, KHÔNG nhảy
         // focus sang ô khác. Tự chèn hardBreak + consume event (return true) để Tiptap/
@@ -458,6 +591,15 @@ const editor = useEditor({
         }
         // Enter thường: ô chat (submitOnEnter) → gửi. Block editor → để Tiptap xuống dòng.
         if (props.submitOnEnter) {
+          const ctx = ime.activeContext.value;
+          if (ctx && !ctx.hasTrailingSpace && ctx.currentWord) {
+            const raw = ctx.currentWord.toLowerCase();
+            const unaccented = removeAccents(raw);
+            const replacement = CRM_SHORTHANDS[raw] || CRM_SHORTHANDS[unaccented];
+            if (replacement) {
+              onSelectCandidate(replacement);
+            }
+          }
           event.preventDefault();
           emit('submit');
           return true;
@@ -489,9 +631,19 @@ const editor = useEditor({
     // với watch modelValue ở trên (tránh vòng lặp setContent). getText() nối '\n\n' gây lệch.
     emit('update:modelValue', getRichPayload().text);
     emit('typing');
+    updateImeSuggestions();
   },
-  onFocus() { isFocused.value = true; },
-  onBlur() { isFocused.value = false; },
+  onSelectionUpdate() {
+    updateImeSuggestions();
+  },
+  onFocus() {
+    isFocused.value = true;
+    updateImeSuggestions();
+  },
+  onBlur() {
+    isFocused.value = false;
+    ime.clear();
+  },
 });
 
 // Sync external modelValue changes into editor.
@@ -560,6 +712,7 @@ const hasAnySize = computed<boolean>(() => currentSizeValue.value !== null);
 
 function clear() {
   editor.value?.commands.clearContent(true);
+  ime.clear();
 }
 
 function focus(position?: 'start' | 'end' | number) {
@@ -929,6 +1082,41 @@ onBeforeUnmount(() => { editor.value?.destroy(); });
 }
 .ai-format-btn.loading {
   opacity: 0.8;
+}
+
+/* IME toggle button */
+.ime-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.ime-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #334155;
+}
+:global(.dark) .ime-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+}
+.ime-toggle-btn.active {
+  background: rgba(219, 52, 46, 0.08);
+  border-color: rgba(219, 52, 46, 0.3);
+  color: #db342e;
+}
+:global(.dark) .ime-toggle-btn.active {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
 }
 
 /* Editor content */
